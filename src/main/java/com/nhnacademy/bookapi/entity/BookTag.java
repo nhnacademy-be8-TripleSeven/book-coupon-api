@@ -12,4 +12,7 @@ public class BookTag {
     @ManyToOne
     private Tag tag;
 
+    @ManyToOne
+    private Book book;
+
 }
