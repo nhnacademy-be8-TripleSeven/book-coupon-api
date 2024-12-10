@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Getter
@@ -17,11 +18,12 @@ public class Coupon {
     private Long id;
 
     @Setter
+    @Column(nullable = false)
     private String name;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @Setter
-    @JoinColumn(name = "coupon_policy_id")
+    @JoinColumn(name = "coupon_policy_id", nullable = false)
     private CouponPolicy couponPolicy;
 
     @Setter
@@ -33,13 +35,10 @@ public class Coupon {
     @Setter
     private LocalDate couponExpiryDate;
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private CouponStatus couponStatus;
 
     @Setter
-    private LocalDate couponUseAt;
-
-    public enum CouponStatus {
-        NOTUSED, USED, EXPIRED
-    }
+    private LocalDateTime couponUseAt;
 }

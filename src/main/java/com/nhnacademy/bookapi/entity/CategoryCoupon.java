@@ -16,12 +16,12 @@ public class CategoryCoupon {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "coupon_id")
+    @JoinColumn(name = "coupon_id", nullable = false)
     @Setter
     private Coupon coupon;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id", nullable = false)
     @Setter
     private Category category;
 
