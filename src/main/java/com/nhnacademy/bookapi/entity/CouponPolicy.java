@@ -1,13 +1,12 @@
 package com.nhnacademy.bookapi.entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
@@ -19,20 +18,23 @@ public class CouponPolicy {
     private Long id;
 
     @Setter
+    @Column(unique = true, nullable = false)
     private String name;
 
     @Setter
     private Long couponMinAmount;
 
     @Setter
-    private Double couponDiscountRate;
+    private Long couponMaxAmount;
+
+    @Setter
+    @Column(precision = 4, scale = 2)
+    private BigDecimal couponDiscountRate;
 
     @Setter
     private Long couponDiscountAmount;
 
     @Setter
-    private Long couponMaxAmount;
-
-    @Setter
+    @Column(nullable = false)
     private Integer couponValidTime;
 }
