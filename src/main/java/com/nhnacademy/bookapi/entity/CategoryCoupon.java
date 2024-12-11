@@ -15,14 +15,17 @@ public class CategoryCoupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "coupon_id", nullable = false)
     @Setter
     private Coupon coupon;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "category_id", nullable = false)
     @Setter
     private Category category;
 
+    public void setTestId(Long id) {
+        this.id = id;
+    }
 }
