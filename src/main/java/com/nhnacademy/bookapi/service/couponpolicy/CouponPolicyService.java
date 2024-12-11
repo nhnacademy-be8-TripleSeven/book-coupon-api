@@ -7,6 +7,7 @@ import com.nhnacademy.bookapi.entity.CouponPolicy;
 import java.util.List;
 
 public interface CouponPolicyService {
+
     CouponPolicyResponseDTO createCouponPolicy(CouponPolicyRequestDTO request);
 
     CouponPolicyResponseDTO updateCouponPolicy(Long id, CouponPolicyRequestDTO request);
@@ -18,4 +19,5 @@ public interface CouponPolicyService {
     CouponPolicyResponseDTO getCouponPolicyById(Long id);
 
     CouponPolicyResponseDTO getCouponPolicyByName(String name);
+
 }

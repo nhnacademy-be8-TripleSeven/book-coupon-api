@@ -41,4 +41,8 @@ public class Coupon {
 
     @Setter
     private LocalDateTime couponUseAt;
+
+    public void setTestId(Long id) {
+        this.id = id;
+    }
 }
