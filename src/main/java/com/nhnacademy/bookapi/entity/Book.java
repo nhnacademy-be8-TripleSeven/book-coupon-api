@@ -27,8 +27,7 @@ public class Book {
     private String title;
 
     @Setter
-    @Lob //TEXT
-    @Column(nullable = true)
+    @Column(columnDefinition = "TEXT", nullable = true)
     private String description;
 
     @Setter
