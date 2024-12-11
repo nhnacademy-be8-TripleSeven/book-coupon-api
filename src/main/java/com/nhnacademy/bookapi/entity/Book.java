@@ -26,7 +26,17 @@ public class Book {
     private int stock;
     private int page;
 
-    @ManyToOne
-    private Publisher publisher;
+//    @ManyToOne
+//    private Publisher publisher;
 
+    public Book(String title, String description, LocalDate publishDate, int regularPrice, int salePrice, String isbn3, int stock, int page) {
+        this.title = title;
+        this.description = description;
+        this.publishDate = publishDate;
+        this.regularPrice = regularPrice;
+        this.salePrice = salePrice;
+        this.isbn13 = isbn3;
+        this.stock = stock;
+        this.page = page;
+    }
 }
