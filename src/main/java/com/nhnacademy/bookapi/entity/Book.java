@@ -52,8 +52,13 @@ public class Book {
     @Setter
     @ManyToOne
     private Image image;
-
+  
     @Setter
     @ManyToOne
     private Publisher publisher;
+  
+    public void setTestId(Long id) {
+        this.id = id;
+    }
 }
+
