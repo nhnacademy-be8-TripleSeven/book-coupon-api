@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -22,10 +23,11 @@ public class Book {
     private long id;
 
     @Setter
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false)
     private String title;
 
     @Setter
+    @Lob //TEXT
     @Column(nullable = true)
     private String description;
 
@@ -51,12 +53,13 @@ public class Book {
     @Setter
     @ManyToOne
     private Image image;
-
+  
     @Setter
     @ManyToOne
     private Publisher publisher;
-
+  
     public void setTestId(Long id) {
         this.id = id;
     }
 }
+

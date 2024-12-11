@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
+import jakarta.persistence.OneToOne;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -19,6 +20,10 @@ public class Category {
 
     @Setter
     private String name;
+  
+    @Setter
+    @OneToOne
+    private Category parent;
 
     public void setTestId(Long id) {
         this.id = id;
