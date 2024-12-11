@@ -3,26 +3,25 @@ package com.nhnacademy.bookapi.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @Entity
-@NoArgsConstructor
 @Getter
-public class Wrappable {
+@NoArgsConstructor
+public class Likes {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
-    @MapsId
+    @ManyToOne
+    @JoinColumn(nullable = false)
     private Book book;
 
-    @Setter
     @Column(nullable = false)
-    private boolean wrappable;
+    private Long userId;
 
-    public Wrappable(Book book, boolean wrappable) {
+    public Likes(Book book, Long userId) {
         this.book = book;
-        this.wrappable = wrappable;
+        this.userId = userId;
     }
 }
