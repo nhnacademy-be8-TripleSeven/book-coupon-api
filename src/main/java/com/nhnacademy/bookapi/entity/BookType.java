@@ -22,8 +22,8 @@ public class BookType {
 
     @Setter
     @Enumerated(EnumType.STRING)
-    private Type type;
+    private Type types;
 
     @Setter
-    private int rank;
+    private int ranks;
 }
