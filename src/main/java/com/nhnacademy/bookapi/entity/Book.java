@@ -23,7 +23,7 @@ public class Book {
     private long id;
 
     @Setter
-    @Column(nullable = false, length = 150)
+    @Column(nullable = false)
     private String title;
 
     @Setter
