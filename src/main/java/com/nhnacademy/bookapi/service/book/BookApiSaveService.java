@@ -25,9 +25,6 @@ import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -132,16 +129,6 @@ public class BookApiSaveService {
         }
         
     }
-
-
-    public void getBook(String bookType) throws Exception {
-        JsonNode bookDetail = bookApiService.getBook(bookType);
-
-
-
-
-    }
-
 
 
     public void authorParseSave(String author, Book book) throws Exception {
