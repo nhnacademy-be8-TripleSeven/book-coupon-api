@@ -60,7 +60,7 @@ public class BookApiSaveService {
             Publisher publisher = new Publisher();
 
 
-            JsonNode node = bookApiService.getBook(isbn).get(0);
+            JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
             publisher.setName(book.path("publisher").asText());
             publisherRepository.save(publisher);
@@ -77,14 +77,17 @@ public class BookApiSaveService {
             saveBook.setSalePrice(book.path("priceSales").asInt());
             saveBook.setImage(imageFk);
 
-            JsonNode subInfo = node.path("subInfo");
-            saveBook.setPage(subInfo.path("itemPage").asInt());
+            if(bookDetail != null) {
+                JsonNode subInfo = bookDetail.path("subInfo");
+                saveBook.setPage(subInfo.path("itemPage").asInt());
+            }
 
-            Book bookFk = bookRepository.save(saveBook);
+            saveBookType.setRank(book.path("bestRank").asInt());
 
             //북타입 저장
             saveBookType.setType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)));
-            saveBookType.setRank(node.path("bestRank").asInt());
+
+            Book bookFk = bookRepository.save(saveBook);
             bookTypeRepository.save(saveBookType);
 
 
