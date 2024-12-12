@@ -39,7 +39,7 @@ public class CouponServiceImpl implements CouponService {
         return new BaseCouponResponseDTO(savedCoupon.getId(), savedCoupon.getName(), savedCoupon.getCouponPolicy());
     }
 
-    // 도서 쿠폰 생성 (이름, 정책, 도서 아이디)
+    // 도서 쿠폰 생성 (이름, 정책 아이디, 도서 아이디)
     @Override
     @Transactional
     public BookCouponResponseDTO createBookCoupon(BookCouponCreationRequestDTO request) {
@@ -68,7 +68,7 @@ public class CouponServiceImpl implements CouponService {
         return new BookCouponResponseDTO(savedCoupon.getId(), savedCoupon.getName(), savedCoupon.getCouponPolicy(), book.getTitle());
     }
 
-    // 카테고리 쿠폰 생성 (이름, 정책, 카테고리 아이디)
+    // 카테고리 쿠폰 생성 (이름, 정책 아이디, 카테고리 아이디)
     @Override
     @Transactional
     public CategoryCouponResponseDTO createCategoryCoupon(CategoryCouponCreationRequestDTO request) {

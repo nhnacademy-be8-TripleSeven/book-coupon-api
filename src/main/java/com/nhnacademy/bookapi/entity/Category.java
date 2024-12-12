@@ -1,11 +1,7 @@
 package com.nhnacademy.bookapi.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
-import jakarta.persistence.OneToOne;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -22,7 +18,7 @@ public class Category {
     private String name;
   
     @Setter
-    @OneToOne
+    @ManyToOne
     private Category parent;
 
     public void setTestId(Long id) {
