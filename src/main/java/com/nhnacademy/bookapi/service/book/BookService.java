@@ -1,9 +1,9 @@
 package com.nhnacademy.bookapi.service.book;
 
-import java.util.Optional;
+import com.nhnacademy.bookapi.dto.book.SearchBookDetailDTO;
 
 public interface BookService {
 
-
+    SearchBookDetailDTO searchBookDetailByBookId(Long id);
 
 }
