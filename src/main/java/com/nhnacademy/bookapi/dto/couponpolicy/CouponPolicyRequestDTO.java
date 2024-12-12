@@ -12,13 +12,13 @@ public class CouponPolicyRequestDTO {
 
     private String name;
 
-    private long couponMinAmount;
+    private Long couponMinAmount;
 
-    private long couponMaxAmount;
+    private Long couponMaxAmount;
 
     private BigDecimal couponDiscountRate;
 
-    private long couponDiscountAmount;
+    private Long couponDiscountAmount;
 
     private Integer couponValidTime;
 

@@ -1,9 +1,6 @@
 package com.nhnacademy.bookapi.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,9 +11,18 @@ import lombok.Setter;
 public class Wrappable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
+
+    @OneToOne
+    @MapsId
+    private Book book;
 
     @Setter
+    @Column(nullable = false)
     private boolean wrappable;
+
+    public Wrappable(Book book, boolean wrappable) {
+        this.book = book;
+        this.wrappable = wrappable;
+    }
 }

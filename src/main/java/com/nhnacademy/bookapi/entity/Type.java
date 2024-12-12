@@ -2,5 +2,5 @@ package com.nhnacademy.bookapi.entity;
 
 public enum Type {
 
-    ITEMNEWALL, BESTSELLER, GENERAL
+    ITEMNEWALL, BESTSELLER, ITEMNEWSPECIAL, ITEMEDITORCHOICE, BLOGBEST
 }

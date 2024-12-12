@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCategory;
 import com.nhnacademy.bookapi.entity.BookCreator;
+import com.nhnacademy.bookapi.entity.BookCreatorMap;
 import com.nhnacademy.bookapi.entity.BookImage;
 import com.nhnacademy.bookapi.entity.BookPopularity;
 import com.nhnacademy.bookapi.entity.BookType;
@@ -12,7 +13,9 @@ import com.nhnacademy.bookapi.entity.Image;
 import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
+import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
+import com.nhnacademy.bookapi.repository.BookCreatorMapRepository;
 import com.nhnacademy.bookapi.repository.BookCreatorRepository;
 import com.nhnacademy.bookapi.repository.BookImageRepository;
 import com.nhnacademy.bookapi.repository.BookPopularRepository;
@@ -22,13 +25,15 @@ import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class BookApiSaveService {
@@ -44,6 +49,7 @@ public class BookApiSaveService {
     private final PublisherRepository publisherRepository;
     private final CategoryRepository categoryRepository;
     private final BookCategoryRepository bookCategoryRepository;
+    private final BookCreatorMapRepository bookCreatorMapRepository;
 
 
 
@@ -62,8 +68,20 @@ public class BookApiSaveService {
 
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
-            publisher.setName(book.path("publisher").asText());
-            publisherRepository.save(publisher);
+            String publisherName = book.path("publisher").asText();
+
+            Publisher selectPublisher = publisherRepository.existsByName(publisherName);
+
+            if(selectPublisher == null) {
+                publisher.setName(publisherName);
+                publisherRepository.save(publisher);
+                saveBook.setPublisher(publisher);
+            }else {
+                saveBook.setPublisher(selectPublisher);
+            }
+
+
+
             image.setUrl(book.path("cover").asText());
             Image imageFk = imageRepository.save(image);
 
@@ -72,7 +90,7 @@ public class BookApiSaveService {
             saveBook.setIsbn13(isbn);
             saveBook.setPublishDate(LocalDate.now());
             saveBook.setStock(1000);
-            saveBook.setPublisher(publisher);
+
             saveBook.setRegularPrice(book.path("priceStandard").asInt());
             saveBook.setSalePrice(book.path("priceSales").asInt());
             saveBook.setImage(imageFk);
@@ -116,69 +134,92 @@ public class BookApiSaveService {
     }
 
 
-
     public void authorParseSave(String author, Book book) throws Exception {
-        List<BookCreator> bookCreators = new ArrayList<>();
+
+
+        BookCreator bookCreator = new BookCreator();
+        BookCreatorMap bookCreatorMap = new BookCreatorMap();
 
         // "지은이)", "그림)", "엮은이)", "원작)", "옮긴이)" 로 끝나는 구분자를 기준으로 분리
         String[] split = author.split("\\),");
         for (String s : split) {
             s = s.trim(); // 공백 제거
             Role role = null;
-
-            // 역할 결정
-            if (s.endsWith("지은이")) {
-                role = Role.AUTHOR;
-            } else if (s.endsWith("그림")) {
-                role = Role.ILLUSTRATOR;
-            } else if (s.endsWith("엮은이")) {
-                role = Role.EDITOR;
-            } else if (s.endsWith("원작")) {
-                role = Role.ORIGINAL_AUTHOR;
-            } else if (s.endsWith("옮긴이")) {
-                role = Role.TRANSLATOR;
+            String roleName = null;
+            if(s.contains("(") && s.contains(")")) {
+                roleName = s.substring(s.indexOf("(") + 1, s.indexOf(")")).trim();
             }
+            role = RoleMapper.getRole(roleName);
 
-            // 역할이 있는 경우
-            if (role != null) {
-                s = s.substring(0, s.lastIndexOf("(")).trim(); // 역할 제거
-            } else {
-                role = Role.AUTHOR; // 기본 역할
-            }
-
-            // 이름 분리 및 저장
-            String[] nameList = s.split(",");
+            String[] nameList = s.split(", ");
             for (String name : nameList) {
-                BookCreator bookCreator = new BookCreator();
-                bookCreator.setName(name.trim());
-                bookCreator.setRole(role);
-                bookCreator.setBook(book); // Book 객체 연결
-                bookCreators.add(bookCreator);
+                if(name.contains("(")) {
+                    name = name.substring(0, name.indexOf("(")).trim();
+                }
+                bookCreator = bookCreatorRepository.existByNameAndRole(name, role);
+                if(bookCreator == null){
+                    bookCreator = new BookCreator();
+                    bookCreator.setName(name.trim());
+                    bookCreator.setRole(role);
+                    bookCreatorMap.setBook(book);
+                    bookCreatorMap.setCreator(bookCreator);
+                    bookCreatorRepository.save(bookCreator);
+                    bookCreatorMapRepository.save(bookCreatorMap);
+                }else {
+                    bookCreatorMap.setCreator(bookCreator);
+                    bookCreatorMap.setBook(book);
+                    bookCreatorMapRepository.save(bookCreatorMap);
+                }
+
             }
+
+
+
         }
 
-        // 결과 확인 (예: 저장 또는 반환)
-        bookCreatorRepository.saveAll(bookCreators);
+
     }
 
-    private void categoryParseSave(String category, Book book) throws Exception {
 
-
+    public void categoryParseSave(String category, Book book) {
         String[] categories = category.split(">");
-        for (String s : categories) {
-            Category saveCategory = new Category();
-            BookCategory saveBookCategory = new BookCategory();
-            saveCategory.setName(s.trim());
-            categoryRepository.save(saveCategory);
-            saveBookCategory.setBook(book);
-            saveBookCategory.setCategory(saveCategory);
-            bookCategoryRepository.save(saveBookCategory);
+        Category parentCategory = null;
 
+        for (String categoryName : categories) {
+            categoryName = categoryName.trim();
+
+            // 중복 확인 및 기존 카테고리 조회
+            Optional<Category> existingCategory = categoryRepository.findByNameAndParent(categoryName, parentCategory);
+            Category saveCategory;
+
+            if (existingCategory.isPresent()) {
+                saveCategory = existingCategory.get();
+            } else {
+                saveCategory = new Category();
+                saveCategory.setName(categoryName);
+                saveCategory.setParent(parentCategory);
+                saveCategory = categoryRepository.save(saveCategory);
+            }
+
+            // 도서와 카테고리 매핑 저장
+            BookCategory bookCategory = new BookCategory();
+            bookCategory.setBook(book);
+            bookCategory.setCategory(saveCategory);
+            bookCategoryRepository.save(bookCategory);
+
+            // 부모 카테고리 갱신
+            parentCategory = saveCategory;
         }
-
-
-
     }
-
 
 }
+
+
+
+
+
+
+
+
+
+
