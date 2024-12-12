@@ -26,8 +26,11 @@ import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 import java.time.LocalDate;
 import java.util.Locale;
+import java.util.Optional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -177,26 +180,46 @@ public class BookApiSaveService {
 
     }
 
-    private void categoryParseSave(String category, Book book) throws Exception {
 
-
+    public void categoryParseSave(String category, Book book) {
         String[] categories = category.split(">");
         Category parentCategory = null;
-        for (String s : categories) {
-            Category saveCategory = new Category();
-            BookCategory saveBookCategory = new BookCategory();
-            saveCategory.setName(s.trim());
-            saveCategory.setParent(parentCategory);
-            parentCategory = categoryRepository.save(saveCategory);
-            saveBookCategory.setBook(book);
-            saveBookCategory.setCategory(saveCategory);
-            bookCategoryRepository.save(saveBookCategory);
 
+        for (String categoryName : categories) {
+            categoryName = categoryName.trim();
+
+            // 중복 확인 및 기존 카테고리 조회
+            Optional<Category> existingCategory = categoryRepository.findByNameAndParent(categoryName, parentCategory);
+            Category saveCategory;
+
+            if (existingCategory.isPresent()) {
+                saveCategory = existingCategory.get();
+            } else {
+                saveCategory = new Category();
+                saveCategory.setName(categoryName);
+                saveCategory.setParent(parentCategory);
+                saveCategory = categoryRepository.save(saveCategory);
+            }
+
+            // 도서와 카테고리 매핑 저장
+            BookCategory bookCategory = new BookCategory();
+            bookCategory.setBook(book);
+            bookCategory.setCategory(saveCategory);
+            bookCategoryRepository.save(bookCategory);
+
+            // 부모 카테고리 갱신
+            parentCategory = saveCategory;
         }
-
-
-
     }
 
-
 }
+
+
+
+
+
+
+
+
+
+

@@ -64,7 +64,7 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
 
     // 쿠폰 정책 삭제
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public void deleteCouponPolicy(Long id) {
 
         if (!couponPolicyRepository.existsById(id)) {
