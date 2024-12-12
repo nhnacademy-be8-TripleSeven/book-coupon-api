@@ -100,10 +100,10 @@ public class BookApiSaveService {
                 saveBook.setPage(subInfo.path("itemPage").asInt());
             }
 
-            saveBookType.setRank(book.path("bestRank").asInt());
+            saveBookType.setRanks(book.path("bestRank").asInt());
 
             //북타입 저장
-            saveBookType.setType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)));
+            saveBookType.setTypes(Type.valueOf(bookType.toUpperCase(Locale.ROOT)));
 
             Book bookFk = bookRepository.save(saveBook);
             bookTypeRepository.save(saveBookType);
