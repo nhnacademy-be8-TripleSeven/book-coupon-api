@@ -7,6 +7,8 @@ spring:
   application:
     name: book-coupon-api
 
+
+#ㅋㅋ
 eureka:
   client:
     fetch-registry: true
