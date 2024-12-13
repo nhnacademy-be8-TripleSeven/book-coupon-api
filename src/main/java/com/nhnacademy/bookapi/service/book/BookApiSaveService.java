@@ -1,7 +1,6 @@
 package com.nhnacademy.bookapi.service.book;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCategory;
