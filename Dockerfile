@@ -4,6 +4,7 @@ WORKDIR /app
 
 # 소스 코드 복사 및 의존성 설치
 COPY pom.xml ./
+COPY libs /app/libs
 RUN mvn dependency:go-offline
 
 # 소스 코드 복사 및 빌드
@@ -19,9 +20,3 @@ COPY --from=build /app/target/*.jar app.jar
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
-
-# 복사된 JAR 파일 포함
-COPY libs /app/libs
-
-# Maven 빌드 실행
-RUN mvn clean package -Dmaven.test.skip=true
