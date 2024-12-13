@@ -59,8 +59,6 @@
       <groupId>com.toast.java.logncrash</groupId>
       <artifactId>logncrash-logback-sdk</artifactId>
       <version>3.0.5</version>
-      <scope>system</scope>
-      <systemPath>${project.basedir}/libs/toast-logncrash-logback-sdk-3.0.5.jar</systemPath>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>

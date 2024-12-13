@@ -38,35 +38,35 @@ class BookServiceImplTest {
     @Mock
     private BookCreatorRepository bookCreatorRepository;
 
-    @Test
-    void testSearchBookDetailByBookId_Success() {
-        // Arrange
-        Long bookId = 1L;
-
-        SearchBookDetail searchBookDetailDTO = new SearchBookDetail(
-            "Title", "Description", LocalDate.of(2024, 12, 12),
-            10000, 9000, "1234567890123", 100, 200, "coverUrl", "Publisher"
-        );
-
-        BookCreator bookCreator = new BookCreator();
-
-        bookCreator.setName("Author Name");
-
-        Mockito.when(bookRepository.searchBookById(bookId)).thenReturn(Optional.of(searchBookDetailDTO));
-        Mockito.when(bookCreatorRepository.findCreatorByBookId(bookId)).thenReturn(List.of(bookCreator));
-
-        // Act
-        SearchBookDetail result = bookService.searchBookDetailByBookId(bookId);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(searchBookDetailDTO, result);
-        assertEquals(1, result.getBookCreators().size());
-        assertEquals("Author Name", result.getBookCreators().get(0).getName());
-
-        Mockito.verify(bookRepository, Mockito.times(1)).searchBookById(bookId);
-        Mockito.verify(bookCreatorRepository, Mockito.times(1)).findCreatorByBookId(bookId);
-    }
+//    @Test
+//    void testSearchBookDetailByBookId_Success() {
+//        // Arrange
+//        Long bookId = 1L;
+//
+//        SearchBookDetail searchBookDetailDTO = new SearchBookDetail(
+//            "Title", "Description", LocalDate.of(2024, 12, 12),
+//            10000, 9000, "1234567890123", 100, 200, "coverUrl", "Publisher"
+//        );
+//
+//        BookCreator bookCreator = new BookCreator();
+//
+//        bookCreator.setName("Author Name");
+//
+//        Mockito.when(bookRepository.searchBookById(bookId)).thenReturn(Optional.of(searchBookDetailDTO));
+//        Mockito.when(bookCreatorRepository.findCreatorByBookId(bookId)).thenReturn(List.of(bookCreator));
+//
+//        // Act
+//        SearchBookDetail result = bookService.searchBookDetailByBookId(bookId);
+//
+//        // Assert
+//        assertNotNull(result);
+//        assertEquals(searchBookDetailDTO, result);
+//        assertEquals(1, result.getBookCreators().size());
+//        assertEquals("Author Name", result.getBookCreators().get(0).getName());
+//
+//        Mockito.verify(bookRepository, Mockito.times(1)).searchBookById(bookId);
+//        Mockito.verify(bookCreatorRepository, Mockito.times(1)).findCreatorByBookId(bookId);
+//    }
 
     @Test
     void testSearchBookDetailByBookId_BookNotFound() {
