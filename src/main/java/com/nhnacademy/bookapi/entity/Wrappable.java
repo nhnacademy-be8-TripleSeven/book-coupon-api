@@ -11,10 +11,11 @@ import lombok.Setter;
 public class Wrappable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne
-    @MapsId
+    @JoinColumn(nullable = false, unique = true)
     private Book book;
 
     @Setter

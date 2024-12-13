@@ -6,38 +6,26 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@Getter
+@NoArgsConstructor
 public class BookTag {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Setter
     @ManyToOne
+    @JoinColumn(nullable = false)
     private Tag tag;
 
+    @Setter
     @ManyToOne
+    @JoinColumn(nullable = false)
     private Book book;
-
-    public BookTag(){}
 
     public BookTag(Book book, Tag tag) {
         this.book = book;
         this.tag = tag;
-    }
-
-    public void setTag(Tag tag) {
-        this.tag = tag;
-    }
-
-    public void setBook(Book book) {
-        this.book = book;
-    }
-
-    public Tag getTag() {
-        return this.tag;
-    }
-
-    public Book getBook() {
-        return this.book;
     }
 }

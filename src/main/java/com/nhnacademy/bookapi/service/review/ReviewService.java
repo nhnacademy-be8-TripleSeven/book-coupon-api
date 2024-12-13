@@ -1,7 +1,10 @@
 package com.nhnacademy.bookapi.service.review;
 
+import com.nhnacademy.bookapi.dto.review.ReviewRequestDto;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Review;
+import com.nhnacademy.bookapi.exception.BookNotFoundException;
+import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import org.springframework.stereotype.Service;
 
@@ -15,43 +18,23 @@ import java.util.Optional;
 public class ReviewService {
 
     private ReviewRepository reviewRepository;
+    private BookRepository bookRepository;
 
-    public ReviewService(ReviewRepository reviewRepository) {
+    public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository) {
         this.reviewRepository = reviewRepository;
+        this.bookRepository = bookRepository;
     }
 
-    public void addReview(Book book, Long orderDetailId, Long userId, String text, int rating) {
-        if (Objects.isNull(orderDetailId)) { // 주문하지 않은 회원일 경우
-            throw new IllegalArgumentException("You are not ordered this book");
-        }
-        if (reviewRepository.existsByBookAndOrderDetailId(book, orderDetailId)) {
-            throw new IllegalArgumentException("You are already reviewed this book");
-        }
-        reviewRepository.save(new Review(text, LocalDateTime.now(), rating, book, orderDetailId));
+    public void addReview(ReviewRequestDto reviewRequestDto) {
+        Book book = bookRepository.findById(reviewRequestDto.getBookId()).orElseThrow(() -> new BookNotFoundException("Book not found"));
+        Optional<Review> review = reviewRepository.findByBookAndUserId(book, reviewRequestDto.getUserId());
     }
 
-    public void updateReview(Book book, Long orderDetailId, String newText, int newRating) {
-        if (!reviewRepository.existsByBookAndOrderDetailId(book, orderDetailId)) {
-            throw new IllegalArgumentException("You are not reviewed this book");
-        }
-        Optional<Review> optionalReview = reviewRepository.findByBookAndOrderDetailId(book, orderDetailId); // 업데이트하려는 컬럼을 찾고
-        Review review = null;
-        if (optionalReview.isPresent()) {
-            review = optionalReview.get();
-        } else {
-            throw new IllegalArgumentException("You are not reviewed this book");
-        }
-        review.setText(newText);
-        review.setRating(newRating);
-        review.setCreatedAt(LocalDateTime.now());
-        reviewRepository.save(review);
+    public void updateReview() {
     }
 
-    public void deleteReview(Book book, Long orderDetailId) {
-        Optional<Review> optionalReview = reviewRepository.findByBookAndOrderDetailId(book, orderDetailId);
-        if (optionalReview.isPresent()) {
-            reviewRepository.delete(optionalReview.get());
-        }
+    public void deleteReview() {
+
     }
 
 }

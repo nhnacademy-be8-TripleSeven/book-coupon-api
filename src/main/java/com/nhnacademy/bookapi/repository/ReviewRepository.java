@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
-    boolean existsByBookAndOrderDetailId(Book book, Long orderDetailId);
-    Optional<Review> findByBookAndOrderDetailId(Book book, Long orderDetailId);
+    boolean existsByBookAnduserId(Book book, Long userId);
+    Optional<Review> findByBookAndUserId(Book book, Long userId);
 }
