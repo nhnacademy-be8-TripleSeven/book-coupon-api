@@ -1,11 +1,7 @@
 package com.nhnacademy.bookapi.controller.book;
 
-import com.nhnacademy.bookapi.dto.book.SearchBookDetailDTO;
-import com.nhnacademy.bookapi.entity.BookCreator;
-import com.nhnacademy.bookapi.repository.BookCreatorRepository;
-import com.nhnacademy.bookapi.repository.BookRepository;
+import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.service.book.BookService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,14 +19,14 @@ public class BookSearchController {
 
     private final BookService bookService;
 
-    @GetMapping("/title")
-    public ResponseEntity<SearchBookDetailDTO> bookTitleSearch(@RequestParam(name = "id") Long id) {
+    @GetMapping("/id")
+    public ResponseEntity<SearchBookDetail> bookTitleSearch(@RequestParam(name = "id") Long id) {
 
-        SearchBookDetailDTO searchBookDetailDTO = bookService.searchBookDetailByBookId(id);
-        if(searchBookDetailDTO == null) {
+        SearchBookDetail searchBookDetail = bookService.searchBookDetailByBookId(id);
+        if(searchBookDetail == null) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok().body(searchBookDetailDTO);
+        return ResponseEntity.ok().body(searchBookDetail);
     }
 }

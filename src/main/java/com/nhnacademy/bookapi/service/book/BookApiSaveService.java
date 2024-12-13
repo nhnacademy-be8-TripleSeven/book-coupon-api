@@ -27,6 +27,7 @@ import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -92,7 +93,16 @@ public class BookApiSaveService {
             saveBook.setTitle(book.path("title").asText());
             saveBook.setDescription(book.path("description").asText());
             saveBook.setIsbn13(isbn);
-            saveBook.setPublishDate(LocalDate.now());
+
+            LocalDate pubDate = null;
+
+            String pubDateStr = book.path("pubDate").asText();
+            if(pubDateStr != null || !pubDateStr.isEmpty()) {
+                pubDate = LocalDate.parse(pubDateStr);
+            }
+
+            saveBook.setPublishDate(pubDate);
+
             saveBook.setStock(1000);
 
             saveBook.setRegularPrice(book.path("priceStandard").asInt());
@@ -120,10 +130,7 @@ public class BookApiSaveService {
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
 
-            //도서 제작자 저장
-            List<BookCreator> bookCreators = authorParseSave(author, bookFk);
-            //카테고리 제작자 저장
-            List<Category> categoryList = categoryParseSave(category, bookFk);
+
 
             //책인기도 초기화
             bookPopularity.setSearchRank(0);
@@ -134,6 +141,11 @@ public class BookApiSaveService {
             bookPopularRepository.save(bookPopularity);
 
 
+
+            //도서 제작자 저장
+            List<BookCreator> bookCreators = authorParseSave(author, bookFk);
+            //카테고리 제작자 저장
+            List<Category> categoryList = categoryParseSave(category, bookFk);
             //엘라스틱서치 저장
 //            saveBookDocument(saveBook,image.getUrl(), publisherName, bookCreators,categoryList);
 
@@ -147,8 +159,8 @@ public class BookApiSaveService {
 
         List<BookCreator> bookCreatorList = new ArrayList<>();
 
-        BookCreator bookCreator = new BookCreator();
-        BookCreatorMap bookCreatorMap = new BookCreatorMap();
+        BookCreator bookCreator;
+        BookCreatorMap bookCreatorMap;
 
         // "지은이)", "그림)", "엮은이)", "원작)", "옮긴이)" 로 끝나는 구분자를 기준으로 분리
         String[] split = author.split("\\),");
@@ -168,6 +180,7 @@ public class BookApiSaveService {
                 }
                 bookCreator = bookCreatorRepository.existByNameAndRole(name, role);
                 if(bookCreator == null){
+                    bookCreatorMap = new BookCreatorMap();
                     bookCreator = new BookCreator();
                     bookCreator.setName(name.trim());
                     bookCreator.setRole(role);
@@ -177,6 +190,7 @@ public class BookApiSaveService {
                     bookCreatorList.add(saveBookCreator);
                     bookCreatorMapRepository.save(bookCreatorMap);
                 }else {
+                    bookCreatorMap = new BookCreatorMap();
                     bookCreatorMap.setCreator(bookCreator);
                     bookCreatorMap.setBook(book);
                     bookCreatorMapRepository.save(bookCreatorMap);

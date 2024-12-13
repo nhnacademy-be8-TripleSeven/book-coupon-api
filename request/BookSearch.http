@@ -4,4 +4,4 @@ GET https://examples.http-client.intellij.net/get
 
 ###
 
-GET localhost:8080/api/search/title?id=1
+GET localhost:8080/api/search/id?id=4

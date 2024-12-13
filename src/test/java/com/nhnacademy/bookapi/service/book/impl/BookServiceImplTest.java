@@ -1,7 +1,7 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
 
-import com.nhnacademy.bookapi.dto.book.SearchBookDetailDTO;
+import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCreator;
 import com.nhnacademy.bookapi.exception.BookCreatorNotFoundException;
@@ -43,7 +43,7 @@ class BookServiceImplTest {
         // Arrange
         Long bookId = 1L;
 
-        SearchBookDetailDTO searchBookDetailDTO = new SearchBookDetailDTO(
+        SearchBookDetail searchBookDetailDTO = new SearchBookDetail(
             "Title", "Description", LocalDate.of(2024, 12, 12),
             10000, 9000, "1234567890123", 100, 200, "coverUrl", "Publisher"
         );
@@ -56,7 +56,7 @@ class BookServiceImplTest {
         Mockito.when(bookCreatorRepository.findCreatorByBookId(bookId)).thenReturn(List.of(bookCreator));
 
         // Act
-        SearchBookDetailDTO result = bookService.searchBookDetailByBookId(bookId);
+        SearchBookDetail result = bookService.searchBookDetailByBookId(bookId);
 
         // Assert
         assertNotNull(result);
@@ -90,7 +90,7 @@ class BookServiceImplTest {
         // Arrange
         Long bookId = 1L;
 
-        SearchBookDetailDTO searchBookDetailDTO = new SearchBookDetailDTO(
+        SearchBookDetail searchBookDetailDTO = new SearchBookDetail(
             "Title", "Description", LocalDate.of(2024, 12, 12),
             10000, 9000, "1234567890123", 100, 200, "coverUrl", "Publisher"
         );

@@ -10,4 +10,6 @@ public interface BookIndexRepository extends JpaRepository<BookIndex, Long> {
 
     List<BookIndex> findByBook(Book book);
     void deleteByBook(Book book);
+
+    List<BookIndex> findByBookId(Long bookId);
 }
