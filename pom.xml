@@ -92,10 +92,14 @@
     </dependency>
 
 
-
-
   </dependencies>
 
+  <repositories>
+    <repository>
+      <id>toast-repo</id>
+      <url>https://repository.toast.com/maven</url> <!-- 올바른 URL로 변경 -->
+    </repository>
+  </repositories>
 
 
   <build>
