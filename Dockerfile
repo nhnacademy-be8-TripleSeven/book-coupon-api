@@ -4,7 +4,7 @@ WORKDIR /app
 
 # 소스 코드 복사 및 의존성 설치
 COPY pom.xml ./
-COPY libs /app/libs
+COPY libs ./libs
 RUN mvn dependency:go-offline
 
 # 소스 코드 복사 및 빌드
