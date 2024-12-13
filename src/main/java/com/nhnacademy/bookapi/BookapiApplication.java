@@ -4,11 +4,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
+import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {
+    ElasticsearchDataAutoConfiguration.class,
+    ElasticsearchRestClientAutoConfiguration.class
+})
 @EnableScheduling
 public class BookapiApplication {
     private static final Logger logger = LoggerFactory.getLogger(BookapiApplication.class);
