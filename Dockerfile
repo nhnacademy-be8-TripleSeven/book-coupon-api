@@ -19,3 +19,9 @@ COPY --from=build /app/target/*.jar app.jar
 
 # 애플리케이션 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# 복사된 JAR 파일 포함
+COPY libs /app/libs
+
+# Maven 빌드 실행
+RUN mvn clean package -Dmaven.test.skip=true
