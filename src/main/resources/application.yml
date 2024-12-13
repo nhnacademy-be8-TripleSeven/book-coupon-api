@@ -5,7 +5,7 @@ server:
   port: 8080
 spring:
   application:
-    name: book_coupon_api
+    name: book-coupon-api
 
   profiles:
     active: hs
