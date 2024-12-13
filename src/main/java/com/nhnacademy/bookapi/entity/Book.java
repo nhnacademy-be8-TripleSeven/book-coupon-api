@@ -7,11 +7,14 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
 
 @Entity
 @NoArgsConstructor
@@ -27,8 +30,7 @@ public class Book {
     private String title;
 
     @Setter
-    @Lob //TEXT
-    @Column(nullable = true)
+    @Column(columnDefinition = "TEXT", nullable = true)
     private String description;
 
     @Setter
@@ -53,8 +55,14 @@ public class Book {
     @Setter
     @ManyToOne
     private Image image;
-
+  
     @Setter
     @ManyToOne
     private Publisher publisher;
+
+  
+    public void setTestId(Long id) {
+        this.id = id;
+    }
 }
+

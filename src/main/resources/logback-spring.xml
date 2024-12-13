@@ -1,0 +1,46 @@
+<configuration>
+    <!-- 공통 프로퍼티 -->
+    <property name="APP_KEY" value="nMWnKdBvAFvUW8XL" />
+    <property name="LOG_URL" value="https://api-logncrash.cloud.toast.com/v2/log" />
+
+    <!-- 개발 환경 (dev) -->
+    <springProfile name="dev">
+        <!-- 콘솔 Appender -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <!-- 루트 로거: 개발 환경에서는 콘솔 출력만 활성화 -->
+        <root level="DEBUG">
+            <appender-ref ref="CONSOLE" />
+        </root>
+    </springProfile>
+
+    <!-- 운영 환경  -->
+    <springProfile name="jhs">
+        <!-- 콘솔 Appender -->
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+
+        <!-- NHN Log & Crash Appender -->
+        <appender name="NHN_LOG_CRASH_APPENDER" class="com.nhnacademy.bookapi.logback.LogCrashHttpAppender">
+            <appKey>${APP_KEY}</appKey>
+            <url>${LOG_URL}</url>
+            <logSource>BookAPI-Test</logSource>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>ERROR</level>
+            </filter>
+        </appender>
+
+        <!-- 루트 로거: INFO 이상을 콘솔 및 NHN으로 출력 -->
+        <root level="INFO">
+            <appender-ref ref="CONSOLE" />
+            <appender-ref ref="NHN_LOG_CRASH_APPENDER" />
+        </root>
+    </springProfile>
+</configuration>

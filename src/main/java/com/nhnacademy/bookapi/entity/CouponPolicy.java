@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.entity;
 
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,6 +10,7 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Getter
+@AllArgsConstructor
 @NoArgsConstructor
 @Entity
 public class CouponPolicy {
@@ -37,4 +39,9 @@ public class CouponPolicy {
     @Setter
     @Column(nullable = false)
     private Integer couponValidTime;
+
+    // Test 전용 메서드
+    public void setTestId(Long id) {
+        this.id = id;
+    }
 }

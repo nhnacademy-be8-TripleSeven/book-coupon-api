@@ -70,4 +70,7 @@ public class BookIndexService {
         bookIndexRepository.deleteById(indexId);
         return true;
     }
+
+
+
 }

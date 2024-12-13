@@ -11,7 +11,4 @@ public interface BookIndexRepository extends JpaRepository<BookIndex, Long> {
     Optional<List<BookIndex>> findByBook(Book book);
     void deleteByBook(Book book);
 
-    boolean existsByBookAndSequence(Long bookId, int sequence);
-
-    Optional<BookIndex> findByBookAndSequence(Book book, int sequence);
 }

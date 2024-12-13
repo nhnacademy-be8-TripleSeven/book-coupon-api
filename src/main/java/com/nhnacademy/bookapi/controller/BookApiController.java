@@ -21,7 +21,8 @@ public class BookApiController {
     public ResponseEntity saveBook(@RequestParam String bookType) throws Exception {
         bookApiSaveService.saveBook(bookType);
 
-        return ResponseEntity.ok().build();
+
+        return ResponseEntity.ok().body("성공");
     }
 
 }

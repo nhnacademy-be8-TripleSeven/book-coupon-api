@@ -1,14 +1,29 @@
 package com.nhnacademy.bookapi.service.coupon;
 
-import com.nhnacademy.bookapi.dto.coupon.CouponCreateDTO;
-import com.nhnacademy.bookapi.dto.coupon.CouponResponseDTO;
+import com.nhnacademy.bookapi.dto.coupon.*;
+
+import java.util.List;
 
 public interface CouponService {
 
-    CouponResponseDTO createCoupon(CouponCreateDTO request);
+    BaseCouponResponseDTO createCoupon(CouponCreationRequestDTO couponCreationRequestDTO);
 
-    CouponResponseDTO updateCoupon(long id, CouponCreateDTO request);
+    BookCouponResponseDTO createBookCoupon(BookCouponCreationRequestDTO request);
 
-    void deleteCoupon(long id);
+    CategoryCouponResponseDTO createCategoryCoupon(CategoryCouponCreationRequestDTO request);
+
+    CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
+
+    CouponUseResponseDTO useCoupon(Long id);
+
+    void deleteCoupon(Long id);
+
+    void expireCoupons();
+
+    List<CouponDetailsDTO> getAllCouponsByMemberId(Long memberId);
+
+    List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId);
+
+    List<CouponDetailsDTO> getCouponsByPolicyId(Long policyId);
 
 }
