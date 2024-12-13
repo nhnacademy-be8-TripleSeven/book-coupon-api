@@ -1,0 +1,23 @@
+
+
+
+server:
+  port: 8080
+spring:
+  application:
+    name: book_coupon_api
+
+  profiles:
+    active: hs
+
+  jpa:
+    database-platform: org.hibernate.dialect.MySQLDialect
+
+
+
+aladin:
+  api:
+    key: ttbrlgus45311101001
+
+
+
