@@ -1,6 +1,8 @@
 package com.nhnacademy.bookapi.dto.book;
 
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.entity.BookCreator;
+import com.nhnacademy.bookapi.entity.BookIndex;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Getter;
@@ -8,8 +10,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-
-public class SearchBookDetailDTO {
+public class SearchBookDetail {
 
     private String title;
     private String description;
@@ -21,9 +22,10 @@ public class SearchBookDetailDTO {
     private int page;
     private String coverUrl;
     private String publisher;
-    private List<BookCreator> bookCreators;
+    private List<BookCreatorDetail> bookCreators;
+    private List<BookIndex> bookIndices;
 
-    public SearchBookDetailDTO(String title, String description, LocalDate publishedDate,
+    public SearchBookDetail(String title, String description, LocalDate publishedDate,
         int regularPrice,
         int salePrice, String isbn13, int stock, int page, String coverUrl, String publisher) {
         this.title = title;

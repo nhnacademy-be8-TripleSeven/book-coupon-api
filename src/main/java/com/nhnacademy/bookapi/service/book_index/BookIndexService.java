@@ -39,4 +39,7 @@ public class BookIndexService {
     public void deleteIndex(Long indexId) { // 삭제 하려는 indexId를 파라미터로 받아서 해당 컬럼 삭제
         bookIndexRepository.deleteById(indexId);
     }
+
+
+
 }

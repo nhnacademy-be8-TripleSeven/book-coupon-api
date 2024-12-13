@@ -1,6 +1,6 @@
 package com.nhnacademy.bookapi.service.book;
 
-import com.nhnacademy.bookapi.dto.book.SearchBookDetailDTO;
+import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
 
 public interface BookService {
@@ -12,6 +12,6 @@ public interface BookService {
 
     void delete(Long id);
 
-    SearchBookDetailDTO searchBookDetailByBookId(Long id);
+    SearchBookDetail searchBookDetailByBookId(Long id);
 
 }

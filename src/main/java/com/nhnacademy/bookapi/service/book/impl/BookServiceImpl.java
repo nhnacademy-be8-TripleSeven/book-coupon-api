@@ -1,14 +1,20 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
-import com.nhnacademy.bookapi.dto.book.SearchBookDetailDTO;
+import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCreator;
+import com.nhnacademy.bookapi.entity.BookIndex;
 import com.nhnacademy.bookapi.exception.BookCreatorNotFoundException;
+import com.nhnacademy.bookapi.exception.BookIndexNotFoundException;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.BookCreatorRepository;
+import com.nhnacademy.bookapi.repository.BookIndexRepository;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.service.book.BookService;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -19,6 +25,7 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
     private final BookCreatorRepository bookCreatorRepository;
+    private final BookIndexRepository bookIndexRepository;
 
     @Override
     public Book save(Book book) {
@@ -41,18 +48,33 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public SearchBookDetailDTO searchBookDetailByBookId(Long id) {
+    public SearchBookDetail searchBookDetailByBookId(Long id) {
 
-        SearchBookDetailDTO searchBookDetailDTO = bookRepository.searchBookById(id).orElse(null);
-        if(searchBookDetailDTO == null) {
+        SearchBookDetail searchBookDetail = bookRepository.searchBookById(id).orElse(null);
+        if(searchBookDetail == null) {
             throw new BookNotFoundException("Book not found");
         }
-        List<BookCreator> creatorByBookId = bookCreatorRepository.findCreatorByBookId(id);
-        if(creatorByBookId.isEmpty()) {
+
+        List<BookCreatorDetail> creatorDetails = bookCreatorRepository.findCreatorByBookId(id).stream()
+            .map(bookCreator -> {
+                BookCreatorDetail bookCreatorDetail = new BookCreatorDetail();
+                bookCreatorDetail.setName(bookCreator.getName());
+                bookCreatorDetail.setRole(bookCreator.getRole().getDescription());
+                return bookCreatorDetail;
+            })
+            .collect(Collectors.toList());
+
+        // bookCreator -> bookCreatorDetails 변환 role을 한글로 변환
+
+        if(creatorDetails.isEmpty()) {
             throw new BookCreatorNotFoundException("BookCreator not found");
         }
-        searchBookDetailDTO.setBookCreators(creatorByBookId);
+        searchBookDetail.setBookCreators(creatorDetails);
 
-        return searchBookDetailDTO;
+        List<BookIndex> byBookId = bookIndexRepository.findByBookId(id);
+
+        searchBookDetail.setBookIndices(byBookId);
+
+        return searchBookDetail;
     }
 }
