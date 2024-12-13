@@ -5,7 +5,7 @@ WORKDIR /app
 # 소스 코드 복사 및 의존성 설치
 COPY pom.xml ./
 COPY libs /app/libs
-RUN mvn dependency:go-offline
+RUN mvn dependency:go-offline -Dmaven.repo.local=/app/libs
 
 # 소스 코드 복사 및 빌드
 COPY src ./src
