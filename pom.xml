@@ -55,11 +55,12 @@
       <scope>runtime</scope>
     </dependency>
 
-
     <dependency>
       <groupId>com.toast.java.logncrash</groupId>
       <artifactId>logncrash-logback-sdk</artifactId>
       <version>3.0.5</version>
+      <scope>system</scope>
+      <systemPath>${project.basedir}/libs/toast-logncrash-logback-sdk-3.0.5.jar</systemPath>
     </dependency>
 
 
@@ -93,13 +94,6 @@
 
 
   </dependencies>
-
-  <repositories>
-    <repository>
-      <id>toast-repo</id>
-      <url>https://repository.toast.com/maven</url> <!-- 올바른 URL로 변경 -->
-    </repository>
-  </repositories>
 
 
   <build>
