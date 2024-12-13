@@ -29,17 +29,17 @@ public class Review {
 
     @ManyToOne
     @JoinColumn(nullable = false)
-    private Book book;
+    private Book book; // 도서 아이디
 
     @Column(nullable = false)
-    private Long orderDetailId; // 주문 api에서 값을 받아와야 함
+    private Long userId;
 
-    public Review(String text, LocalDateTime createdAt, int rating, Book book, Long orderDetailId) {
+    public Review(String text, LocalDateTime createdAt, int rating, Book book, Long userId) {
         this.text = text;
         this.createdAt = createdAt;
         this.rating = rating;
         this.book = book;
-        this.orderDetailId = orderDetailId;
+        this.userId = userId;
     }
 
 }

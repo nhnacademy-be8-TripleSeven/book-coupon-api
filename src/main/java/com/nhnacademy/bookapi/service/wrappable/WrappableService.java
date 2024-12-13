@@ -18,28 +18,31 @@ public class WrappableService {
         this.wrappableRepository = wrappableRepository;
     }
 
-    public void addWrappable(Book book, boolean wrappable) {
+    public boolean addWrappable(Book book, boolean wrappable) {
         if (wrappableRepository.existsByBook(book)) {
             throw new WrappableAlreadyExistException("Book is already saved");
         }
         wrappableRepository.save(new Wrappable(book, wrappable));
+        return true;
     }
 
-    public void updateWrappable(Book book, boolean newWrappable) {
+    public boolean updateWrappable(Book book, boolean newWrappable) {
         if (!wrappableRepository.existsByBook(book)) {
             throw new WrappableNotFoundException("Book is not found");
         }
         Wrappable wrappable = wrappableRepository.findByBook(book).get();
         wrappable.setWrappable(newWrappable);
         wrappableRepository.save(wrappable);
+        return true;
     }
 
-    public void deleteWrappable(Book book) {
+    public boolean deleteWrappable(Book book) {
         Optional<Wrappable> wrappable = wrappableRepository.findByBook(book);
         if (wrappable.isEmpty()) {
             throw new WrappableNotFoundException("Book is not found");
         }
         wrappableRepository.delete(wrappable.get());
+        return true;
     }
 
     public Wrappable getWrappable(Book book) {
