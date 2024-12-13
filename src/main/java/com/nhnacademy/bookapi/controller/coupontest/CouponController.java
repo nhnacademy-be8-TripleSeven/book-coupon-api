@@ -3,11 +3,13 @@ package com.nhnacademy.bookapi.controller.coupontest;
 import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.service.coupon.CouponService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/coupons")
 @RequiredArgsConstructor
@@ -38,7 +40,9 @@ public class CouponController {
     public ResponseEntity<CouponAssignResponseDTO> assignCoupon(
             @PathVariable Long couponId,
             @RequestParam Long memberId) {
-        return ResponseEntity.ok(couponService.assignCoupon(new CouponAssignRequestDTO(couponId, memberId)));
+        log.info("assignCoupon called with couponId: {}, memberId: {}", couponId, memberId);
+        CouponAssignResponseDTO response = couponService.assignCoupon(new CouponAssignRequestDTO(couponId, memberId));
+        return ResponseEntity.ok(response);
     }
 
     // 쿠폰 사용

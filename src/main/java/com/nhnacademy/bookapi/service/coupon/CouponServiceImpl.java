@@ -49,20 +49,16 @@ public class CouponServiceImpl implements CouponService {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                 .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
 
-        // Create a new Coupon
         Coupon coupon = new Coupon();
         coupon.setName(request.getName());
         coupon.setCouponPolicy(policy);
 
-        // Save Coupon
         Coupon savedCoupon = couponRepository.save(coupon);
 
-        // Create a new BookCoupon entry
         BookCoupon bookCoupon = new BookCoupon();
         bookCoupon.setBook(book);
         bookCoupon.setCoupon(savedCoupon);
 
-        // Save BookCoupon
         bookCouponRepository.save(bookCoupon);
 
         return new BookCouponResponseDTO(savedCoupon.getId(), savedCoupon.getName(), savedCoupon.getCouponPolicy(), book.getTitle());
@@ -78,20 +74,16 @@ public class CouponServiceImpl implements CouponService {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                 .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
 
-        // Create a new Coupon
         Coupon coupon = new Coupon();
         coupon.setName(request.getName());
         coupon.setCouponPolicy(policy);
 
-        // Save Coupon
         Coupon savedCoupon = couponRepository.save(coupon);
 
-        // Create a new CategoryCoupon entry
         CategoryCoupon categoryCoupon = new CategoryCoupon();
         categoryCoupon.setCategory(category);
         categoryCoupon.setCoupon(savedCoupon);
 
-        // Save CategoryCoupon
         categoryCouponRepository.save(categoryCoupon);
 
         return new CategoryCouponResponseDTO(savedCoupon.getId(), savedCoupon.getName(), savedCoupon.getCouponPolicy(), category.getName());
@@ -104,20 +96,20 @@ public class CouponServiceImpl implements CouponService {
         Coupon coupon = couponRepository.findById(request.getCouponId())
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
+        if (coupon.getMemberId() != null) {
+            throw new CouponAlreadyAssignedException("Coupon is already assigned");
+        }
+
+        Integer validTime = coupon.getCouponPolicy().getCouponValidTime();
+
         coupon.setMemberId(request.getMemberId());
         coupon.setCouponIssueDate(LocalDate.now());
+        coupon.setCouponExpiryDate(LocalDate.now().plusDays(validTime));
         coupon.setCouponStatus(CouponStatus.NOTUSED);
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
-        return new CouponAssignResponseDTO(
-                savedCoupon.getId(),
-                savedCoupon.getName(),
-                savedCoupon.getCouponPolicy(),
-                savedCoupon.getMemberId(),
-                savedCoupon.getCouponIssueDate(),
-                savedCoupon.getCouponStatus().name()
-        );
+        return new CouponAssignResponseDTO(savedCoupon);
     }
 
     // 쿠폰 사용 (쿠폰 아이디)
@@ -132,15 +124,7 @@ public class CouponServiceImpl implements CouponService {
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
-        return new CouponUseResponseDTO(
-                savedCoupon.getId(),
-                savedCoupon.getName(),
-                savedCoupon.getCouponPolicy(),
-                savedCoupon.getMemberId(),
-                savedCoupon.getCouponIssueDate(),
-                savedCoupon.getCouponStatus().name(),
-                savedCoupon.getCouponUseAt()
-        );
+        return new CouponUseResponseDTO(savedCoupon);
     }
 
     // 쿠폰 삭제 (쿠폰 아이디)
@@ -174,7 +158,7 @@ public class CouponServiceImpl implements CouponService {
                 .collect(Collectors.toList());
     }
 
-    // 멤버 아이디 기반 미사용 쿠폰 조회
+    // 멤버 아이디 기반 미사용 쿠폰 리스트 조회
     @Override
     @Transactional(readOnly = true)
     public List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId) {
@@ -183,7 +167,7 @@ public class CouponServiceImpl implements CouponService {
                 .collect(Collectors.toList());
     }
 
-    // 쿠폰 정책 아이디 기반 쿠폰 조회
+    // 쿠폰 정책 아이디 기반 쿠폰 리스트 조회
     @Override
     @Transactional(readOnly = true)
     public List<CouponDetailsDTO> getCouponsByPolicyId(Long policyId) {
