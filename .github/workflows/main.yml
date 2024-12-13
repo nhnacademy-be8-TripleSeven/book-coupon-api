@@ -27,8 +27,6 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Copy libs directory
-        run: cp -r libs/ .
 
 
       - name: Build with Maven
