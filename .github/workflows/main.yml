@@ -42,7 +42,7 @@ jobs:
 
       - name: Push Docker image
         run: |
-          docker push lushlife99/nhn-member:${{ github.sha }}
+          docker push lushlife99/nhn-book-coupon:${{ github.sha }}
 
   deploy:
     runs-on: ubuntu-latest
