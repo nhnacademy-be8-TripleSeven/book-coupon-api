@@ -1,17 +1,41 @@
-
-
-
-server:
-  port: 8080
 spring:
+  profiles:
+    active: dev
+
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
   application:
     name: book-coupon-api
 
-  profiles:
-    active: hs
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@eureka-server:8761/eureka
+  instance:
+    prefer-ip-address: true
 
-  jpa:
-    database-platform: org.hibernate.dialect.MySQLDialect
+management:
+  health:
+    status:
+      order: DOWN, UP
+  endpoint:
+    jolokia:
+      enable: true
+    pause:
+      enabled: true
+    resume:
+      enabled: true
+
+  info:
+    env:
+      enabled: true
+
+server:
+  shutdown: graceful
+
+
 
 
 aladin:
