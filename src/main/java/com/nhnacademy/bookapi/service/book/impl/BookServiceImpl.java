@@ -18,7 +18,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 @Service
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
@@ -28,7 +30,7 @@ public class BookServiceImpl implements BookService {
     private final BookIndexRepository bookIndexRepository;
 
     @Override
-    public Book save(Book book) {
+    public Book createBook(Book book) {
         return bookRepository.save(book);
     }
 
@@ -39,11 +41,16 @@ public class BookServiceImpl implements BookService {
             throw new BookNotFoundException("book not found");
         }
         BeanUtils.copyProperties(book, selectBook, "id");
-        return bookRepository.save(selectBook);
+
+        return selectBook;
     }
 
     @Override
     public void delete(Long id) {
+        boolean exist = bookRepository.existsById(id);
+        if(!exist) {
+            throw new BookNotFoundException("book not found");
+        }
         bookRepository.deleteById(id);
     }
 
