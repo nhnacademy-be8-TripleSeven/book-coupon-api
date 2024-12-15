@@ -28,7 +28,7 @@ public class BookIndexService {
     }
 
     public boolean addIndex(BookIndexRequestDto bookIndexRequestDto) { // 특정 책에 목차 생성
-        if (bookIndexRepository.existsByBookAndSequence(bookIndexRequestDto.getBookId(), bookIndexRequestDto.getSequence())) {
+        if (bookIndexRepository.existsByBookIdAndSequence(bookIndexRequestDto.getBookId(), bookIndexRequestDto.getSequence())) {
             throw new BookIndexNotFoundException("Already exist");
         }
         Book book = bookRepository.findById(bookIndexRequestDto.getBookId()).orElseThrow(() -> new BookNotFoundException("Book not found"));
