@@ -146,18 +146,13 @@ public class BookApiSaveService {
             bookPopularity.setClickRank(0);
             bookPopularity.setCartCount(0);
             bookPopularity.setBook(bookFk);
-
             bookPopularRepository.save(bookPopularity);
-
-
-
             //도서 제작자 저장
             List<BookCreator> bookCreators = authorParseSave(author, bookFk);
             //카테고리 제작자 저장
             List<Category> categoryList = categoryParseSave(category, bookFk);
             //엘라스틱서치 저장
 //            saveBookDocument(saveBook,image.getUrl(), publisherName, bookCreators,categoryList);
-
         }
         
     }

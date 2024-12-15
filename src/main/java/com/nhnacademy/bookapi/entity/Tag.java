@@ -6,6 +6,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@NoArgsConstructor
+@Getter
 public class Tag {
 
     @Id
@@ -16,14 +18,7 @@ public class Tag {
     @Column(nullable = false, length = 50)
     private String name;
 
-    public Tag() {}
-
     public Tag(String name) {
         this.name = name;
     }
-
-    public String getName() {
-        return name;
-    }
-
 }
