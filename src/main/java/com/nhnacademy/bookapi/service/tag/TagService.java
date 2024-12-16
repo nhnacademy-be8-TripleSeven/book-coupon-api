@@ -7,12 +7,14 @@ import com.nhnacademy.bookapi.exception.TagAlreadyExistException;
 import com.nhnacademy.bookapi.exception.TagNotFoundException;
 import com.nhnacademy.bookapi.repository.TagRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class TagService {
 
     private TagRepository tagRepository;
@@ -35,7 +37,6 @@ public class TagService {
         }
         Tag tag = tagRepository.findById(tagId).get();
         tag.setName(tagRequestDto.getName());
-        tagRepository.save(tag);
         return true;
     }
 

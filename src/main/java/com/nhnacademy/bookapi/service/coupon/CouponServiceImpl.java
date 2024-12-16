@@ -107,9 +107,7 @@ public class CouponServiceImpl implements CouponService {
         coupon.setCouponExpiryDate(LocalDate.now().plusDays(validTime));
         coupon.setCouponStatus(CouponStatus.NOTUSED);
 
-        Coupon savedCoupon = couponRepository.save(coupon);
-
-        return new CouponAssignResponseDTO(savedCoupon);
+        return new CouponAssignResponseDTO(coupon);
     }
 
     // 쿠폰 사용 (쿠폰 아이디)
@@ -119,13 +117,70 @@ public class CouponServiceImpl implements CouponService {
         Coupon coupon = couponRepository.findById(id)
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
+        if (coupon.getMemberId() == null) {
+            throw new CouponNotAssignedException("Member not found");
+        }
+
+        if (coupon.getCouponStatus() == CouponStatus.USED) {
+            throw new CouponAlreadyUsedExceeption("Coupon is already used");
+        }
+
+        if (coupon.getCouponStatus() == CouponStatus.EXPIRED) {
+            throw new CouponExpiredException("Coupon is expired");
+        }
+
         coupon.setCouponStatus(CouponStatus.USED);
         coupon.setCouponUseAt(LocalDateTime.now());
 
-        Coupon savedCoupon = couponRepository.save(coupon);
-
-        return new CouponUseResponseDTO(savedCoupon);
+        return new CouponUseResponseDTO(coupon);
     }
+
+    // 쿠폰 사용 (책 쿠폰)
+    @Override
+    @Transactional
+    public CouponUseResponseDTO useBookCoupon(Long couponId, Long bookId) {
+        // 쿠폰 조회
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+
+        // 책 쿠폰 여부 확인
+        BookCoupon bookCoupon = bookCouponRepository.findByCoupon(coupon)
+                .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a book"));
+
+        // 유효한 책인지 확인
+        if (!bookCoupon.getBook().getId().equals(bookId)) {
+            throw new InvalidCouponUsageException("Coupon cannot be used for this book");
+        }
+
+        // 공통 사용 로직 호출
+        return useCoupon(couponId);
+    }
+
+    // 쿠폰 사용 (카테고리 쿠폰)
+    @Override
+    @Transactional
+    public CouponUseResponseDTO useCategoryCoupon(Long couponId, Long categoryId) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+
+        CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
+                .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a category"));
+
+        if (!isValidCategory(categoryCoupon.getCategory(), categoryId)) {
+            throw new InvalidCouponUsageException("Coupon cannot be used in this category");
+        }
+
+        return useCoupon(couponId);
+    }
+
+    // 유효한 카테고리인지 확인
+    private boolean isValidCategory(Category couponCategory, Long requestedCategoryId) {
+        List<Long> validCategories = categoryRepository.findSubcategories(couponCategory.getId());
+
+        // 쿠폰의 하위 카테고리에 요청된 카테고리가 포함되면 유효
+        return validCategories.contains(requestedCategoryId);
+    }
+
 
     // 쿠폰 삭제 (쿠폰 아이디)
     @Override
@@ -133,6 +188,9 @@ public class CouponServiceImpl implements CouponService {
     public void deleteCoupon(Long id) {
         if (!couponRepository.existsById(id)) {
             throw new CouponNotFoundException("Coupon not found");
+        }
+        if (couponRepository.getReferenceById(id).getMemberId() != null) {
+            throw new CouponAlreadyAssignedException("Coupon is already assigned");
         }
         couponRepository.deleteById(id);
     }
@@ -145,7 +203,6 @@ public class CouponServiceImpl implements CouponService {
 
         for (Coupon coupon : coupons) {
             coupon.setCouponStatus(CouponStatus.EXPIRED);
-            couponRepository.save(coupon);
         }
     }
 
@@ -189,14 +246,7 @@ public class CouponServiceImpl implements CouponService {
                 .orElse(null);
 
         return new CouponDetailsDTO(
-                coupon.getId(),
-                coupon.getCouponPolicy().getName(),
-                coupon.getName(),
-                coupon.getMemberId(),
-                coupon.getCouponIssueDate(),
-                coupon.getCouponExpiryDate(),
-                coupon.getCouponStatus().name(),
-                coupon.getCouponUseAt(),
+                coupon,
                 bookTitle,
                 categoryName
         );

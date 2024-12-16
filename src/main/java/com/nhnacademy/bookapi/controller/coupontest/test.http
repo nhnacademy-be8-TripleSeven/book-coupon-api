@@ -39,22 +39,22 @@ GET http://localhost:8080/coupon-policies/search?name=Spring Sale
 
 
 
-
 ### 쿠폰 생성
 POST http://localhost:8080/coupons
 Content-Type: application/json
 
 {
-  "name": "Spring Discount Coupon",
+  "name": "General Discount Coupon",
   "couponPolicyId": 1
 }
+
 
 ### 도서 쿠폰 생성
 POST http://localhost:8080/coupons/books
 Content-Type: application/json
 
 {
-  "name": "Book Coupon",
+  "name": "Book Discount Coupon",
   "couponPolicyId": 1,
   "bookId": 1
 }
@@ -64,19 +64,30 @@ POST http://localhost:8080/coupons/categories
 Content-Type: application/json
 
 {
-  "name": "Category Coupon",
+  "name": "Category Discount Coupon",
   "couponPolicyId": 1,
-  "categoryId": 1
+  "categoryId": 2
 }
 
 ### 쿠폰 발급
 PATCH http://localhost:8080/coupons/1/assign?memberId=100
+Content-Type: application/json
 
 ### 쿠폰 사용
 PATCH http://localhost:8080/coupons/1/use
+Content-Type: application/json
+
+### 책 쿠폰 사용
+PATCH http://localhost:8080/coupons/1/use/book/1
+Content-Type: application/json
+
+### 카테고리 쿠폰 사용
+PATCH http://localhost:8080/coupons/3/use/category/2
+Content-Type: application/json
 
 ### 쿠폰 삭제
 DELETE http://localhost:8080/coupons/1
+Content-Type: application/json
 
 ### 특정 회원의 모든 쿠폰 조회
 GET http://localhost:8080/coupons/members/100

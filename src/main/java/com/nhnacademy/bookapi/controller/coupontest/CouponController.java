@@ -1,3 +1,4 @@
+
 package com.nhnacademy.bookapi.controller.coupontest;
 
 import com.nhnacademy.bookapi.dto.coupon.*;
@@ -49,6 +50,20 @@ public class CouponController {
     @PatchMapping("/{couponId}/use")
     public ResponseEntity<CouponUseResponseDTO> useCoupon(@PathVariable Long couponId) {
         return ResponseEntity.ok(couponService.useCoupon(couponId));
+    }
+
+    // 책 쿠폰 사용
+    @PatchMapping("/{couponId}/use/book/{bookId}")
+    public ResponseEntity<CouponUseResponseDTO> useBookCoupon(@PathVariable Long couponId,
+                                                              @PathVariable Long bookId) {
+        return ResponseEntity.ok(couponService.useBookCoupon(couponId, bookId));
+    }
+
+    // 카테고리 쿠폰 사용
+    @PatchMapping("/{couponId}/use/category/{categoryId}")
+    public ResponseEntity<CouponUseResponseDTO> useCategoryCoupon(@PathVariable Long couponId,
+                                                                  @PathVariable Long categoryId) {
+        return ResponseEntity.ok(couponService.useCategoryCoupon(couponId, categoryId));
     }
 
     // 쿠폰 삭제

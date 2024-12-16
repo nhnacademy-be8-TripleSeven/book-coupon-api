@@ -1,3 +1,4 @@
+
 package com.nhnacademy.bookapi.service.coupon;
 
 import com.nhnacademy.bookapi.dto.coupon.*;
@@ -15,6 +16,10 @@ public interface CouponService {
     CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
 
     CouponUseResponseDTO useCoupon(Long id);
+
+    CouponUseResponseDTO useBookCoupon(Long couponId, Long bookId);
+
+    CouponUseResponseDTO useCategoryCoupon(Long couponId, Long categoryId);
 
     void deleteCoupon(Long id);
 

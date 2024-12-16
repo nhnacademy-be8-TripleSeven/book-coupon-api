@@ -194,31 +194,25 @@ class CouponServiceImplTest {
     @Test
     void testAssignCoupon_Success() {
         // Given
-        CouponPolicy couponPolicy = new CouponPolicy(1L, "Policy 1", 1000L,
+        CouponPolicy couponPolicy = new CouponPolicy(1L, "Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
+
 
         Coupon coupon = new Coupon();
         coupon.setTestId(1L);
+        coupon.setCouponStatus(CouponStatus.NOTUSED);
         coupon.setCouponPolicy(couponPolicy);
-        coupon.setName("Test Coupon");
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
-        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
-
-        CouponAssignRequestDTO request = new CouponAssignRequestDTO(1L, 100L);
 
         // When
-        CouponAssignResponseDTO response = couponService.assignCoupon(request);
+        CouponAssignResponseDTO response = couponService.assignCoupon(new CouponAssignRequestDTO(1L, 123L));
 
         // Then
-        assertNotNull(response);
         assertEquals(1L, response.getCouponId());
-        assertEquals("Test Coupon", response.getName());
-        assertEquals(100L, response.getMemberId());
-        assertNotNull(response.getCouponIssueDate());
-        assertEquals(CouponStatus.NOTUSED.name(), response.getCouponStatus());
+        assertEquals(123L, response.getMemberId());
+        assertEquals(CouponStatus.NOTUSED, coupon.getCouponStatus());
         verify(couponRepository, times(1)).findById(1L);
-        verify(couponRepository, times(1)).save(any(Coupon.class));
     }
 
     @Test
@@ -235,30 +229,57 @@ class CouponServiceImplTest {
     }
 
     @Test
+    void testAssignCoupon_AlreadyAssigned() {
+        // Given
+        Coupon coupon = new Coupon();
+        coupon.setTestId(1L);
+        coupon.setMemberId(123L);
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+        // When & Then
+        CouponAssignRequestDTO request = new CouponAssignRequestDTO(1L, 456L);
+        assertThrows(CouponAlreadyAssignedException.class, () -> couponService.assignCoupon(request));
+        verify(couponRepository, times(1)).findById(1L);
+        verifyNoMoreInteractions(couponRepository);
+    }
+
+    @Test
     void testUseCoupon_Success() {
         // Given
-        CouponPolicy couponPolicy = new CouponPolicy(1L, "Policy 1", 1000L,
+        CouponPolicy couponPolicy = new CouponPolicy(1L, "Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
+
 
         Coupon coupon = new Coupon();
         coupon.setTestId(1L);
-        coupon.setCouponPolicy(couponPolicy);
-        coupon.setName("Test Coupon");
+        coupon.setMemberId(123L);
         coupon.setCouponStatus(CouponStatus.NOTUSED);
+        coupon.setCouponPolicy(couponPolicy);
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
-        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
 
         // When
         CouponUseResponseDTO response = couponService.useCoupon(1L);
 
         // Then
-        assertNotNull(response);
-        assertEquals(1L, response.getCouponId());
-        assertEquals(CouponStatus.USED.name(), response.getCouponStatus());
-        assertNotNull(response.getCouponUseAt());
+        assertEquals(CouponStatus.USED, coupon.getCouponStatus());
         verify(couponRepository, times(1)).findById(1L);
-        verify(couponRepository, times(1)).save(any(Coupon.class));
+    }
+
+    @Test
+    void testUseCoupon_AlreadyUsed() {
+        // Given
+        Coupon coupon = new Coupon();
+        coupon.setTestId(1L);
+        coupon.setMemberId(123L);
+        coupon.setCouponStatus(CouponStatus.USED);
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+        // When & Then
+        assertThrows(CouponAlreadyUsedExceeption.class, () -> couponService.useCoupon(1L));
+        verify(couponRepository, times(1)).findById(1L);
     }
 
     @Test
@@ -270,6 +291,127 @@ class CouponServiceImplTest {
         assertThrows(CouponNotFoundException.class, () -> couponService.useCoupon(1L));
         verify(couponRepository, times(1)).findById(1L);
         verify(couponRepository, never()).save(any(Coupon.class));
+    }
+
+    @Test
+    void testUseCoupon_NotAssigned() {
+        // Given
+        Coupon coupon = new Coupon();
+        coupon.setTestId(1L);
+        coupon.setMemberId(null);
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+        // When & Then
+        assertThrows(CouponNotAssignedException.class, () -> couponService.useCoupon(1L));
+        verify(couponRepository, times(1)).findById(1L);
+        verifyNoMoreInteractions(couponRepository);
+    }
+
+    @Test
+    void testUseBookCoupon_Success() {
+        // Given
+        Book book = new Book();
+        book.setTestId(1L);
+        book.setTitle("Test Book");
+
+        CouponPolicy policy = new CouponPolicy(1L, "Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+
+        Coupon coupon = new Coupon();
+        coupon.setTestId(1L);
+        coupon.setMemberId(123L);
+        coupon.setCouponStatus(CouponStatus.NOTUSED);
+        coupon.setCouponPolicy(policy);
+
+        BookCoupon bookCoupon = new BookCoupon();
+        bookCoupon.setTestId(1L);
+        bookCoupon.setCoupon(coupon);
+        bookCoupon.setBook(book);
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(bookCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(bookCoupon));
+
+        // When
+        CouponUseResponseDTO response = couponService.useBookCoupon(1L, 1L);
+
+        // Then
+        assertEquals(CouponStatus.USED, coupon.getCouponStatus());
+    }
+
+    @Test
+    void testUseBookCoupon_InvalidBook() {
+        // Given
+        Book book = new Book();
+        book.setTestId(1L);
+
+        Coupon coupon = new Coupon();
+        coupon.setTestId(1L);
+
+        BookCoupon bookCoupon = new BookCoupon();
+        bookCoupon.setCoupon(coupon);
+        bookCoupon.setBook(book);
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(bookCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(bookCoupon));
+
+        // When & Then
+        assertThrows(InvalidCouponUsageException.class, () -> couponService.useBookCoupon(1L, 2L));
+        verify(couponRepository, times(1)).findById(1L);
+        verify(bookCouponRepository, times(1)).findByCoupon(coupon);
+    }
+
+    @Test
+    void testUseCategoryCoupon_Success() {
+        // Given
+        Category category = new Category();
+        category.setTestId(1L);
+        category.setName("Test Category");
+
+        CouponPolicy policy = new CouponPolicy(1L, "Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+
+        Coupon coupon = new Coupon();
+        coupon.setTestId(1L);
+        coupon.setMemberId(123L);
+        coupon.setCouponStatus(CouponStatus.NOTUSED);
+        coupon.setCouponPolicy(policy);
+
+        CategoryCoupon categoryCoupon = new CategoryCoupon();
+        categoryCoupon.setTestId(1L);
+        categoryCoupon.setCategory(category);
+        categoryCoupon.setCoupon(coupon);
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(categoryCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(categoryCoupon));
+        when(categoryRepository.findSubcategories(1L)).thenReturn(List.of(1L, 2L, 3L));
+
+        // When
+        CouponUseResponseDTO response = couponService.useCategoryCoupon(1L, 1L);
+
+        // Then
+        assertEquals(CouponStatus.USED, coupon.getCouponStatus());
+    }
+
+    @Test
+    void testUseCategoryCoupon_InvalidCategory() {
+        // Given
+        Category category = new Category();
+        category.setTestId(1L);
+
+        Coupon coupon = new Coupon();
+        coupon.setTestId(1L);
+
+        CategoryCoupon categoryCoupon = new CategoryCoupon();
+        categoryCoupon.setCategory(category);
+        categoryCoupon.setCoupon(coupon);
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(categoryCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(categoryCoupon));
+        when(categoryRepository.findSubcategories(1L)).thenReturn(List.of(2L, 3L));
+
+        // When & Then
+        assertThrows(InvalidCouponUsageException.class, () -> couponService.useCategoryCoupon(1L, 4L));
     }
 
     @Test
@@ -285,7 +427,7 @@ class CouponServiceImplTest {
         coupon2.setCouponStatus(CouponStatus.NOTUSED);
         coupon2.setCouponExpiryDate(LocalDate.now().minusDays(2));
 
-        List<Coupon> expiredCoupons = Arrays.asList(coupon1, coupon2);
+        List<Coupon> expiredCoupons = List.of(coupon1, coupon2);
 
         when(couponRepository.findByCouponStatusAndCouponExpiryDateBefore(CouponStatus.NOTUSED, LocalDate.now()))
                 .thenReturn(expiredCoupons);
@@ -298,20 +440,46 @@ class CouponServiceImplTest {
         assertEquals(CouponStatus.EXPIRED, coupon2.getCouponStatus());
         verify(couponRepository, times(1))
                 .findByCouponStatusAndCouponExpiryDateBefore(CouponStatus.NOTUSED, LocalDate.now());
-        verify(couponRepository, times(2)).save(any(Coupon.class));
     }
 
     @Test
     void testDeleteCoupon_Success() {
         // Given
-        when(couponRepository.existsById(1L)).thenReturn(true);
+        long couponId = 1L;
+
+        Coupon coupon = new Coupon();
+        coupon.setTestId(couponId);
+        coupon.setMemberId(null);
+
+        when(couponRepository.existsById(couponId)).thenReturn(true);
+        when(couponRepository.getReferenceById(couponId)).thenReturn(coupon);
 
         // When
-        couponService.deleteCoupon(1L);
+        couponService.deleteCoupon(couponId);
 
         // Then
-        verify(couponRepository, times(1)).existsById(1L);
-        verify(couponRepository, times(1)).deleteById(1L);
+        verify(couponRepository, times(1)).existsById(couponId);
+        verify(couponRepository, times(1)).getReferenceById(couponId);
+        verify(couponRepository, times(1)).deleteById(couponId);
+    }
+
+    @Test
+    void testDeleteCoupon_AlreadyAssigned() {
+        // Given
+        long couponId = 1L;
+
+        Coupon coupon = new Coupon();
+        coupon.setTestId(couponId);
+        coupon.setMemberId(123L);
+
+        when(couponRepository.existsById(couponId)).thenReturn(true);
+        when(couponRepository.getReferenceById(couponId)).thenReturn(coupon);
+
+        // When & Then
+        assertThrows(CouponAlreadyAssignedException.class, () -> couponService.deleteCoupon(couponId));
+        verify(couponRepository, times(1)).existsById(couponId);
+        verify(couponRepository, times(1)).getReferenceById(couponId);
+        verify(couponRepository, never()).deleteById(anyLong());
     }
 
     @Test
