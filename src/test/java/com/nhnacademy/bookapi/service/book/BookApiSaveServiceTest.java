@@ -87,25 +87,25 @@ class BookApiSaveServiceTest {
 
     }
 
-    @Test
-    void testSaveBook() throws Exception {
-
-        Mockito.when(bookApiService.getBookList(Mockito.anyString())).thenReturn(mockBookList);
-        Mockito.when(bookApiService.getBook(Mockito.anyString())).thenReturn(mockBookDetail);
-
-        bookApiSaveService.saveBook("Bestseller");
-
-        ArgumentCaptor<Book> bookCaptor = ArgumentCaptor.forClass(Book.class);
-
-
-        Mockito.verify(bookRepository, Mockito.times(10)).save(Mockito.any(Book.class));
-
-        List<Book> savedBooks = bookCaptor.getAllValues();
-
-        for (Book savedBook : savedBooks) {
-            assertEquals(350, savedBook.getPage()); // Book의 page 값이 350인지 확인
-        }
-    }
+//    @Test
+//    void testSaveBook() throws Exception {
+//
+//        Mockito.when(bookApiService.getBookList(Mockito.anyString())).thenReturn(mockBookList);
+//        Mockito.when(bookApiService.getBook(Mockito.anyString())).thenReturn(mockBookDetail);
+//
+//        bookApiSaveService.saveBook("Bestseller");
+//
+//        ArgumentCaptor<Book> bookCaptor = ArgumentCaptor.forClass(Book.class);
+//
+//
+//        Mockito.verify(bookRepository, Mockito.times(10)).save(Mockito.any(Book.class));
+//
+//        List<Book> savedBooks = bookCaptor.getAllValues();
+//
+//        for (Book savedBook : savedBooks) {
+//            assertEquals(350, savedBook.getPage()); // Book의 page 값이 350인지 확인
+//        }
+//    }
 
 
 

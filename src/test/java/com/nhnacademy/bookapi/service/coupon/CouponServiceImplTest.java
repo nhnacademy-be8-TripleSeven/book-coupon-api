@@ -194,8 +194,12 @@ class CouponServiceImplTest {
     @Test
     void testAssignCoupon_Success() {
         // Given
+        CouponPolicy couponPolicy = new CouponPolicy(1L, "Policy 1", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+
         Coupon coupon = new Coupon();
         coupon.setTestId(1L);
+        coupon.setCouponPolicy(couponPolicy);
         coupon.setName("Test Coupon");
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
@@ -233,8 +237,13 @@ class CouponServiceImplTest {
     @Test
     void testUseCoupon_Success() {
         // Given
+        CouponPolicy couponPolicy = new CouponPolicy(1L, "Policy 1", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+
         Coupon coupon = new Coupon();
         coupon.setTestId(1L);
+        coupon.setCouponPolicy(couponPolicy);
+        coupon.setName("Test Coupon");
         coupon.setCouponStatus(CouponStatus.NOTUSED);
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));

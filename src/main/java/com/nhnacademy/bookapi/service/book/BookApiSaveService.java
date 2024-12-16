@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.service.book;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCategory;
 import com.nhnacademy.bookapi.entity.BookCreator;
@@ -17,6 +18,7 @@ import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCreatorMapRepository;
 import com.nhnacademy.bookapi.repository.BookCreatorRepository;
+
 import com.nhnacademy.bookapi.repository.BookImageRepository;
 import com.nhnacademy.bookapi.repository.BookPopularRepository;
 import com.nhnacademy.bookapi.repository.BookRepository;
@@ -25,12 +27,14 @@ import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -50,6 +54,7 @@ public class BookApiSaveService {
     private final CategoryRepository categoryRepository;
     private final BookCategoryRepository bookCategoryRepository;
     private final BookCreatorMapRepository bookCreatorMapRepository;
+
 
 
 
@@ -88,7 +93,16 @@ public class BookApiSaveService {
             saveBook.setTitle(book.path("title").asText());
             saveBook.setDescription(book.path("description").asText());
             saveBook.setIsbn13(isbn);
-            saveBook.setPublishDate(LocalDate.now());
+
+            LocalDate pubDate = null;
+
+            String pubDateStr = book.path("pubDate").asText();
+            if(pubDateStr != null || !pubDateStr.isEmpty()) {
+                pubDate = LocalDate.parse(pubDateStr);
+            }
+
+            saveBook.setPublishDate(pubDate);
+
             saveBook.setStock(1000);
 
             saveBook.setRegularPrice(book.path("priceStandard").asInt());
@@ -116,29 +130,32 @@ public class BookApiSaveService {
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
 
-            //도서 제작자 저장
-            authorParseSave(author, bookFk);
-            //카테고리 제작자 저장
-            categoryParseSave(category, bookFk);
+
 
             //책인기도 초기화
             bookPopularity.setSearchRank(0);
             bookPopularity.setClickRank(0);
             bookPopularity.setCartCount(0);
             bookPopularity.setBook(bookFk);
-
             bookPopularRepository.save(bookPopularity);
-
+            //도서 제작자 저장
+            List<BookCreator> bookCreators = authorParseSave(author, bookFk);
+            //카테고리 제작자 저장
+            List<Category> categoryList = categoryParseSave(category, bookFk);
+            //엘라스틱서치 저장
+//            saveBookDocument(saveBook,image.getUrl(), publisherName, bookCreators,categoryList);
         }
         
     }
 
 
-    public void authorParseSave(String author, Book book) throws Exception {
+    public List<BookCreator> authorParseSave(String author, Book book) throws Exception {
 
 
-        BookCreator bookCreator = new BookCreator();
-        BookCreatorMap bookCreatorMap = new BookCreatorMap();
+        List<BookCreator> bookCreatorList = new ArrayList<>();
+
+        BookCreator bookCreator;
+        BookCreatorMap bookCreatorMap;
 
         // "지은이)", "그림)", "엮은이)", "원작)", "옮긴이)" 로 끝나는 구분자를 기준으로 분리
         String[] split = author.split("\\),");
@@ -158,30 +175,29 @@ public class BookApiSaveService {
                 }
                 bookCreator = bookCreatorRepository.existByNameAndRole(name, role);
                 if(bookCreator == null){
+                    bookCreatorMap = new BookCreatorMap();
                     bookCreator = new BookCreator();
                     bookCreator.setName(name.trim());
                     bookCreator.setRole(role);
                     bookCreatorMap.setBook(book);
                     bookCreatorMap.setCreator(bookCreator);
-                    bookCreatorRepository.save(bookCreator);
+                    BookCreator saveBookCreator = bookCreatorRepository.save(bookCreator);
+                    bookCreatorList.add(saveBookCreator);
                     bookCreatorMapRepository.save(bookCreatorMap);
                 }else {
+                    bookCreatorMap = new BookCreatorMap();
                     bookCreatorMap.setCreator(bookCreator);
                     bookCreatorMap.setBook(book);
                     bookCreatorMapRepository.save(bookCreatorMap);
                 }
-
             }
-
-
-
         }
-
-
+        return bookCreatorList;
     }
 
 
-    public void categoryParseSave(String category, Book book) {
+    public List<Category> categoryParseSave(String category, Book book) {
+        List<Category> categoryList = new ArrayList<>();
         String[] categories = category.split(">");
         Category parentCategory = null;
 
@@ -199,6 +215,7 @@ public class BookApiSaveService {
                 saveCategory.setName(categoryName);
                 saveCategory.setParent(parentCategory);
                 saveCategory = categoryRepository.save(saveCategory);
+                categoryList.add(saveCategory);
             }
 
             // 도서와 카테고리 매핑 저장
@@ -210,7 +227,30 @@ public class BookApiSaveService {
             // 부모 카테고리 갱신
             parentCategory = saveCategory;
         }
+        return categoryList;
     }
+
+//    private void saveBookDocument(Book book, String coverUrl, String publisherName, List<BookCreator> bookCreators, List<Category> categories) {
+//        // 도큐먼트 생성
+//        BookDocument document = new BookDocument();
+//        document.setId(book.getIsbn13());
+//        document.setTitle(book.getTitle());
+//        document.setDescription(book.getDescription());
+//        document.setIsbn13(book.getIsbn13());
+//        document.setPublishDate(book.getPublishDate());
+//        document.setRegularPrice(book.getRegularPrice());
+//        document.setSalePrice(book.getSalePrice());
+//        document.setStock(book.getStock());
+//        document.setPage(book.getPage());
+//        document.setCoverUrl(coverUrl);
+//        document.setPublisherName(publisherName);
+//        document.setCategories(categories);
+//        document.setBookCreators(bookCreators);
+//
+//
+//        // 엘라스틱서치에 저장
+//        bookSearchService.saveBook(document);
+//    }
 
 }
 

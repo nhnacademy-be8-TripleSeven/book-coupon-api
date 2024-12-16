@@ -26,6 +26,7 @@ public class BookIndex {
 
     @Setter
     @ManyToOne
+    @JoinColumn(nullable = false)
     private Book book; // 도서 아이디
 
     public BookIndex(String title, int number, int sequence, Book book) {
