@@ -10,10 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 
-@SpringBootApplication(exclude = {
-    ElasticsearchDataAutoConfiguration.class,
-    ElasticsearchRestClientAutoConfiguration.class
-})
+@SpringBootApplication
 @EnableScheduling
 public class BookapiApplication {
     private static final Logger logger = LoggerFactory.getLogger(BookapiApplication.class);

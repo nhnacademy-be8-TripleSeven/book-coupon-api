@@ -1,5 +1,8 @@
 package com.nhnacademy.bookapi.dto.tag;
 
+import lombok.Getter;
+
+@Getter
 public class TagResponseDto {
 
     private Long id;

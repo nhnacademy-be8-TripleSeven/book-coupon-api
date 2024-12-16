@@ -52,10 +52,7 @@ public class Book {
     @Column(nullable = false)
     private int page;
 
-    @Setter
-    @ManyToOne
-    private Image image;
-  
+
     @Setter
     @ManyToOne
     private Publisher publisher;

@@ -5,7 +5,7 @@ import com.nhnacademy.bookapi.entity.Book;
 
 public interface BookService {
 
-    Book save(Book book);
+    Book createBook(Book book);
 
 
     Book update(Book book);

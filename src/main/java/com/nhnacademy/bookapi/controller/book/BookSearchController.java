@@ -21,12 +21,6 @@ public class BookSearchController {
 
     @GetMapping("/id")
     public ResponseEntity<SearchBookDetail> bookTitleSearch(@RequestParam(name = "id") Long id) {
-
-        SearchBookDetail searchBookDetail = bookService.searchBookDetailByBookId(id);
-        if(searchBookDetail == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok().body(searchBookDetail);
+        return ResponseEntity.ok().body(bookService.searchBookDetailByBookId(id));
     }
 }
