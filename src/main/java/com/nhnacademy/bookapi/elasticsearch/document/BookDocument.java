@@ -36,6 +36,14 @@ public class BookDocument {
     private int stock;
     private int page;
 
+    private int bestSellerRank;
+
+    private int clickCount;
+
+    private int searchCount;
+
+    private int cartCount;
+
     @Field(name = "cover_url")
     private String coverUrl;
 
