@@ -71,9 +71,9 @@ public class BookServiceImpl implements BookService {
         }
         searchBookDetail.setBookCreators(creatorDetails);
 
-        List<BookIndex> byBookId = bookIndexRepository.findByBookId(id);
+//        List<BookIndex> byBookId = bookIndexRepository.findByBookId(id);
 
-        searchBookDetail.setBookIndices(byBookId);
+//        searchBookDetail.setBookIndices(byBookId);
 
         return searchBookDetail;
     }

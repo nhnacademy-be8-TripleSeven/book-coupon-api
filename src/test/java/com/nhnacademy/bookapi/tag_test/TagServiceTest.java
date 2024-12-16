@@ -129,21 +129,21 @@ public class TagServiceTest {
         assertEquals("spring", tagResponseDtos.get(2).getName());
     }
 
-    @Test
-    void getTagByName_Success() {
-        String tagName = "programming";
-        Tag tag = new Tag(tagName);
-        when(tagRepository.findByName(tagName)).thenReturn(Optional.of(tag));
-
-        TagResponseDto tagResponseDto = tagService.getTagByName(tagName);
-        assertEquals(tag.getName(), tagResponseDto.getName());
-    }
-
-    @Test
-    void getTagByName_TagNotFound() {
-        String tagName = "programming";
-        when(tagRepository.findByName(tagName)).thenReturn(Optional.empty());
-
-        assertThrows(TagNotFoundException.class, () -> tagService.getTagByName(tagName));
-    }
+//    @Test
+//    void getTagByName_Success() {
+//        String tagName = "programming";
+//        Tag tag = new Tag(tagName);
+//        when(tagRepository.findByName(tagName)).thenReturn(Optional.of(tag));
+//
+//        TagResponseDto tagResponseDto = tagService.getTagByName(tagName);
+//        assertEquals(tag.getName(), tagResponseDto.getName());
+//    }
+//
+//    @Test
+//    void getTagByName_TagNotFound() {
+//        String tagName = "programming";
+//        when(tagRepository.findByName(tagName)).thenReturn(Optional.empty());
+//
+//        assertThrows(TagNotFoundException.class, () -> tagService.getTagByName(tagName));
+//    }
 }

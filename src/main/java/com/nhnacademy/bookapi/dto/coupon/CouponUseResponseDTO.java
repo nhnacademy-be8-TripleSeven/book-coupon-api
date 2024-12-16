@@ -1,14 +1,11 @@
 package com.nhnacademy.bookapi.dto.coupon;
 
 import com.nhnacademy.bookapi.entity.Coupon;
-import com.nhnacademy.bookapi.entity.CouponPolicy;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@AllArgsConstructor
 @Getter
 public class CouponUseResponseDTO {
     private Long couponId;

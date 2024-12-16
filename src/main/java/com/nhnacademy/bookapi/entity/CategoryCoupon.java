@@ -1,3 +1,4 @@
+
 package com.nhnacademy.bookapi.entity;
 
 import jakarta.persistence.*;
@@ -15,12 +16,12 @@ public class CategoryCoupon {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "coupon_id", nullable = false)
     @Setter
     private Coupon coupon;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "category_id", nullable = false)
     @Setter
     private Category category;
@@ -29,3 +30,4 @@ public class CategoryCoupon {
         this.id = id;
     }
 }
+
