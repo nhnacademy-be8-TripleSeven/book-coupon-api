@@ -1,12 +1,11 @@
 package com.nhnacademy.bookapi.dto.coupon;
 
-import lombok.AllArgsConstructor;
+import com.nhnacademy.bookapi.entity.Coupon;
 import lombok.Getter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@AllArgsConstructor
 @Getter
 public class CouponDetailsDTO {
     private Long id;
@@ -19,4 +18,19 @@ public class CouponDetailsDTO {
     private LocalDateTime usedAt;
     private String bookTitle;
     private String categoryName;
+
+    public CouponDetailsDTO(Coupon coupon,
+                            String bookTitle,
+                            String categoryName) {
+        this.id = coupon.getId();
+        this.policyName = coupon.getCouponPolicy().getName();
+        this.name = coupon.getName();
+        this.memberId = coupon.getMemberId();
+        this.issueDate = coupon.getCouponIssueDate();
+        this.expiryDate = coupon.getCouponExpiryDate();
+        this.status = coupon.getCouponStatus().name();
+        this.usedAt = coupon.getCouponUseAt();
+        this.bookTitle = bookTitle;
+        this.categoryName = categoryName;
+    }
 }
