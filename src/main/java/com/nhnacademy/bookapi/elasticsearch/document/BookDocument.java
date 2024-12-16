@@ -13,32 +13,32 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 
 
-//@Getter
-//@Setter
-//@Document(indexName = "books")
-//public class BookDocument {
-//
-//    @Id
-//    private String id;
-//
-//    private String title;
-//    private String description;
-//    private String isbn13;
-//
-//    @Field(name = "publish_date")
-//    private LocalDate publishDate;
-//    @Field(name = "regular_price")
-//    private int regularPrice;
-//    @Field(name = "sale_price")
-//    private int salePrice;
-//    private int stock;
-//    private int page;
-//    @Field(name = "cover_url")
-//    private String coverUrl;
-//    @Field(name = "publisher_name")
-//    private String publisherName;
-//    @Field(name = "book_creators")
-//    private List<BookCreator> bookCreators;
-//    private List<Category> categories;
-//
-//}
+@Getter
+@Setter
+@Document(indexName = "books")
+public class BookDocument {
+
+    @Id
+    private String id;
+
+    private String title;
+    private String description;
+    private String isbn13;
+
+    @Field(name = "publish_date")
+    private LocalDate publishDate;
+    @Field(name = "regular_price")
+    private int regularPrice;
+    @Field(name = "sale_price")
+    private int salePrice;
+    private int stock;
+    private int page;
+    @Field(name = "cover_url")
+    private String coverUrl;
+    @Field(name = "publisher_name")
+    private String publisherName;
+    @Field(name = "book_creators")
+    private List<BookCreator> bookCreators;
+    private List<Category> categories;
+
+}
