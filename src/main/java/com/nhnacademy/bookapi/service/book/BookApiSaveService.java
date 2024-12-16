@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCategory;
+import com.nhnacademy.bookapi.entity.BookCoverImage;
 import com.nhnacademy.bookapi.entity.BookCreator;
 import com.nhnacademy.bookapi.entity.BookCreatorMap;
 import com.nhnacademy.bookapi.entity.BookImage;
@@ -16,6 +17,7 @@ import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
+import com.nhnacademy.bookapi.repository.BookCoverImageRepository;
 import com.nhnacademy.bookapi.repository.BookCreatorMapRepository;
 import com.nhnacademy.bookapi.repository.BookCreatorRepository;
 
@@ -36,7 +38,9 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+@Transactional
 @Slf4j
 @RequiredArgsConstructor
 @Service
@@ -54,6 +58,7 @@ public class BookApiSaveService {
     private final CategoryRepository categoryRepository;
     private final BookCategoryRepository bookCategoryRepository;
     private final BookCreatorMapRepository bookCreatorMapRepository;
+    private final BookCoverImageRepository bookCoverImageRepository;
 
 
 
@@ -90,6 +95,10 @@ public class BookApiSaveService {
             image.setUrl(book.path("cover").asText());
             Image imageFk = imageRepository.save(image);
 
+            //bookcoverimage mapping
+            BookCoverImage bookCoverImage = BookCoverImage.bookCoverImageMapper(imageFk, saveBook);
+            bookCoverImageRepository.save(bookCoverImage);
+
             saveBook.setTitle(book.path("title").asText());
             saveBook.setDescription(book.path("description").asText());
             saveBook.setIsbn13(isbn);
@@ -107,7 +116,7 @@ public class BookApiSaveService {
 
             saveBook.setRegularPrice(book.path("priceStandard").asInt());
             saveBook.setSalePrice(book.path("priceSales").asInt());
-            saveBook.setImage(imageFk);
+
 
             if(bookDetail != null) {
                 JsonNode subInfo = bookDetail.path("subInfo");

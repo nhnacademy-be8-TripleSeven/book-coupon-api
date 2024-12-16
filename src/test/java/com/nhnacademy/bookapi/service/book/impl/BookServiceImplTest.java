@@ -121,7 +121,7 @@ class BookServiceImplTest {
         Mockito.when(bookRepository.save(book)).thenReturn(book);
 
         // Act
-        Book savedBook = bookService.save(book);
+        Book savedBook = bookService.createBook(book);
 
         // Assert
         assertNotNull(savedBook);
