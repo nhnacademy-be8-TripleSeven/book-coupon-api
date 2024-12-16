@@ -16,10 +16,12 @@ public class BookApiController {
     private final BookApiSaveService bookApiSaveService;
 
 
-    //bookType = ItemNewAll:신간, Bestseller:베스트셀러
+    /*bookType = ItemNewAll:신간, Bestseller:베스트셀러
+       http://localhost:8080/save-book?bookType=ItemNewAll&searchTarget=Book
+       searchTarget = eBook, Book, Foreign(외국도서),  */
     @GetMapping
-    public ResponseEntity saveBook(@RequestParam String bookType) throws Exception {
-        bookApiSaveService.saveBook(bookType);
+    public ResponseEntity saveBook(@RequestParam String bookType, String searchTarget) throws Exception {
+        bookApiSaveService.saveBook(bookType, searchTarget);
 
 
         return ResponseEntity.ok().body("성공");

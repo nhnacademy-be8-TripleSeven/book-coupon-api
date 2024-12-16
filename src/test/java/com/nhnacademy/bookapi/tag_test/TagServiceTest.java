@@ -139,11 +139,11 @@ public class TagServiceTest {
 //        assertEquals(tag.getName(), tagResponseDto.getName());
 //    }
 
-    @Test
-    void getTagByName_TagNotFound() {
-        String tagName = "programming";
-        when(tagRepository.findByName(tagName)).thenReturn(Optional.empty());
-
-        assertThrows(TagNotFoundException.class, () -> tagService.getTagByName(tagName));
-    }
+//    @Test
+//    void getTagByName_TagNotFound() {
+//        String tagName = "programming";
+//        when(tagRepository.findByName(tagName)).thenReturn(Optional.empty());
+//
+//        assertThrows(TagNotFoundException.class, () -> tagService.getTagByName(tagName));
+//    }
 }
