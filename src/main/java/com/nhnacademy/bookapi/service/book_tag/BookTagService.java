@@ -13,6 +13,7 @@ import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.BookTagRepository;
 import com.nhnacademy.bookapi.repository.TagRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class BookTagService {
 
     private final BookTagRepository bookTagRepository;
@@ -74,7 +76,6 @@ public class BookTagService {
         Tag tag = getTag(bookTagRequestDTO.getTagId());
         BookTag bookTag = bookTagRepository.findByBookAndTag(book, tag).orElseThrow(() -> new BookTagNotFoundException("Not Exist"));
         bookTag.setTag(newTag);
-        bookTagRepository.save(bookTag);
         return true;
     }
 
