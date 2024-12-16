@@ -17,6 +17,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@Transactional
 public class BookIndexService {
 
     private BookIndexRepository bookIndexRepository;
@@ -28,10 +29,10 @@ public class BookIndexService {
     }
 
     public boolean addIndex(BookIndexRequestDto bookIndexRequestDto) { // 특정 책에 목차 생성
-        if (bookIndexRepository.existsByBookAndSequence(bookIndexRequestDto.getBookId(), bookIndexRequestDto.getSequence())) {
+        Book book = bookRepository.findById(bookIndexRequestDto.getBookId()).orElseThrow(() -> new BookNotFoundException("Book not found"));
+        if (bookIndexRepository.existsByBookAndSequence(book, bookIndexRequestDto.getSequence())) {
             throw new BookIndexNotFoundException("Already exist");
         }
-        Book book = bookRepository.findById(bookIndexRequestDto.getBookId()).orElseThrow(() -> new BookNotFoundException("Book not found"));
         bookIndexRepository.save(new BookIndex(bookIndexRequestDto.getTitle(),
                 bookIndexRequestDto.getNumber(), bookIndexRequestDto.getSequence(), book));
         return true;
@@ -59,7 +60,6 @@ public class BookIndexService {
         }
         bookIndex.get().setTitle(bookIndexRequestDto.getTitle());
         bookIndex.get().setNumber(bookIndexRequestDto.getNumber());
-        bookIndexRepository.save(bookIndex.get());
         return true;
     }
 
