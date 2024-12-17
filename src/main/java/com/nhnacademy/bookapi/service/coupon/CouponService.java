@@ -15,17 +15,27 @@ public interface CouponService {
 
     CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
 
-    CouponUseResponseDTO useCoupon(Long id);
-
-    CouponUseResponseDTO useBookCoupon(Long couponId, Long bookId);
-
-    CouponUseResponseDTO useCategoryCoupon(Long couponId, Long categoryId);
-
     void deleteCoupon(Long id);
 
     void expireCoupons();
 
-    List<CouponDetailsDTO> getAllCouponsByMemberId(Long memberId);
+//    CouponUseResponseDTO useCoupon(Long id);
+//
+//    CouponUseResponseDTO useBookCoupon(Long couponId, Long bookId);
+//
+//    CouponUseResponseDTO useCategoryCoupon(Long couponId, Long categoryId);
+//
+//    List<CouponDetailsDTO> getAllCouponsByMemberId(Long memberId);
+//
+//    List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId);
+
+    CouponUseResponseDTO useCoupon(Long userId, Long couponId);
+
+    CouponUseResponseDTO useBookCoupon(Long userId, Long couponId, Long bookId);
+
+    CouponUseResponseDTO useCategoryCoupon(Long userId, Long couponId, Long categoryId);
+
+    List<CouponDetailsDTO> getAllCouponsByMemberId(Long userId);
 
     List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId);
 

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,6 +90,34 @@ public class CouponServiceImpl implements CouponService {
         return new CategoryCouponResponseDTO(savedCoupon.getId(), savedCoupon.getName(), savedCoupon.getCouponPolicy(), category.getName());
     }
 
+    // 쿠폰 삭제 (쿠폰 아이디)
+    @Override
+    @Transactional
+    public void deleteCoupon(Long id) {
+        if (!couponRepository.existsById(id)) {
+            throw new CouponNotFoundException("Coupon not found");
+        }
+        if (couponRepository.getReferenceById(id).getMemberId() != null) {
+            throw new CouponAlreadyAssignedException("Coupon is already assigned");
+        }
+        couponRepository.deleteById(id);
+    }
+
+    // 쿠폰 만료 (스케쥴러)
+    @Override
+    @Transactional
+    public void expireCoupons() {
+        List<Coupon> coupons = couponRepository.findByCouponStatusAndCouponExpiryDateBefore(CouponStatus.NOTUSED, LocalDate.now());
+
+        if (coupons.isEmpty()) {
+            throw new NoCouponsToExpireException("No coupons found to expire");
+        }
+
+        for (Coupon coupon : coupons) {
+            coupon.setCouponStatus(CouponStatus.EXPIRED);
+        }
+    }
+
     // 쿠폰 발급 (쿠폰 아이디, 회원 아이디)
     @Override
     @Transactional
@@ -109,16 +138,117 @@ public class CouponServiceImpl implements CouponService {
 
         return new CouponAssignResponseDTO(coupon);
     }
+//
+//    // 쿠폰 사용 (쿠폰 아이디)
+//    @Override
+//    @Transactional
+//    public CouponUseResponseDTO useCoupon(Long couponId) {
+//        Coupon coupon = couponRepository.findById(couponId)
+//                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+//
+//        if (coupon.getMemberId() == null) {
+//            throw new CouponNotAssignedException("Member not found");
+//        }
+//
+//        if (coupon.getCouponStatus() == CouponStatus.USED) {
+//            throw new CouponAlreadyUsedExceeption("Coupon is already used");
+//        }
+//
+//        if (coupon.getCouponStatus() == CouponStatus.EXPIRED) {
+//            throw new CouponExpiredException("Coupon is expired");
+//        }
+//
+//        coupon.setCouponStatus(CouponStatus.USED);
+//        coupon.setCouponUseAt(LocalDateTime.now());
+//
+//        return new CouponUseResponseDTO(coupon);
+//    }
+//
+//    // 쿠폰 사용 (책 쿠폰)
+//    @Override
+//    @Transactional
+//    public CouponUseResponseDTO useBookCoupon(Long couponId, Long bookId) {
+//        // 쿠폰 조회
+//        Coupon coupon = couponRepository.findById(couponId)
+//                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+//
+//        // 책 쿠폰 여부 확인
+//        BookCoupon bookCoupon = bookCouponRepository.findByCoupon(coupon)
+//                .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a book"));
+//
+//        // 유효한 책인지 확인
+//        if (!bookCoupon.getBook().getId().equals(bookId)) {
+//            throw new InvalidCouponUsageException("Coupon cannot be used for this book");
+//        }
+//
+//        // 공통 사용 로직 호출
+//        return useCoupon(couponId);
+//    }
+//
+//    // 쿠폰 사용 (카테고리 쿠폰)
+//    @Override
+//    @Transactional
+//    public CouponUseResponseDTO useCategoryCoupon(Long couponId, Long categoryId) {
+//        Coupon coupon = couponRepository.findById(couponId)
+//                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+//
+//        CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
+//                .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a category"));
+//
+//        if (!isValidCategory(categoryCoupon.getCategory(), categoryId)) {
+//            throw new InvalidCouponUsageException("Coupon cannot be used in this category");
+//        }
+//
+//        return useCoupon(couponId);
+//    }
+//
+//    // 유효한 카테고리인지 확인
+//    private boolean isValidCategory(Category couponCategory, Long requestedCategoryId) {
+//        List<Long> validCategories = categoryRepository.findSubcategories(couponCategory.getId());
+//
+//        // 쿠폰의 하위 카테고리에 요청된 카테고리가 포함되면 유효
+//        return validCategories.contains(requestedCategoryId);
+//    }
+//
+//
+//    // 멤버 아이디 기반 쿠폰 조회
+//    @Override
+//    @Transactional(readOnly = true)
+//    public List<CouponDetailsDTO> getAllCouponsByMemberId(Long memberId) {
+//        List<Coupon> coupons = couponRepository.findByMemberId(memberId);
+//
+//        if (coupons.isEmpty()) {
+//            throw new CouponsNotFoundException("No coupons found for member with ID: " + memberId);
+//        }
+//
+//        return coupons.stream()
+//                .map(this::mapToCouponDetailsDTO)
+//                .collect(Collectors.toList());
+//    }
+//
+//    // 멤버 아이디 기반 미사용 쿠폰 리스트 조회
+//    @Override
+//    @Transactional(readOnly = true)
+//    public List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId) {
+//        List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatus(memberId, CouponStatus.NOTUSED);
+//
+//        if (coupons.isEmpty()) {
+//            throw new CouponsNotFoundException("No unused coupons found for member with ID: " + memberId);
+//        }
+//
+//        return coupons.stream()
+//                .map(this::mapToCouponDetailsDTO)
+//                .collect(Collectors.toList());
+//    }
 
-    // 쿠폰 사용 (쿠폰 아이디)
-    @Override
+    // 쿠폰 사용 (사용자용)
     @Transactional
-    public CouponUseResponseDTO useCoupon(Long id) {
-        Coupon coupon = couponRepository.findById(id)
+    public CouponUseResponseDTO useCoupon(Long userId, Long couponId) {
+        Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
-        if (coupon.getMemberId() == null) {
-            throw new CouponNotAssignedException("Member not found");
+        if (!Objects.equals(coupon.getMemberId(), userId)) {
+            throw new InvalidCouponUsageException("Coupon does not belong to the authenticated user");
         }
 
         if (coupon.getCouponStatus() == CouponStatus.USED) {
@@ -135,33 +265,35 @@ public class CouponServiceImpl implements CouponService {
         return new CouponUseResponseDTO(coupon);
     }
 
-    // 쿠폰 사용 (책 쿠폰)
-    @Override
+    // 책 쿠폰 사용 (사용자용)
     @Transactional
-    public CouponUseResponseDTO useBookCoupon(Long couponId, Long bookId) {
-        // 쿠폰 조회
+    public CouponUseResponseDTO useBookCoupon(Long userId, Long couponId, Long bookId) {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
-        // 책 쿠폰 여부 확인
+        if (!Objects.equals(coupon.getMemberId(), userId)) {
+            throw new InvalidCouponUsageException("Coupon does not belong to the authenticated user");
+        }
+
         BookCoupon bookCoupon = bookCouponRepository.findByCoupon(coupon)
                 .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a book"));
 
-        // 유효한 책인지 확인
         if (!bookCoupon.getBook().getId().equals(bookId)) {
             throw new InvalidCouponUsageException("Coupon cannot be used for this book");
         }
 
-        // 공통 사용 로직 호출
-        return useCoupon(couponId);
+        return useCoupon(userId, couponId);
     }
 
-    // 쿠폰 사용 (카테고리 쿠폰)
-    @Override
+    // 카테고리 쿠폰 사용 (사용자용)
     @Transactional
-    public CouponUseResponseDTO useCategoryCoupon(Long couponId, Long categoryId) {
+    public CouponUseResponseDTO useCategoryCoupon(Long userId, Long couponId, Long categoryId) {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+
+        if (!Objects.equals(coupon.getMemberId(), userId)) {
+            throw new InvalidCouponUsageException("Coupon does not belong to the authenticated user");
+        }
 
         CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
                 .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a category"));
@@ -170,56 +302,35 @@ public class CouponServiceImpl implements CouponService {
             throw new InvalidCouponUsageException("Coupon cannot be used in this category");
         }
 
-        return useCoupon(couponId);
+        return useCoupon(userId, couponId);
     }
 
     // 유효한 카테고리인지 확인
     private boolean isValidCategory(Category couponCategory, Long requestedCategoryId) {
         List<Long> validCategories = categoryRepository.findSubcategories(couponCategory.getId());
-
-        // 쿠폰의 하위 카테고리에 요청된 카테고리가 포함되면 유효
         return validCategories.contains(requestedCategoryId);
     }
 
-
-    // 쿠폰 삭제 (쿠폰 아이디)
-    @Override
-    @Transactional
-    public void deleteCoupon(Long id) {
-        if (!couponRepository.existsById(id)) {
-            throw new CouponNotFoundException("Coupon not found");
-        }
-        if (couponRepository.getReferenceById(id).getMemberId() != null) {
-            throw new CouponAlreadyAssignedException("Coupon is already assigned");
-        }
-        couponRepository.deleteById(id);
-    }
-
-    // 쿠폰 만료 (스케쥴러)
-    @Override
-    @Transactional
-    public void expireCoupons() {
-        List<Coupon> coupons = couponRepository.findByCouponStatusAndCouponExpiryDateBefore(CouponStatus.NOTUSED, LocalDate.now());
-
-        for (Coupon coupon : coupons) {
-            coupon.setCouponStatus(CouponStatus.EXPIRED);
-        }
-    }
-
-    // 멤버 아이디 기반 쿠폰 조회
-    @Override
+    // 사용자 쿠폰 조회
     @Transactional(readOnly = true)
-    public List<CouponDetailsDTO> getAllCouponsByMemberId(Long memberId) {
-        return couponRepository.findByMemberId(memberId).stream()
+    public List<CouponDetailsDTO> getAllCouponsByMemberId(Long userId) {
+        List<Coupon> coupons = couponRepository.findByMemberId(userId);
+        if (coupons.isEmpty()) {
+            throw new CouponsNotFoundException("No coupons found for user ID: " + userId);
+        }
+        return coupons.stream()
                 .map(this::mapToCouponDetailsDTO)
                 .collect(Collectors.toList());
     }
 
-    // 멤버 아이디 기반 미사용 쿠폰 리스트 조회
-    @Override
+    // 사용자 미사용 쿠폰 조회
     @Transactional(readOnly = true)
-    public List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId) {
-        return couponRepository.findByMemberIdAndCouponStatus(memberId, CouponStatus.NOTUSED).stream()
+    public List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long userId) {
+        List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatus(userId, CouponStatus.NOTUSED);
+        if (coupons.isEmpty()) {
+            throw new CouponsNotFoundException("No unused coupons found for user ID: " + userId);
+        }
+        return coupons.stream()
                 .map(this::mapToCouponDetailsDTO)
                 .collect(Collectors.toList());
     }
@@ -228,7 +339,17 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional(readOnly = true)
     public List<CouponDetailsDTO> getCouponsByPolicyId(Long policyId) {
-        return couponRepository.findByCouponPolicyId(policyId).stream()
+        if (!couponPolicyRepository.existsById(policyId)) {
+            throw new CouponPolicyNotFoundException("Coupon policy with ID " + policyId + " does not exist");
+        }
+
+        List<Coupon> coupons = couponRepository.findByCouponPolicyId(policyId);
+
+        if (coupons.isEmpty()) {
+            throw new CouponsNotFoundException("No coupons found for policy with ID: " + policyId);
+        }
+
+        return coupons.stream()
                 .map(this::mapToCouponDetailsDTO)
                 .collect(Collectors.toList());
     }

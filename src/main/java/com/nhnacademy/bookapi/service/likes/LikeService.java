@@ -13,6 +13,51 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+//@Service
+//@Transactional
+//public class LikeService {
+//
+//    private final LikeRepository likeRepository;
+//    private final BookRepository bookRepository;
+//
+//    public LikeService(LikeRepository likeRepository, BookRepository bookRepository) {
+//        this.likeRepository = likeRepository;
+//        this.bookRepository = bookRepository;
+//    }
+//
+//    // 좋아요 추가
+//    public void addLike(LikesRequestDto likesRequestDto) {
+//        Book book = getBook(likesRequestDto.getBookId());
+//        // 이미 좋아요가 존재하는 경우 예외 처리
+//        if (likeRepository.findByBookAndUserId(book, likesRequestDto.getUserId()).isPresent()) {
+//            throw new LikeAlreadyExistException("Like already exists");
+//        }
+//        Likes like = new Likes(book, likesRequestDto.getUserId());
+//        likeRepository.save(like);
+//    }
+//
+//    // 좋아요 삭제
+//    public void deleteLike(LikesRequestDto likesRequestDto) {
+//        Book book = getBook(likesRequestDto.getBookId());
+//        Likes like = getLikes(book, likesRequestDto.getUserId());
+//        likeRepository.delete(like);
+//    }
+//
+//    //유저 아이디를 사용해 좋아요를 누른 모든 도서 조회
+//    public List<Likes> getAllLikesByUserId(Long userId) {
+//        return likeRepository.findAllByUserId(userId);
+//    }
+//
+//    private Book getBook(Long bookId) {
+//        return bookRepository.findById(bookId)
+//                .orElseThrow(() -> new BookNotFoundException("Book not found"));
+//    }
+//
+//    private Likes getLikes(Book book, Long userId) {
+//        return likeRepository.findByBookAndUserId(book, userId).orElseThrow(() -> new LikeNotFoundException("Like not found"));
+//    }
+//}
+
 @Service
 @Transactional
 public class LikeService {
@@ -26,24 +71,24 @@ public class LikeService {
     }
 
     // 좋아요 추가
-    public void addLike(LikesRequestDto likesRequestDto) {
+    public void addLike(Long userId, LikesRequestDto likesRequestDto) {
         Book book = getBook(likesRequestDto.getBookId());
         // 이미 좋아요가 존재하는 경우 예외 처리
-        if (likeRepository.findByBookAndUserId(book, likesRequestDto.getUserId()).isPresent()) {
+        if (likeRepository.findByBookAndUserId(book, userId).isPresent()) {
             throw new LikeAlreadyExistException("Like already exists");
         }
-        Likes like = new Likes(book, likesRequestDto.getUserId());
+        Likes like = new Likes(book, userId);
         likeRepository.save(like);
     }
 
     // 좋아요 삭제
-    public void deleteLike(LikesRequestDto likesRequestDto) {
+    public void deleteLike(Long userId, LikesRequestDto likesRequestDto) {
         Book book = getBook(likesRequestDto.getBookId());
-        Likes like = getLikes(book, likesRequestDto.getUserId());
+        Likes like = getLikes(book, userId);
         likeRepository.delete(like);
     }
 
-    //유저 아이디를 사용해 좋아요를 누른 모든 도서 조회
+    // 유저 아이디를 사용해 좋아요를 누른 모든 도서 조회
     public List<Likes> getAllLikesByUserId(Long userId) {
         return likeRepository.findAllByUserId(userId);
     }
@@ -57,4 +102,3 @@ public class LikeService {
         return likeRepository.findByBookAndUserId(book, userId).orElseThrow(() -> new LikeNotFoundException("Like not found"));
     }
 }
-
