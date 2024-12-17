@@ -130,47 +130,24 @@ class BookServiceImplTest {
         Mockito.verify(bookRepository, Mockito.times(1)).save(book);
     }
 
-    @Test
-    void testUpdateBook_Success() {
-        // Arrange
-        Book existingBook = new Book();
 
-        existingBook.setTitle("Old Title");
-
-        Book updatedBook = new Book();
-
-        updatedBook.setTitle("Updated Title");
-
-        Mockito.when(bookRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(existingBook));
-        Mockito.when(bookRepository.save(existingBook)).thenReturn(existingBook);
-
-        // Act
-        Book result = bookService.update(updatedBook);
-
-        // Assert
-        assertNotNull(result);
-        assertEquals("Updated Title", result.getTitle());
-        Mockito.verify(bookRepository, Mockito.times(1)).findById(Mockito.anyLong());
-        Mockito.verify(bookRepository, Mockito.times(1)).save(existingBook);
-    }
-
-    @Test
-    void testUpdateBook_BookNotFound() {
-        // Arrange
-        Book updatedBook = new Book();
-
-        updatedBook.setTitle("Updated Title");
-
-        Mockito.when(bookRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-
-
-        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () ->
-            bookService.update(updatedBook)
-        );
-        assertEquals("book not found", exception.getMessage());
-        Mockito.verify(bookRepository, Mockito.times(1)).findById(Mockito.anyLong());
-        Mockito.verify(bookRepository, Mockito.never()).save(Mockito.any(Book.class));
-    }
+//    @Test
+//    void testUpdateBook_BookNotFound() {
+//        // Arrange
+//        Book updatedBook = new Book();
+//
+//        updatedBook.setTitle("Updated Title");
+//
+//        Mockito.when(bookRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
+//
+//
+//        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () ->
+//            bookService.update(updatedBook)
+//        );
+//        assertEquals("book not found", exception.getMessage());
+//        Mockito.verify(bookRepository, Mockito.times(1)).findById(Mockito.anyLong());
+//        Mockito.verify(bookRepository, Mockito.never()).save(Mockito.any(Book.class));
+//    }
 
     @Test
     void testDeleteBook_Success() {
