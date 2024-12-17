@@ -67,8 +67,8 @@ public class BookApiSaveService {
 
 
 
-    public void saveBook(String bookType, String searchTarget) throws Exception {
-        JsonNode bookList = bookApiService.getBookList(bookType, searchTarget);
+    public void saveBook(String bookType, String searchTarget, int start, int max) throws Exception {
+        JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
 
         for (JsonNode book : bookList) {
             String isbn = book.path("isbn13").asText();
@@ -79,7 +79,6 @@ public class BookApiSaveService {
             BookType saveBookType = new BookType();
             Publisher publisher = new Publisher();
 
-            Thread.sleep(1000);
 
             BookIndex saveIndex = new BookIndex();
             saveIndex.setBook(saveBook);
