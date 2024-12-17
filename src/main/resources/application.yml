@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: jhs
+    active: dev
 
   lifecycle:
     timeout-per-shutdown-phase: 30s
@@ -16,6 +16,15 @@ logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
 
+jasypt:
+  encryptor:
+    password: nhn24
+    algorithm: PBEWithMD5AndDES
+    key-obtention-iterations: 1000
+    pool-size: 1
+    salt-generator-classname: org.jasypt.salt.RandomSaltGenerator
+    iv-generator-classname: org.jasypt.iv.NoIvGenerator
+    string-output-type: base64
 
 
 
@@ -54,9 +63,7 @@ aladin:
   api:
     key: ttbrlgus45311101001
 
-koreanbook:
-  api:
-    key:
+
 
 
 
