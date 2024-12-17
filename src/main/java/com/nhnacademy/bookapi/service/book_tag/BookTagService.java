@@ -71,11 +71,23 @@ public class BookTagService {
         return true;
     }
 
-    public boolean updateBookTag(BookTagRequestDTO bookTagRequestDTO, Tag newTag) { // 업데이트하고픈 컬럼을 찾고 태그 이름 업데이트
+//    public boolean updateBookTag(BookTagRequestDTO bookTagRequestDTO, Tag newTag) { // 업데이트하고픈 컬럼을 찾고 태그 이름 업데이트
+//        Book book = getBook(bookTagRequestDTO.getBookId());
+//        Tag tag = getTag(bookTagRequestDTO.getTagId());
+//        BookTag bookTag = bookTagRepository.findByBookAndTag(book, tag).orElseThrow(() -> new BookTagNotFoundException("Not Exist"));
+//        bookTag.setTag(newTag);
+//        return true;
+//    }
+    public boolean updateBookTag(BookTagRequestDTO bookTagRequestDTO, Long newTagId) {
         Book book = getBook(bookTagRequestDTO.getBookId());
-        Tag tag = getTag(bookTagRequestDTO.getTagId());
-        BookTag bookTag = bookTagRepository.findByBookAndTag(book, tag).orElseThrow(() -> new BookTagNotFoundException("Not Exist"));
+        Tag oldTag = getTag(bookTagRequestDTO.getTagId());
+        Tag newTag = getTag(newTagId);
+
+        BookTag bookTag = bookTagRepository.findByBookAndTag(book, oldTag)
+                .orElseThrow(() -> new BookTagNotFoundException("Book tag not found"));
+
         bookTag.setTag(newTag);
+        bookTagRepository.save(bookTag);
         return true;
     }
 

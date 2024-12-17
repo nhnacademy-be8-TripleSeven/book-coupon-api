@@ -37,21 +37,19 @@
 <!--            </filter>-->
 <!--        </appender>-->
 
-        <!-- Logstrash -->
-        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
-            <destination>115.94.72.197:50000</destination>
-            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
-        </appender>
+<!--        &lt;!&ndash; Logstrash &ndash;&gt;-->
+<!--        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
+<!--            <destination>115.94.72.197:50000</destination>-->
+<!--            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>-->
+<!--        </appender>-->
 
 
         <!-- 루트 로거: INFO 이상을 콘솔 및 NHN으로 출력 -->
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
+<!--            <appender-ref ref="LOGSTASH" />-->
 <!--            <appender-ref ref="NHN_LOG_CRASH_APPENDER" />-->
         </root>
 
-        <root level="info">
-            <appender-ref ref="LOGSTASH" />
-        </root>
     </springProfile>
 </configuration>
