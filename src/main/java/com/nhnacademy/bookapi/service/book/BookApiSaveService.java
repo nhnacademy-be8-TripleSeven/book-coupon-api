@@ -8,6 +8,7 @@ import com.nhnacademy.bookapi.entity.BookCoverImage;
 import com.nhnacademy.bookapi.entity.BookCreator;
 import com.nhnacademy.bookapi.entity.BookCreatorMap;
 import com.nhnacademy.bookapi.entity.BookImage;
+import com.nhnacademy.bookapi.entity.BookIndex;
 import com.nhnacademy.bookapi.entity.BookPopularity;
 import com.nhnacademy.bookapi.entity.BookType;
 import com.nhnacademy.bookapi.entity.Category;
@@ -22,6 +23,7 @@ import com.nhnacademy.bookapi.repository.BookCreatorMapRepository;
 import com.nhnacademy.bookapi.repository.BookCreatorRepository;
 
 import com.nhnacademy.bookapi.repository.BookImageRepository;
+import com.nhnacademy.bookapi.repository.BookIndexRepository;
 import com.nhnacademy.bookapi.repository.BookPopularRepository;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.BookTypeRepository;
@@ -60,11 +62,13 @@ public class BookApiSaveService {
     private final BookCreatorMapRepository bookCreatorMapRepository;
     private final BookCoverImageRepository bookCoverImageRepository;
 
+    private final BookIndexRepository bookIndexRepository;
 
 
 
-    public void saveBook(String bookType) throws Exception {
-        JsonNode bookList = bookApiService.getBookList(bookType);
+
+    public void saveBook(String bookType, String searchTarget, int start, int max) throws Exception {
+        JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
 
         for (JsonNode book : bookList) {
             String isbn = book.path("isbn13").asText();
@@ -75,6 +79,10 @@ public class BookApiSaveService {
             BookType saveBookType = new BookType();
             Publisher publisher = new Publisher();
 
+
+            BookIndex saveIndex = new BookIndex();
+            saveIndex.setBook(saveBook);
+            saveIndex.setSequence(0);
 
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
@@ -122,15 +130,23 @@ public class BookApiSaveService {
                 JsonNode subInfo = bookDetail.path("subInfo");
                 saveBook.setPage(subInfo.path("itemPage").asInt());
             }
-
+            List<BookType> bookTypes = new ArrayList<>();
+            //북타입 추가1
             saveBookType.setRanks(book.path("bestRank").asInt());
-
-            //북타입 저장
             saveBookType.setTypes(Type.valueOf(bookType.toUpperCase(Locale.ROOT)));
-
+            saveBookType.setBook(saveBook);
             Book bookFk = bookRepository.save(saveBook);
-            bookTypeRepository.save(saveBookType);
 
+            bookTypes.add(saveBookType);
+
+            //북타입 추가2
+            BookType newBookType = new BookType();
+            newBookType.setTypes(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)));
+            newBookType.setBook(saveBook);
+            newBookType.setRanks(0);
+
+            bookTypes.add(newBookType);
+            bookTypeRepository.saveAll(bookTypes);
 
             bookImage.setBook(bookFk);
             bookImage.setImage(imageFk);
