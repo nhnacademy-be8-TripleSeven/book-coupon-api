@@ -2,7 +2,6 @@ package com.nhnacademy.bookapi.service.book;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
-import com.nhnacademy.bookapi.crawler.BookCrawler;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCategory;
 import com.nhnacademy.bookapi.entity.BookCoverImage;
@@ -70,7 +69,6 @@ public class BookApiSaveService {
 
     public void saveBook(String bookType, String searchTarget) throws Exception {
         JsonNode bookList = bookApiService.getBookList(bookType, searchTarget);
-        BookCrawler bookCrawler = new BookCrawler();
 
         for (JsonNode book : bookList) {
             String isbn = book.path("isbn13").asText();
@@ -82,11 +80,9 @@ public class BookApiSaveService {
             Publisher publisher = new Publisher();
 
             Thread.sleep(1000);
-            String[] bookIndex = bookCrawler.fetchTableOfContents(isbn);
 
             BookIndex saveIndex = new BookIndex();
             saveIndex.setBook(saveBook);
-            saveIndex.setTitle(bookIndex[0]);
             saveIndex.setSequence(0);
 
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);

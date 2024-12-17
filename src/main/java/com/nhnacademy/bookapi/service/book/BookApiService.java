@@ -15,8 +15,6 @@ public class BookApiService {
     @Value("${aladin.api.key}")
     private String apiKey;
 
-    @Value("${koreanbook.api.key}")
-    private String koreanApi;
 
     private String BOOK = "Book";
 
@@ -41,8 +39,8 @@ public class BookApiService {
 
     public JsonNode getBook(String isbn) throws Exception{
 
-        String url = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?ttbkey="+ apiKey+"&itemIdType=ISBN13&ItemId="+isbn+"&output=js&Version=20131101&"
-            + "OptResult=ebookList,usedList,reviewList";
+        String url = "http://www.aladin.co.kr/ttb/api/ItemLookUp.aspx?ttbkey="+ apiKey+"&itemIdType=ISBN13&ItemId="+isbn+"&output=JS&Version=20131101&"
+            + "OptResult=Toc";
 
         String jsResponse = restTemplate.getForObject(url, String.class);
 
@@ -51,14 +49,5 @@ public class BookApiService {
         return rootNode.path("item");
     }
 
-
-    public JsonNode getBookIndex(String isbn) throws Exception{
-        String url = "https://www.nl.go.kr/seoji/SearchApi.do?cert_key="+koreanApi+"&result_style=json&page_no=1&page_size=10&start_publish_date=20220509&end_publish_date=20220509";
-        String jsResponse = restTemplate.getForObject(url, String.class);
-
-        JsonNode rootNode = objectMapper.readTree(jsResponse);
-
-        return rootNode.path("item");
-    }
 
 }
