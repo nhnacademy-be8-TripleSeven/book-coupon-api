@@ -9,7 +9,8 @@ public enum Type {
     BLOGBEST("블로그베스트"),
     EBOOK("e북"),
     FOREIGN("외국도서"),
-    BOOK("일반도서");
+    BOOK("일반도서"),
+    ALL("모든도서");
 
 
     private final String description;

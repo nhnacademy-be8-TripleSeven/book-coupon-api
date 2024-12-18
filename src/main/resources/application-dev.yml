@@ -3,14 +3,14 @@ spring:
   application:
     name: bookapi
   datasource:
-    url: "jdbc:mysql://133.186.241.167:3306/project_be8_triple_seven_?serverTimezone=UTC&characterEncoding=UTF-8"
+    url: "jdbc:mysql://133.186.241.167:3306/project_be8_triple_seven_book_coupon?serverTimezone=UTC&characterEncoding=UTF-8"
     username: "ENC(VV/7sikUMQ8rk1gjfIENgxQ5aYOXbDWoATaRZawWjVt+44jiy3Y86g==)"
     password: "ENC(V67TRz03gUSnvbxCOb/oeDfLNK3mEN1a)"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
 

@@ -11,6 +11,8 @@ spring:
     uris: http://115.94.72.197:9200
     username: elastic
     password: nhnacademy123!
+    repositories:
+      enabled: true
 
 logstash:
   host: 115.94.72.197
