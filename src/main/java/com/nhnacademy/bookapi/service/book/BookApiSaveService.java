@@ -30,6 +30,10 @@ import com.nhnacademy.bookapi.repository.BookTypeRepository;
 import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
+
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -37,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
+import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -62,13 +67,23 @@ public class BookApiSaveService {
     private final BookCreatorMapRepository bookCreatorMapRepository;
     private final BookCoverImageRepository bookCoverImageRepository;
 
+  //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
+    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
+    private final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
+    private final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
+    private final String username = "rlgus4531@naver.com";
+    private final String password = "team3";
+    private final String containerName = "triple-seven";
+    //여기까지
+    
     private final BookIndexRepository bookIndexRepository;
-
-
-
 
     public void saveBook(String bookType, String searchTarget, int start, int max) throws Exception {
         JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
+        //object storage에 저장
+        ObjectService objectService = new ObjectService(storageUrl);
+        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+        //여기까지
 
         for (JsonNode book : bookList) {
             String isbn = book.path("isbn13").asText();
@@ -98,7 +113,8 @@ public class BookApiSaveService {
                 saveBook.setPublisher(selectPublisher);
             }
 
-
+            String coverUrl = book.path("cover").asText();
+            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
 
             image.setUrl(book.path("cover").asText());
             Image imageFk = imageRepository.save(image);
@@ -254,7 +270,22 @@ public class BookApiSaveService {
         }
         return categoryList;
     }
+    //object storage에 이미지 업로드 메소드
+    public String uploadCoverImageToStorage(ObjectService objectService, String imageUrl, String objectName) {
+        try {
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
 
+            try (InputStream inputStream = connection.getInputStream()) {
+                objectService.uploadObject(containerName, objectName, inputStream);
+                return storageUrl + "/" + containerName + "/" + objectName;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
 //    private void saveBookDocument(Book book, String coverUrl, String publisherName, List<BookCreator> bookCreators, List<Category> categories) {
 //        // 도큐먼트 생성
 //        BookDocument document = new BookDocument();
