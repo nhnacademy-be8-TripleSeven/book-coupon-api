@@ -19,7 +19,6 @@ public class CreateBookRequest {
     private int stock;
     private String imageUrl;
 
-
     public static Book createBook(CreateBookRequest request) {
         Book book = new Book();
         book.setTitle(request.getTitle());
