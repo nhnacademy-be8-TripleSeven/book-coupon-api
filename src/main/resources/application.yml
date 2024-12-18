@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: jhs
 
   lifecycle:
     timeout-per-shutdown-phase: 30s

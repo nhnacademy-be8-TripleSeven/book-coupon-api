@@ -97,7 +97,6 @@ public class BookApiSaveService {
 
             BookIndex saveIndex = new BookIndex();
             saveIndex.setBook(saveBook);
-            saveIndex.setSequence(0);
 
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
