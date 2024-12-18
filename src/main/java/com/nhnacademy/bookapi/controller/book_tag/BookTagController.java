@@ -1,4 +1,4 @@
-package com.nhnacademy.bookapi.controller.booktag;
+package com.nhnacademy.bookapi.controller.book_tag;
 
 import com.nhnacademy.bookapi.dto.book_tag.BookTagRequestDTO;
 import com.nhnacademy.bookapi.dto.book_tag.BookTagResponseDTO;

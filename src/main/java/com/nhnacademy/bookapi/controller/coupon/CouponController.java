@@ -149,11 +149,11 @@ public class CouponController {
             @ApiResponse(responseCode = "200", description = "쿠폰 사용 성공"),
             @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰")
     })
-    @PostMapping("/api/coupons/use/{id}")
+    @PostMapping("/api/coupons/use/{couponId}")
     public ResponseEntity<CouponUseResponseDTO> useCouponForUser(
             @RequestHeader("X-User") Long userId,
-            @PathVariable Long id) {
-        CouponUseResponseDTO response = couponService.useCoupon(userId, id);
+            @PathVariable Long couponId) {
+        CouponUseResponseDTO response = couponService.useCoupon(userId, couponId);
         return ResponseEntity.ok(response);
     }
 
