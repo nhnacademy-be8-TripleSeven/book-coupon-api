@@ -20,7 +20,7 @@ public class BookApiService {
     }
 
     public JsonNode getBookList(String bookType) throws Exception{
-        String url =  "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey="+apiKey+"&QueryType="+ bookType +"&MaxResults=50&start=1&SearchTarget=Book&output=js&Version=20131101";
+        String url =  "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey="+apiKey+"&QueryType="+ bookType +"&MaxResults=50&start=1&SearchTarget=Book&Cover=Big&output=js&Version=20131101";
 
         // REST API 호출
         String jsResponse = restTemplate.getForObject(url, String.class);
@@ -38,7 +38,6 @@ public class BookApiService {
             + "OptResult=ebookList,usedList,reviewList";
 
         String jsResponse = restTemplate.getForObject(url, String.class);
-
         JsonNode rootNode = objectMapper.readTree(jsResponse);
 
         return rootNode.path("item");
