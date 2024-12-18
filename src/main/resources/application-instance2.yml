@@ -3,9 +3,9 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://133.186.241.167:3306/triple_seven_book_coupon?serverTimezone=UTC&characterEncoding=UTF-8
-    username: triple_seven
-    password: eo1cItEUe@J2Tym
+    url: "ENC(gnAHht6MCV4Ewaz0IL/TfszWxUdNB/sOinp6lRFPtXjxRtPhZvmpfk+X+b/61g3jtTsqRgNPkU87xCfWdKRZbKKsupf9jdNRanhSImMt+GHgjhNC7STmi+Mm2rbF9obRFtQpfQLgV1V5MSRCK28EHQ==)"
+    username: "ENC(UlJF2RUIzaj3qYN4D40q6SG7S7vOioCz)"
+    password: "ENC(ZLfGX11ZHJZuTOAARxgdn5sRP0LPjeq1)"
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:

@@ -21,7 +21,7 @@ public class CouponAssignResponseDTO {
     public CouponAssignResponseDTO(Coupon coupon) {
         this.couponId = coupon.getId();
         this.name = coupon.getName();
-        this.couponPolicyName = coupon.getCouponPolicy().getName(); // Lazy Loading 발생 방지
+        this.couponPolicyName = coupon.getCouponPolicy().getName();
         this.memberId = coupon.getMemberId();
         this.couponIssueDate = coupon.getCouponIssueDate();
         this.couponExpiryDate = coupon.getCouponExpiryDate();

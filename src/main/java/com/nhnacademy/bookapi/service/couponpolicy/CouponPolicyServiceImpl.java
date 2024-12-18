@@ -75,12 +75,21 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
     }
 
     // 모든 쿠폰 정책 조회
+// 모든 쿠폰 정책 조회
     @Override
     @Transactional(readOnly = true)
     public List<CouponPolicyResponseDTO> getAllCouponPolicies() {
-        return couponPolicyRepository.findAll().stream()
-                .map(this::toResponse).collect(Collectors.toList());
+        List<CouponPolicy> policies = couponPolicyRepository.findAll();
+
+        if (policies.isEmpty()) {
+            throw new CouponPolicyNotFoundException("No coupon policies found.");
+        }
+
+        return policies.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
     }
+
 
     // 쿠폰 정책 아이디로 검색
     @Override
