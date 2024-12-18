@@ -39,6 +39,8 @@ public interface CouponService {
 
     List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId);
 
+    List<CouponDetailsDTO> getUsedCouponsByMemberId(Long memberId);
+
     List<CouponDetailsDTO> getCouponsByPolicyId(Long policyId);
 
 }

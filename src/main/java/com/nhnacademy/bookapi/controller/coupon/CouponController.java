@@ -206,4 +206,15 @@ public class CouponController {
         List<CouponDetailsDTO> response = couponService.getUnusedCouponsByMemberId(userId);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "사용자 사용 쿠폰 조회", description = "사용자가 본인의 사용 쿠폰만 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "사용 쿠폰 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "사용 쿠폰을 찾을 수 없음")
+    })
+    @GetMapping("/api/coupons/used")
+    public ResponseEntity<List<CouponDetailsDTO>> getUsedCouponsForUser(@RequestHeader("X-User") Long userId) {
+        List<CouponDetailsDTO> response = couponService.getUsedCouponsByMemberId(userId);
+        return ResponseEntity.ok(response);
+    }
 }

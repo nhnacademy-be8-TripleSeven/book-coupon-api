@@ -248,7 +248,7 @@ public class CouponServiceImpl implements CouponService {
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
         if (!Objects.equals(coupon.getMemberId(), userId)) {
-            throw new InvalidCouponUsageException("Coupon does not belong to the authenticated user");
+            throw new CouponNotAssignedException("Coupon does not belong to the authenticated user");
         }
 
         if (coupon.getCouponStatus() == CouponStatus.USED) {
@@ -272,7 +272,7 @@ public class CouponServiceImpl implements CouponService {
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
         if (!Objects.equals(coupon.getMemberId(), userId)) {
-            throw new InvalidCouponUsageException("Coupon does not belong to the authenticated user");
+            throw new CouponNotAssignedException("Coupon does not belong to the authenticated user");
         }
 
         BookCoupon bookCoupon = bookCouponRepository.findByCoupon(coupon)
@@ -292,7 +292,7 @@ public class CouponServiceImpl implements CouponService {
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
         if (!Objects.equals(coupon.getMemberId(), userId)) {
-            throw new InvalidCouponUsageException("Coupon does not belong to the authenticated user");
+            throw new CouponNotAssignedException("Coupon does not belong to the authenticated user");
         }
 
         CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
@@ -329,6 +329,18 @@ public class CouponServiceImpl implements CouponService {
         List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatus(userId, CouponStatus.NOTUSED);
         if (coupons.isEmpty()) {
             throw new CouponsNotFoundException("No unused coupons found for user ID: " + userId);
+        }
+        return coupons.stream()
+                .map(this::mapToCouponDetailsDTO)
+                .collect(Collectors.toList());
+    }
+
+    // 사용자 사용 쿠폰 조회
+    @Transactional(readOnly = true)
+    public List<CouponDetailsDTO> getUsedCouponsByMemberId(Long userId) {
+        List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatus(userId, CouponStatus.USED);
+        if (coupons.isEmpty()) {
+            throw new CouponsNotFoundException("No Used coupons found for user ID: " + userId);
         }
         return coupons.stream()
                 .map(this::mapToCouponDetailsDTO)
