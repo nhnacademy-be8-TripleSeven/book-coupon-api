@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+//목차 수정
+
 @RestController
 @RequiredArgsConstructor
 public class BookIndexController {
@@ -59,7 +61,7 @@ public class BookIndexController {
             @ApiResponse(responseCode = "404", description = "목차를 찾을 수 없음")
     })
     @DeleteMapping("/admin/book-indices/{indexId}")
-    public ResponseEntity<Void> deleteIndex(@PathVariable Long indexId) {
+    public ResponseEntity<Void> deleteIndex(@PathVariable Long indexId, @CookieValue("GUEST-ID") String guestId) {
         bookIndexService.deleteIndex(indexId);
         return ResponseEntity.noContent().build();
     }
