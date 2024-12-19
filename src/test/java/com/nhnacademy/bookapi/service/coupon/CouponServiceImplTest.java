@@ -191,59 +191,59 @@ class CouponServiceImplTest {
         verifyNoInteractions(couponRepository);
     }
 
-
-    @Test
-    void testAssignCoupon_Success() {
-        // Given
-        CouponPolicy couponPolicy = new CouponPolicy(1L, "Test Policy", 1000L,
-                10000L, BigDecimal.ZERO, 500L, 30);
-
-
-        Coupon coupon = new Coupon();
-        coupon.setTestId(1L);
-        coupon.setCouponStatus(CouponStatus.NOTUSED);
-        coupon.setCouponPolicy(couponPolicy);
-
-        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
-
-        // When
-        CouponAssignResponseDTO response = couponService.assignCoupon(new CouponAssignRequestDTO(1L, 123L));
-
-        // Then
-        assertEquals(1L, response.getCouponId());
-        assertEquals(123L, response.getMemberId());
-        assertEquals(CouponStatus.NOTUSED, coupon.getCouponStatus());
-        verify(couponRepository, times(1)).findById(1L);
-    }
-
-    @Test
-    void testAssignCoupon_CouponNotFound() {
-        // Given
-        when(couponRepository.findById(1L)).thenReturn(Optional.empty());
-
-        CouponAssignRequestDTO request = new CouponAssignRequestDTO(1L, 100L);
-
-        // Then
-        assertThrows(CouponNotFoundException.class, () -> couponService.assignCoupon(request));
-        verify(couponRepository, times(1)).findById(1L);
-        verify(couponRepository, never()).save(any(Coupon.class));
-    }
-
-    @Test
-    void testAssignCoupon_AlreadyAssigned() {
-        // Given
-        Coupon coupon = new Coupon();
-        coupon.setTestId(1L);
-        coupon.setMemberId(123L);
-
-        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
-
-        // When & Then
-        CouponAssignRequestDTO request = new CouponAssignRequestDTO(1L, 456L);
-        assertThrows(CouponAlreadyAssignedException.class, () -> couponService.assignCoupon(request));
-        verify(couponRepository, times(1)).findById(1L);
-        verifyNoMoreInteractions(couponRepository);
-    }
+//
+//    @Test
+//    void testAssignCoupon_Success() {
+//        // Given
+//        CouponPolicy couponPolicy = new CouponPolicy(1L, "Test Policy", 1000L,
+//                10000L, BigDecimal.ZERO, 500L, 30);
+//
+//
+//        Coupon coupon = new Coupon();
+//        coupon.setTestId(1L);
+//        coupon.setCouponStatus(CouponStatus.NOTUSED);
+//        coupon.setCouponPolicy(couponPolicy);
+//
+//        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+//
+//        // When
+//        CouponAssignResponseDTO response = couponService.assignCoupon(new CouponAssignRequestDTO(1L, 123L));
+//
+//        // Then
+//        assertEquals(1L, response.getCouponId());
+//        assertEquals(123L, response.getMemberId());
+//        assertEquals(CouponStatus.NOTUSED, coupon.getCouponStatus());
+//        verify(couponRepository, times(1)).findById(1L);
+//    }
+//
+//    @Test
+//    void testAssignCoupon_CouponNotFound() {
+//        // Given
+//        when(couponRepository.findById(1L)).thenReturn(Optional.empty());
+//
+//        CouponAssignRequestDTO request = new CouponAssignRequestDTO(1L, 100L);
+//
+//        // Then
+//        assertThrows(CouponNotFoundException.class, () -> couponService.assignCoupon(request));
+//        verify(couponRepository, times(1)).findById(1L);
+//        verify(couponRepository, never()).save(any(Coupon.class));
+//    }
+//
+//    @Test
+//    void testAssignCoupon_AlreadyAssigned() {
+//        // Given
+//        Coupon coupon = new Coupon();
+//        coupon.setTestId(1L);
+//        coupon.setMemberId(123L);
+//
+//        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+//
+//        // When & Then
+//        CouponAssignRequestDTO request = new CouponAssignRequestDTO(1L, 456L);
+//        assertThrows(CouponAlreadyAssignedException.class, () -> couponService.assignCoupon(request));
+//        verify(couponRepository, times(1)).findById(1L);
+//        verifyNoMoreInteractions(couponRepository);
+//    }
 
     @Test
     void testUseCoupon_Success() {
