@@ -1,6 +1,5 @@
 package com.nhnacademy.bookapi.config;
 
-import com.nhnacademy.bookapi.skm.KeyProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
