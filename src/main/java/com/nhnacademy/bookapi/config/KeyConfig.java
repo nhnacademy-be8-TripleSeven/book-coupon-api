@@ -41,42 +41,42 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 
 // 생략된 import는 유지
-@Configuration
-@EnableConfigurationProperties(KeyProperties.class)
-@RequiredArgsConstructor
-public class KeyConfig {
-
-    private final KeyProperties keyProperties;
-
-    public String keyStore(String keyId) {
-        try {
-            // HttpClient 4.x 객체 생성
-            CloseableHttpClient httpClient = HttpClients.createDefault();
-
-            // 올바른 RequestFactory 설정
-            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
-
-            RestTemplate restTemplate = new RestTemplate(requestFactory);
-
-            URI uri = UriComponentsBuilder
-                .fromUriString(keyProperties.getUrl())
-                .path(keyProperties.getPath())
-                .encode()
-                .build()
-                .expand(keyProperties.getAppKey(), keyId)
-                .toUri();
-
-            return Objects.requireNonNull(
-                    restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), KeyResponseDto.class)
-                        .getBody())
-                .getBody()
-                .getSecret();
-        } catch (Exception e) {
-            throw new RuntimeException("Error in keyStore: " + e.getMessage(), e);
-        }
-    }
-}
+//@Configuration
+//@EnableConfigurationProperties(KeyProperties.class)
+//@RequiredArgsConstructor
+//public class KeyConfig {
+//
+//    private final KeyProperties keyProperties;
+//
+//    public String keyStore(String keyId) {
+//        try {
+//            // HttpClient 4.x 객체 생성
+//            CloseableHttpClient httpClient = HttpClients.createDefault();
+//
+//            // 올바른 RequestFactory 설정
+//            HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+//
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.setContentType(MediaType.APPLICATION_JSON);
+//            headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+//
+//            RestTemplate restTemplate = new RestTemplate(requestFactory);
+//
+//            URI uri = UriComponentsBuilder
+//                .fromUriString(keyProperties.getUrl())
+//                .path(keyProperties.getPath())
+//                .encode()
+//                .build()
+//                .expand(keyProperties.getAppKey(), keyId)
+//                .toUri();
+//
+//            return Objects.requireNonNull(
+//                    restTemplate.exchange(uri, HttpMethod.GET, new HttpEntity<>(headers), KeyResponseDto.class)
+//                        .getBody())
+//                .getBody()
+//                .getSecret();
+//        } catch (Exception e) {
+//            throw new RuntimeException("Error in keyStore: " + e.getMessage(), e);
+//        }
+//    }
+//}
