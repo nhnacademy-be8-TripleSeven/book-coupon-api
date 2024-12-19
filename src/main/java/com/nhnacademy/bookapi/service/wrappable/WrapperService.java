@@ -56,56 +56,54 @@
 package com.nhnacademy.bookapi.service.wrappable;
 
 import com.nhnacademy.bookapi.entity.Book;
-import com.nhnacademy.bookapi.entity.Wrappable;
+import com.nhnacademy.bookapi.entity.Wrapper;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.exception.WrappableAlreadyExistException;
 import com.nhnacademy.bookapi.exception.WrappableNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
-import com.nhnacademy.bookapi.repository.WrappableRepository;
+import com.nhnacademy.bookapi.repository.WrapperRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
-public class WrappableService {
+public class WrapperService {
 
-    private final WrappableRepository wrappableRepository;
+    private final WrapperRepository wrapperRepository;
     private final BookRepository bookRepository;
 
-    public WrappableService(WrappableRepository wrappableRepository, BookRepository bookRepository) {
-        this.wrappableRepository = wrappableRepository;
+    public WrapperService(WrapperRepository wrapperRepository, BookRepository bookRepository) {
+        this.wrapperRepository = wrapperRepository;
         this.bookRepository = bookRepository;
     }
 
     public boolean addWrappable(Long bookId, boolean wrappable) {
         Book book = getBook(bookId);
-        if (wrappableRepository.existsByBook(book)) {
+        if (wrapperRepository.existsByBook(book)) {
             throw new WrappableAlreadyExistException("Book is already saved");
         }
-        wrappableRepository.save(new Wrappable(book, wrappable));
+        wrapperRepository.save(new Wrapper(book, wrappable));
         return true;
     }
 
     public boolean updateWrappable(Long bookId, boolean newWrappable) {
         Book book = getBook(bookId);
-        Wrappable wrappable = wrappableRepository.findByBook(book)
+        Wrapper wrapper = wrapperRepository.findByBook(book)
                 .orElseThrow(() -> new WrappableNotFoundException("Book is not found"));
-        wrappable.setWrappable(newWrappable);
-        wrappableRepository.save(wrappable);
+        wrapper.setWrappable(newWrappable);
+        wrapperRepository.save(wrapper);
         return true;
     }
 
     public boolean deleteWrappable(Long bookId) {
         Book book = getBook(bookId);
-        Wrappable wrappable = wrappableRepository.findByBook(book)
+        Wrapper wrapper = wrapperRepository.findByBook(book)
                 .orElseThrow(() -> new WrappableNotFoundException("Book is not found"));
-        wrappableRepository.delete(wrappable);
+        wrapperRepository.delete(wrapper);
         return true;
     }
 
-    public Wrappable getWrappable(Long bookId) {
+    public Wrapper getWrappable(Long bookId) {
         Book book = getBook(bookId);
-        return wrappableRepository.findByBook(book)
+        return wrapperRepository.findByBook(book)
                 .orElseThrow(() -> new WrappableNotFoundException("Book is not found"));
     }
 

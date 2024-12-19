@@ -217,4 +217,39 @@ public class CouponController {
         List<CouponDetailsDTO> response = couponService.getUsedCouponsByMemberId(userId);
         return ResponseEntity.ok(response);
     }
+
+
+    // 미구현
+
+    @Operation(summary = "결제 시 사용 가능한 쿠폰 조회", description = "사용 가능한 쿠폰 목록 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
+    })
+    @GetMapping("/api/coupons/available")
+    public ResponseEntity<Void> getAvailableCoupons(@RequestHeader("X-User") Long userId) {
+        return ResponseEntity.ok().build();
+    }
+
+    // 생일 쿠폰 자동 생성
+    @Operation(summary = "생일 쿠폰 생성", description = "회원의 생일에 자동으로 쿠폰을 생성합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "생일 쿠폰 생성 성공"),
+            @ApiResponse(responseCode = "404", description = "회원 정보를 찾을 수 없음")
+    })
+    @PostMapping("/api/coupons/birthday")
+    public ResponseEntity<Void> generateBirthdayCoupon(@RequestHeader("X-User") Long userId) {
+        return ResponseEntity.ok().build();
+    }
+
+    // 회원 가입시 쿠폰 자동 생성
+    @Operation(summary = "welcome 쿠폰 생성", description = "회원가입시 자동으로 쿠폰을 생성합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "welcome 쿠폰 생성 성공"),
+            @ApiResponse(responseCode = "404", description = "회원 정보를 찾을 수 없음")
+    })
+    @PostMapping("/api/coupons/welcome")
+    public ResponseEntity<Void> generateWelcomeCoupon(@RequestHeader("X-User") Long userId) {
+        return ResponseEntity.ok().build();
+    }
 }

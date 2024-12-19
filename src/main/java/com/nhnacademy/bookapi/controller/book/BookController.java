@@ -60,4 +60,96 @@ public class BookController {
         SearchBookDetail searchBookDetail = bookService.searchBookDetailByBookId(bookId);
         return ResponseEntity.ok(searchBookDetail);
     }
+
+
+
+    // 미구현
+    @Operation(summary = "도서 검색", description = "검색 기능 제공")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "검색 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청")
+    })
+    @GetMapping("/books/search")
+    public ResponseEntity<Void> searchBooks(@RequestParam(required = false) String title) {
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "조건 검색", description = "제목, 저자, 출판사, ISBN 조건 중 선택하여 검색")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "검색 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
+            @ApiResponse(responseCode = "404", description = "결과 없음")
+    })
+    @GetMapping("/books/search/conditions")
+    public ResponseEntity<Void> searchBooksByConditions(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author,
+            @RequestParam(required = false) String publisher,
+            @RequestParam(required = false) String isbn) {
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "도서 정렬", description = "정렬 기능 제공")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "정렬 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청")
+    })
+    @GetMapping("/books/sort")
+    public ResponseEntity<Void> sortBooks(@RequestParam(required = false, defaultValue = "latest") String sort) {
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "도서 카테고리 필터링", description = "카테고리 필터 기능 제공")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "필터링 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청")
+    })
+    @GetMapping("/books/category-filter")
+    public ResponseEntity<Void> filterBooks(@RequestParam(required = false) String category) {
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "도서 페이징", description = "페이징 기능 제공")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "페이징 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청")
+    })
+    @GetMapping("/books/page")
+    public ResponseEntity<Void> paginateBooks(@RequestParam(defaultValue = "1") int page,
+                                              @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok().build();
+    }
+
+    // 오늘 본 상품 조회
+    @Operation(summary = "오늘 본 상품 조회", description = "guest Id를 이용하여 오늘 본 상품을 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "오늘 본 상품 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "오늘 본 상품이 없음")
+    })
+    @GetMapping("/books/today")
+    public ResponseEntity<Void> getBookTodayList(@CookieValue("GUEST-ID") String guestId) {
+        return ResponseEntity.ok().build();
+    }
+
+    // 도서 태그별 조회
+    @Operation(summary = "도서 태그별 조회", description = "특정 태그를 가진 도서를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "도서 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 태그를 가진 도서를 찾을 수 없음")
+    })
+    @GetMapping("/books/tag/{tag}")
+    public ResponseEntity<Void> getBooksByTag(@PathVariable String tag) {
+        return ResponseEntity.ok().build();
+    }
+
+    // 도서 분류별 조회
+    @Operation(summary = "도서 분류별 조회", description = "분류(신간, 베스트셀러 등)에 따른 도서를 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "도서 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 분류를 가진 도서를 찾을 수 없음")
+    })
+    @GetMapping("/books/booktype/{bookType}")
+    public ResponseEntity<Void> getBooksByCategory(@PathVariable String bookType) {
+        return ResponseEntity.ok().build();
+    }
 }
