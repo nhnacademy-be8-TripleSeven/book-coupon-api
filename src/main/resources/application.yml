@@ -29,6 +29,25 @@ jasypt:
     string-output-type: base64
 
 
+key:
+  manager:
+    url: https://api-keymanager.nhncloudservice.com    # Secure Key Manager 엔드포인트
+    path: /keymanager/v1.2/appkey/{appKey}/secrets/{keyId}  # 요청 경로
+    appKey: qTQNj7LyHhdAazH3                              # NHN Cloud 프로젝트 AppKey
+    password: nhn24          # 인증서 비밀번호
+
+database:
+    url: 31d0601decaa439ba224aaf4c693663f       # NHN Secure Key Manager에 저장된 Key ID
+    user-name: b0994ea9e3174c50ae9a5635fa4277ac
+    password: cb7b452b173144a99d217b3869f8017a
+    initial-size: 5
+    max-total: 10
+    min-idle: 2
+    max-idle: 5
+    max-wait: 1000
+
+
+
 
 #eureka:
 #  client:

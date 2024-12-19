@@ -9,7 +9,7 @@ public class CreateBookRequest {
 
     private String title;
     private String author;
-    private String isbn;
+    private String isbn; //isbn unique처리
     private String publisher;
     private String description;
     private int pages;
@@ -19,6 +19,8 @@ public class CreateBookRequest {
     private int stock;
     private String imageUrl;
 
+
+    //이걸 static말고 메서드로 처리
     public static Book createBook(CreateBookRequest request) {
         Book book = new Book();
         book.setTitle(request.getTitle());

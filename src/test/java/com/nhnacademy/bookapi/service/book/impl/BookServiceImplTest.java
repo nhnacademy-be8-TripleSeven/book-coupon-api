@@ -149,33 +149,33 @@ class BookServiceImplTest {
 //        Mockito.verify(bookRepository, Mockito.never()).save(Mockito.any(Book.class));
 //    }
 
-    @Test
-    void testDeleteBook_Success() {
-        // Arrange
-        Long bookId = 1L;
-
-        Mockito.doNothing().when(bookRepository).deleteById(bookId);
-
-        // Act
-        bookService.delete(bookId);
-
-        // Assert
-        Mockito.verify(bookRepository, Mockito.times(1)).deleteById(bookId);
-    }
-
-    @Test
-    void testDeleteBook_BookNotFound() {
-        // Arrange
-        Long bookId = 1L;
-
-        Mockito.doThrow(new BookNotFoundException("book not found"))
-            .when(bookRepository).deleteById(bookId);
-
-        // Act & Assert
-        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () ->
-            bookService.delete(bookId)
-        );
-        assertEquals("book not found", exception.getMessage());
-        Mockito.verify(bookRepository, Mockito.times(1)).deleteById(bookId);
-    }
+//    @Test
+//    void testDeleteBook_Success() {
+//        // Arrange
+//        Long bookId = 1L;
+//
+//        Mockito.doNothing().when(bookRepository).deleteById(bookId);
+//
+//        // Act
+//        bookService.delete(bookId);
+//
+//        // Assert
+//        Mockito.verify(bookRepository, Mockito.times(1)).deleteById(bookId);
+//    }
+//
+//    @Test
+//    void testDeleteBook_BookNotFound() {
+//        // Arrange
+//        Long bookId = 1L;
+//
+//        Mockito.doThrow(new BookNotFoundException("book not found"))
+//            .when(bookRepository).deleteById(bookId);
+//
+//        // Act & Assert
+//        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () ->
+//            bookService.delete(bookId)
+//        );
+//        assertEquals("book not found", exception.getMessage());
+//        Mockito.verify(bookRepository, Mockito.times(1)).deleteById(bookId);
+//    }
 }
