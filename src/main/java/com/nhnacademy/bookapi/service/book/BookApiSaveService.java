@@ -86,7 +86,18 @@ public class BookApiSaveService {
         //여기까지
 
         for (JsonNode book : bookList) {
+
             String isbn = book.path("isbn13").asText();
+            boolean findIsbn = bookRepository.existsByIsbn13(isbn);
+
+            if(isbn.isEmpty()){
+                continue;
+
+            }
+            if(findIsbn) {
+                continue;
+            }
+
             Book saveBook = new Book();
             BookPopularity bookPopularity = new BookPopularity();
             BookImage bookImage = new BookImage();
