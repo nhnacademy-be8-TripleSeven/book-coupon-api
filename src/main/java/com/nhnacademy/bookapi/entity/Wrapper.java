@@ -8,7 +8,7 @@ import lombok.Setter;
 @Entity
 @NoArgsConstructor
 @Getter
-public class Wrappable {
+public class Wrapper {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,7 +22,7 @@ public class Wrappable {
     @Column(nullable = false)
     private boolean wrappable;
 
-    public Wrappable(Book book, boolean wrappable) {
+    public Wrapper(Book book, boolean wrappable) {
         this.book = book;
         this.wrappable = wrappable;
     }
