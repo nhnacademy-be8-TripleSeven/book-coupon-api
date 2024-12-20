@@ -4,6 +4,8 @@ import com.nhnacademy.bookapi.dto.book.CreateBookRequest;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
+import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
+import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCoverImage;
 import com.nhnacademy.bookapi.entity.BookCreator;
@@ -36,6 +38,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.annotation.Profile;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +59,7 @@ public class BookServiceImpl implements BookService {
     private final BookCreatorMapRepository bookCreatorMapRepository;
     private final PublisherRepository publisherRepository;
     private final BookCoverImageRepository bookCoverImageRepository;
+    private final ElasticSearchBookSearchRepository elasticSearchBookSearchRepository;
 
     @Override
     public CreateBookRequest createBook(CreateBookRequest createBookRequest) {
@@ -168,4 +173,30 @@ public class BookServiceImpl implements BookService {
 
         return searchBookDetail;
     }
+
+    /*
+    아래 메서드 Dto로 수정해야함
+    */
+
+    // 타이틀 또는 작가 이름으로 검색
+    public Page<BookDocument> searchByTitleOrAuthor(String keyword, Pageable pageable) {
+        return elasticSearchBookSearchRepository.findByTitleContaining(keyword, keyword, pageable);
+    }
+
+    // 조건별 검색
+    public Page<BookDocument> searchByCondition(String condition, String keyword, Pageable pageable) {
+        switch (condition) {
+            case "title":
+                return elasticSearchBookSearchRepository.findByTitleContaining(keyword, pageable);
+            case "author":
+                return elasticSearchBookSearchRepository.findByBookcreatorContaining(keyword, pageable);
+            case "publisher":
+                return elasticSearchBookSearchRepository.findByPublisherNameContaining(keyword, pageable);
+            case "isbn":
+                return elasticSearchBookSearchRepository.findByIsbn13(keyword, pageable);
+            default:
+                throw new IllegalArgumentException("Invalid search condition: " + condition);
+        }
+    }
+
 }

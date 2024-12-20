@@ -78,7 +78,7 @@ public class BookApiSaveService {
     
     private final BookIndexRepository bookIndexRepository;
 
-    public void saveBook(String bookType, String searchTarget, int start, int max) throws Exception {
+    public void aladinApiSaveBook(String bookType, String searchTarget, int start, int max) throws Exception {
         JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
         //object storage에 저장
         ObjectService objectService = new ObjectService(storageUrl);
@@ -200,6 +200,128 @@ public class BookApiSaveService {
     }
 
 
+    public void aladinApiEditorChoiceSaveBook(String bookType, String searchTarget, int start, int max, int categoryId) throws Exception {
+        JsonNode bookList = bookApiService.getEditorChoiceBookList(bookType, searchTarget, start, max, categoryId);
+        //object storage에 저장
+        ObjectService objectService = new ObjectService(storageUrl);
+        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+        //여기까지
+
+        for (JsonNode book : bookList) {
+
+            String isbn = book.path("isbn13").asText();
+            boolean findIsbn = bookRepository.existsByIsbn13(isbn);
+
+            if(isbn.isEmpty()){
+                continue;
+
+            }
+            if(findIsbn) {
+                continue;
+            }
+
+            Book saveBook = new Book();
+            BookPopularity bookPopularity = new BookPopularity();
+            BookImage bookImage = new BookImage();
+            Image image = new Image();
+            BookType saveBookType = new BookType();
+            Publisher publisher = new Publisher();
+
+
+            BookIndex saveIndex = new BookIndex();
+            saveIndex.setBook(saveBook);
+
+            JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
+
+            String publisherName = book.path("publisher").asText();
+
+            Publisher selectPublisher = publisherRepository.existsByName(publisherName);
+
+            if(selectPublisher == null) {
+                publisher.setName(publisherName);
+                publisherRepository.save(publisher);
+                saveBook.setPublisher(publisher);
+            }else {
+                saveBook.setPublisher(selectPublisher);
+            }
+
+            String coverUrl = book.path("cover").asText();
+            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
+
+            image.setUrl(book.path("cover").asText());
+            Image imageFk = imageRepository.save(image);
+
+            //bookcoverimage mapping
+            BookCoverImage bookCoverImage = BookCoverImage.bookCoverImageMapper(imageFk, saveBook);
+            bookCoverImageRepository.save(bookCoverImage);
+
+            saveBook.setTitle(book.path("title").asText());
+            saveBook.setDescription(book.path("description").asText());
+            saveBook.setIsbn13(isbn);
+
+            LocalDate pubDate = null;
+
+            String pubDateStr = book.path("pubDate").asText();
+            if(pubDateStr != null || !pubDateStr.isEmpty()) {
+                pubDate = LocalDate.parse(pubDateStr);
+            }
+
+            saveBook.setPublishDate(pubDate);
+
+            saveBook.setStock(1000);
+
+            saveBook.setRegularPrice(book.path("priceStandard").asInt());
+            saveBook.setSalePrice(book.path("priceSales").asInt());
+
+
+            if(bookDetail != null) {
+                JsonNode subInfo = bookDetail.path("subInfo");
+                saveBook.setPage(subInfo.path("itemPage").asInt());
+            }
+            List<BookType> bookTypes = new ArrayList<>();
+            //북타입 추가1
+            saveBookType.setRanks(book.path("bestRank").asInt());
+            saveBookType.setTypes(Type.valueOf(bookType.toUpperCase(Locale.ROOT)));
+            saveBookType.setBook(saveBook);
+            Book bookFk = bookRepository.save(saveBook);
+
+            bookTypes.add(saveBookType);
+
+            //북타입 추가2
+            BookType newBookType = new BookType();
+            newBookType.setTypes(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)));
+            newBookType.setBook(saveBook);
+            newBookType.setRanks(0);
+
+            bookTypes.add(newBookType);
+            bookTypeRepository.saveAll(bookTypes);
+
+            bookImage.setBook(bookFk);
+            bookImage.setImage(imageFk);
+            bookImageRepository.save(bookImage);
+
+            String author = book.path("author").asText().trim();
+            String category = book.path("categoryName").asText();
+
+
+
+            //책인기도 초기화
+            bookPopularity.setSearchRank(0);
+            bookPopularity.setClickRank(0);
+            bookPopularity.setCartCount(0);
+            bookPopularity.setBook(bookFk);
+            bookPopularRepository.save(bookPopularity);
+            //도서 제작자 저장
+            List<BookCreator> bookCreators = authorParseSave(author, bookFk);
+            //카테고리 제작자 저장
+            List<Category> categoryList = categoryParseSave(category, bookFk);
+            //엘라스틱서치 저장
+//            saveBookDocument(saveBook,image.getUrl(), publisherName, bookCreators,categoryList);
+        }
+
+    }
+
+
     public List<BookCreator> authorParseSave(String author, Book book) throws Exception {
 
 
@@ -296,27 +418,7 @@ public class BookApiSaveService {
         }
         return null;
     }
-//    private void saveBookDocument(Book book, String coverUrl, String publisherName, List<BookCreator> bookCreators, List<Category> categories) {
-//        // 도큐먼트 생성
-//        BookDocument document = new BookDocument();
-//        document.setId(book.getIsbn13());
-//        document.setTitle(book.getTitle());
-//        document.setDescription(book.getDescription());
-//        document.setIsbn13(book.getIsbn13());
-//        document.setPublishDate(book.getPublishDate());
-//        document.setRegularPrice(book.getRegularPrice());
-//        document.setSalePrice(book.getSalePrice());
-//        document.setStock(book.getStock());
-//        document.setPage(book.getPage());
-//        document.setCoverUrl(coverUrl);
-//        document.setPublisherName(publisherName);
-//        document.setCategories(categories);
-//        document.setBookCreators(bookCreators);
-//
-//
-//        // 엘라스틱서치에 저장
-//        bookSearchService.saveBook(document);
-//    }
+
 
 }
 
