@@ -19,7 +19,7 @@ public class BookIndex {
     private String indexText; // 목차 제목
 
     @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "book_id")
     private Book book; // 도서 아이디
 
