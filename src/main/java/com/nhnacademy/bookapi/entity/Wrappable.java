@@ -26,4 +26,5 @@ public class Wrappable {
         this.book = book;
         this.wrappable = wrappable;
     }
+    //
 }

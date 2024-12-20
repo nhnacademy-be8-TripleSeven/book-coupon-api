@@ -25,7 +25,7 @@ public class BookIndex {
     private int sequence; // 순서
 
     @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(nullable = false, name = "book_id")
     private Book book; // 도서 아이디
 

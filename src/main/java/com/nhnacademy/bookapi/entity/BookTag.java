@@ -15,12 +15,12 @@ public class BookTag {
     private Long id;
 
     @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(nullable = false)
     private Tag tag;
 
     @Setter
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(nullable = false)
     private Book book;
 
