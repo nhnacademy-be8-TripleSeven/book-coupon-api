@@ -9,7 +9,7 @@ public class CreateBookRequest {
 
     private String title;
     private String author;
-    private String isbn;
+    private String isbn13;
     private String publisher;
     private String description;
     private int pages;
@@ -28,7 +28,7 @@ public class CreateBookRequest {
         book.setPage(request.getPages());
         book.setSalePrice(request.getSalePrice());
         book.setRegularPrice(request.getRegularPrice());
-        book.setIsbn13(request.getIsbn());
+        book.setIsbn13(request.getIsbn13());
         return book;
     }
 

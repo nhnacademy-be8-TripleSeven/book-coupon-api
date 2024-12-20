@@ -14,7 +14,7 @@ public class Wrappable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, unique = true)
     private Book book;
 

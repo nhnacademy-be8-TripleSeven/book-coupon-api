@@ -13,6 +13,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     Optional<SearchBookDetail> searchBookById(@Param("id") Long id);
 
 
+    Optional<Book> findByIsbn13(String isbn);
 }
 
 

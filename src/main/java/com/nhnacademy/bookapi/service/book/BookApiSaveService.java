@@ -36,10 +36,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 
 import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.RequiredArgsConstructor;
@@ -67,15 +64,15 @@ public class BookApiSaveService {
     private final BookCreatorMapRepository bookCreatorMapRepository;
     private final BookCoverImageRepository bookCoverImageRepository;
 
-  //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
-    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
-    private final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
-    private final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
-    private final String username = "rlgus4531@naver.com";
-    private final String password = "team3";
-    private final String containerName = "triple-seven";
+    //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
+    public static final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
+    public static final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
+    public static final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
+    public static final String username = "rlgus4531@naver.com";
+    public static final String password = "team3";
+    public static final String containerName = "triple-seven";
     //여기까지
-    
+
     private final BookIndexRepository bookIndexRepository;
 
     public void saveBook(String bookType, String searchTarget, int start, int max) throws Exception {
@@ -105,11 +102,11 @@ public class BookApiSaveService {
 
             Publisher selectPublisher = publisherRepository.existsByName(publisherName);
 
-            if(selectPublisher == null) {
+            if (selectPublisher == null) {
                 publisher.setName(publisherName);
                 publisherRepository.save(publisher);
                 saveBook.setPublisher(publisher);
-            }else {
+            } else {
                 saveBook.setPublisher(selectPublisher);
             }
 
@@ -130,7 +127,7 @@ public class BookApiSaveService {
             LocalDate pubDate = null;
 
             String pubDateStr = book.path("pubDate").asText();
-            if(pubDateStr != null || !pubDateStr.isEmpty()) {
+            if (pubDateStr != null || !pubDateStr.isEmpty()) {
                 pubDate = LocalDate.parse(pubDateStr);
             }
 
@@ -142,7 +139,7 @@ public class BookApiSaveService {
             saveBook.setSalePrice(book.path("priceSales").asInt());
 
 
-            if(bookDetail != null) {
+            if (bookDetail != null) {
                 JsonNode subInfo = bookDetail.path("subInfo");
                 saveBook.setPage(subInfo.path("itemPage").asInt());
             }
@@ -172,7 +169,6 @@ public class BookApiSaveService {
             String category = book.path("categoryName").asText();
 
 
-
             //책인기도 초기화
             bookPopularity.setSearchRank(0);
             bookPopularity.setClickRank(0);
@@ -186,7 +182,7 @@ public class BookApiSaveService {
             //엘라스틱서치 저장
 //            saveBookDocument(saveBook,image.getUrl(), publisherName, bookCreators,categoryList);
         }
-        
+
     }
 
 
@@ -204,18 +200,18 @@ public class BookApiSaveService {
             s = s.trim(); // 공백 제거
             Role role = null;
             String roleName = null;
-            if(s.contains("(") && s.contains(")")) {
+            if (s.contains("(") && s.contains(")")) {
                 roleName = s.substring(s.indexOf("(") + 1, s.indexOf(")")).trim();
             }
             role = RoleMapper.getRole(roleName);
 
             String[] nameList = s.split(", ");
             for (String name : nameList) {
-                if(name.contains("(")) {
+                if (name.contains("(")) {
                     name = name.substring(0, name.indexOf("(")).trim();
                 }
                 bookCreator = bookCreatorRepository.existByNameAndRole(name, role);
-                if(bookCreator == null){
+                if (bookCreator == null) {
                     bookCreatorMap = new BookCreatorMap();
                     bookCreator = new BookCreator();
                     bookCreator.setName(name.trim());
@@ -225,7 +221,7 @@ public class BookApiSaveService {
                     BookCreator saveBookCreator = bookCreatorRepository.save(bookCreator);
                     bookCreatorList.add(saveBookCreator);
                     bookCreatorMapRepository.save(bookCreatorMap);
-                }else {
+                } else {
                     bookCreatorMap = new BookCreatorMap();
                     bookCreatorMap.setCreator(bookCreator);
                     bookCreatorMap.setBook(book);
