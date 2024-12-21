@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: dev
+    active: instance1
 
 
 
@@ -30,35 +30,35 @@ password: nhn24
 
 
 
-#eureka:
-#  client:
-#    fetch-registry: true
-#    register-with-eureka: true
-#    service-url:
-#      defaultZone: http://admin:1234@eureka-server:8761/eureka
-#  instance:
-#    prefer-ip-address: true
-#
-#management:
-#  health:
-#    status:
-#      order: DOWN, UP
-#  endpoint:
-#    jolokia:
-#      enable: true
-#    pause:
-#      enabled: true
-#    resume:
-#      enabled: true
-#
-#  info:
-#    env:
-#      enabled: true
-#
-#server:
-#  shutdown: graceful
-#
-##zz
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@eureka-server:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+management:
+  health:
+    status:
+      order: DOWN, UP
+  endpoint:
+    jolokia:
+      enable: true
+    pause:
+      enabled: true
+    resume:
+      enabled: true
+
+  info:
+    env:
+      enabled: true
+
+server:
+  shutdown: graceful
+
+
 
 
 aladin:

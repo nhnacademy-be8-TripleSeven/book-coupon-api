@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
+import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequest;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
@@ -12,10 +13,12 @@ import com.nhnacademy.bookapi.entity.BookCreator;
 import com.nhnacademy.bookapi.entity.BookCreatorMap;
 import com.nhnacademy.bookapi.entity.BookIndex;
 import com.nhnacademy.bookapi.entity.BookIntroduce;
+import com.nhnacademy.bookapi.entity.BookType;
 import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Image;
 import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
+import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.exception.BookCreatorNotFoundException;
 import com.nhnacademy.bookapi.exception.BookIndexNotFoundException;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
@@ -174,9 +177,31 @@ public class BookServiceImpl implements BookService {
         return searchBookDetail;
     }
 
-    /*
-    아래 메서드 Dto로 수정해야함
-    */
+
+    // 이달의 베스트 페이징을 사용하지 않고 캐싱으로
+    public List<BookDetailResponseDTO> getMonthlyBestBooks(){
+        List<Book> bestBooks = bookRepository.findBookTypeBestsellerByRankAsc();
+        List<BookDetailResponseDTO> bestBookDto = new ArrayList<>();
+        for (Book bestBook : bestBooks) {
+            if(bestBook != null){
+                bestBookDto.add(new BookDetailResponseDTO(bestBook.getTitle(),bestBook.getPublisher().getName(), bestBook.getRegularPrice(), bestBook.getSalePrice()));
+            }
+        }
+        return bestBookDto;
+    }
+
+    //type별 조회 이도서는 어때요? , 편집자의 선택, e북
+    public List<BookDetailResponseDTO> getBookTypeBooks(Type bookType){
+        List<Book> typeBooks = bookRepository.findBookTypeItemByType(bookType);
+        List<BookDetailResponseDTO> bestBookDto = new ArrayList<>();
+        for (Book book : typeBooks) {
+            if(book != null){
+                bestBookDto.add(new BookDetailResponseDTO(book.getTitle(), book.getPublisher().getName(), book.getRegularPrice(), book.getSalePrice()));
+            }
+        }
+        return bestBookDto;
+    }
+
 
     // 타이틀 또는 작가 이름으로 검색
     public Page<BookDocument> searchByTitleOrAuthor(String keyword, Pageable pageable) {
