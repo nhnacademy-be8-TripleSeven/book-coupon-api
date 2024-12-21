@@ -2,37 +2,18 @@ package com.nhnacademy.bookapi.dto.book_index;
 
 public class BookIndexResponseDto {
 
-    private String title;
-    private int number;
-    private int sequence;
+    private String bookIndex;
 
-    public BookIndexResponseDto(String title, int number, int sequence) {
-        this.title = title;
-        this.number = number;
-        this.sequence = sequence;
+    public BookIndexResponseDto(String bookIndex) {
+        this.bookIndex = bookIndex;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setBookIndex(String bookIndex) {
+        this.bookIndex = bookIndex;
     }
 
-    public void setNumber(int number) {
-        this.number = number;
+    public String getBookIndex() {
+        return bookIndex;
     }
 
-    public void setSequence(int sequence) {
-        this.sequence = sequence;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public int getNumber() {
-        return number;
-    }
-
-    public int getSequence() {
-        return sequence;
-    }
 }

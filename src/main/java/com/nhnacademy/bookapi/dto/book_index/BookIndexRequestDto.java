@@ -6,46 +6,27 @@ import lombok.Getter;
 public class BookIndexRequestDto {
 
     private Long bookId;
-    private String title;
-    private int number;
-    private int sequence;
+    private String bookText;
 
     public BookIndexRequestDto(Long bookId, String title, int number, int sequence) {
         this.bookId = bookId;
-        this.title = title;
-        this.number = number;
-        this.sequence = sequence;
+        this.bookText = bookText;
     }
 
     public void setBookId(Long bookId) {
         this.bookId = bookId;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public void setNumber(int number) {
-        this.number = number;
-    }
-
-    public void setSequence(int sequence) {
-        this.sequence = sequence;
+    public void setBookText(String title) {
+        this.bookText = bookText;
     }
 
     public Long getBookId() {
         return bookId;
     }
 
-    public String getTitle() {
-        return title;
+    public String getBookText() {
+        return bookText;
     }
 
-    public int getNumber() {
-        return number;
-    }
-
-    public int getSequence() {
-        return sequence;
-    }
 }

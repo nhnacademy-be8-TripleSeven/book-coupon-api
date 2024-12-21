@@ -1,6 +1,8 @@
 spring:
   profiles:
-    active: dev
+    active: instance1
+
+
 
   lifecycle:
     timeout-per-shutdown-phase: 30s
@@ -11,48 +13,59 @@ spring:
     uris: http://115.94.72.197:9200
     username: elastic
     password: nhnacademy123!
+    repositories:
+      enabled: true
 
 logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
 
 
+url: https://api-keymanager.nhncloudservice.com
+appKey: qTQNj7LyHhdAazH3
+keyId: f5e65a4f86194461bb3b6a01de675dcf
+
+keyStoreFilePath: triple-seven.p12
+password: nhn24
 
 
-#eureka:
-#  client:
-#    fetch-registry: true
-#    register-with-eureka: true
-#    service-url:
-#      defaultZone: http://admin:1234@eureka-server:8761/eureka
-#  instance:
-#    prefer-ip-address: true
-#
-#management:
-#  health:
-#    status:
-#      order: DOWN, UP
-#  endpoint:
-#    jolokia:
-#      enable: true
-#    pause:
-#      enabled: true
-#    resume:
-#      enabled: true
-#
-#  info:
-#    env:
-#      enabled: true
-#
-#server:
-#  shutdown: graceful
-#
-##zz
+
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@eureka-server:8761/eureka
+  instance:
+    prefer-ip-address: true
+
+management:
+  health:
+    status:
+      order: DOWN, UP
+  endpoint:
+    jolokia:
+      enable: true
+    pause:
+      enabled: true
+    resume:
+      enabled: true
+
+  info:
+    env:
+      enabled: true
+
+server:
+  shutdown: graceful
+
+
 
 
 aladin:
   api:
     key: ttbrlgus45311101001
+
+
 
 
 

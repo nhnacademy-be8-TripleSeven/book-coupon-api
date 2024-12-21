@@ -56,10 +56,10 @@ public class TagService {
         return new TagResponseDto(tag.get().getId(), tag.get().getName());
     }
     // 태그 이름으로 조회
-    public TagResponseDto getTagByName(TagRequestDto tagRequestDto) {
-        Optional<Tag> tag = tagRepository.findByName(tagRequestDto.getName());
+    public TagResponseDto getTagByName(String name) {
+        Optional<Tag> tag = tagRepository.findByName(name);
         if (tag.isEmpty()) {
-            throw new TagNotFoundException(tagRequestDto.getName() + " does not exist");
+            throw new TagNotFoundException(name + " does not exist");
         }
         return new TagResponseDto(tag.get().getId(), tag.get().getName());
     }

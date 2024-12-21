@@ -14,25 +14,17 @@ public class BookIndex {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 인덱스 아이디
 
-    @Column(length = 50)
+    @Column(columnDefinition = "TEXT", nullable = true)
     @Setter
-    private String title; // 목차 제목
+    private String indexText; // 목차 제목
 
     @Setter
-    private int number; // 페이지 번호
-
-    @Setter
-    private int sequence; // 순서
-
-    @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "book_id")
     private Book book; // 도서 아이디
 
-    public BookIndex(String title, int number, int sequence, Book book) {
-        this.title = title;
-        this.number = number;
-        this.sequence = sequence;
+    public BookIndex(String indexText, Book book) {
+        this.indexText = indexText;
         this.book = book;
     }
 }

@@ -23,7 +23,7 @@ public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Setter
     @Column(nullable = false)
@@ -43,7 +43,7 @@ public class Book {
     @Column(nullable = false)
     private int salePrice;
     @Setter
-    @Column(nullable = false, length = 50)
+    @Column(nullable = false, length = 50, unique = true)
     private String isbn13;
     @Setter
     @Column(nullable = false)

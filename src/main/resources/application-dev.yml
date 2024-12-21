@@ -2,17 +2,36 @@
 spring:
   application:
     name: bookapi
-
-  datasource:
-    url: jdbc:mysql://133.186.241.167:3306/triple_seven_book_coupon?serverTimezone=UTC&characterEncoding=UTF-8
-    username: triple_seven
-    password: eo1cItEUe@J2Tym
-    driver-class-name: com.mysql.cj.jdbc.Driver
+#  datasource:
+#    url: "${spring.datasource.url}"
+#    username: "${spring.datasource.username}"
+#    password: "${spring.datasource.password}"
+#    driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
       ddl-auto: update
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
+
+  elasticsearch:
+    uris: http://115.94.72.197:9200
+    username: elastic
+    password: nhnacademy123!
+    repositories:
+      enabled: true
+
+logstash:
+  host: 115.94.72.197
+  port: 50000 # Logstash TCP input 포트
+
+
+
+logging:
+  level:
+    com.ulisesbocchio.jasyptspringboot: info
+
+
+
 
 #??
