@@ -25,7 +25,16 @@ logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
 
-
+eureka:
+  instance:
+    instance-id: book-coupon-api
+    hostname: localhost
+    prefer-ip-address: true
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@localhost:8761/eureka/
 
 logging:
   level:
