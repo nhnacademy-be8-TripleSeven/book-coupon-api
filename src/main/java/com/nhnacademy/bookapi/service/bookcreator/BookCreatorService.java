@@ -1,10 +1,9 @@
 package com.nhnacademy.bookapi.service.bookcreator;
 
-import com.nhnacademy.bookapi.controller.bookcreator.BookCreatorResponseDTO;
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.entity.BookCreator;
 import com.nhnacademy.bookapi.exception.BookCreatorNotFoundException;
 import com.nhnacademy.bookapi.repository.BookCreatorRepository;
-import com.nhnacademy.bookapi.repository.BookRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

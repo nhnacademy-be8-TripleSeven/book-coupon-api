@@ -1,4 +1,4 @@
-package com.nhnacademy.bookapi.controller.bookcreator;
+package com.nhnacademy.bookapi.dto.bookcreator;
 
 import com.nhnacademy.bookapi.entity.BookCreator;
 import java.util.ArrayList;
