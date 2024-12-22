@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
+import com.nhnacademy.bookapi.controller.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequest;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
@@ -34,6 +35,7 @@ import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 import com.nhnacademy.bookapi.service.book.BookService;
+import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +65,7 @@ public class BookServiceImpl implements BookService {
     private final PublisherRepository publisherRepository;
     private final BookCoverImageRepository bookCoverImageRepository;
     private final ElasticSearchBookSearchRepository elasticSearchBookSearchRepository;
+    private final BookCreatorService bookCreatorService;
 
     @Override
     public CreateBookRequest createBook(CreateBookRequest createBookRequest) {
@@ -179,27 +182,32 @@ public class BookServiceImpl implements BookService {
 
 
     // 이달의 베스트 페이징을 사용하지 않고 캐싱으로
-    public List<BookDetailResponseDTO> getMonthlyBestBooks(){
-        List<Book> bestBooks = bookRepository.findBookTypeBestsellerByRankAsc();
-        List<BookDetailResponseDTO> bestBookDto = new ArrayList<>();
-        for (Book bestBook : bestBooks) {
-            if(bestBook != null){
-                bestBookDto.add(new BookDetailResponseDTO(bestBook.getTitle(),bestBook.getPublisher().getName(), bestBook.getRegularPrice(), bestBook.getSalePrice()));
-            }
+    public Page<BookDetailResponseDTO> getMonthlyBestBooks(Pageable pageable) {
+
+        Page<BookDetailResponseDTO> bookTypeBestsellerByRankAsc = bookRepository.findBookTypeBestsellerByRankAsc(
+            pageable);
+
+        for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeBestsellerByRankAsc) {
+            long id = bookDetailResponseDTO.getId();
+            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.BookCreatorListByBookId(
+                id);
+            bookDetailResponseDTO.setCreator(bookCreatorResponseDTO.getCreators());
         }
-        return bestBookDto;
+        return bookTypeBestsellerByRankAsc;
+
     }
 
     //type별 조회 이도서는 어때요? , 편집자의 선택, e북
-    public List<BookDetailResponseDTO> getBookTypeBooks(Type bookType){
-        List<Book> typeBooks = bookRepository.findBookTypeItemByType(bookType);
-        List<BookDetailResponseDTO> bestBookDto = new ArrayList<>();
-        for (Book book : typeBooks) {
-            if(book != null){
-                bestBookDto.add(new BookDetailResponseDTO(book.getTitle(), book.getPublisher().getName(), book.getRegularPrice(), book.getSalePrice()));
-            }
+    public Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable) {
+
+        Page<BookDetailResponseDTO> bookTypeItemByType = bookRepository.findBookTypeItemByType(
+            bookType, pageable);
+        for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeItemByType) {
+            long id = bookDetailResponseDTO.getId();
+            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.BookCreatorListByBookId(id);
+            bookDetailResponseDTO.setCreator(bookCreatorResponseDTO.getCreators());
         }
-        return bestBookDto;
+        return bookTypeItemByType;
     }
 
 
