@@ -49,12 +49,6 @@ public class SecureKeyManagerService {
     public String fetchSecretFromKeyManager() {
         try {
 
-            System.out.println("URL: " + url);
-            System.out.println("AppKey: " + appKey);
-            System.out.println("KeyId: " + keyId);
-            System.out.println("KeyStoreFilePath: " + keyStoreFilePath);
-            System.out.println("Password: " + password);
-
             // 키 저장소 객체를 만들되 키 유형이 PKCS12인 인스턴스를 가져오기
             KeyStore clientStore = KeyStore.getInstance("PKCS12");
 
