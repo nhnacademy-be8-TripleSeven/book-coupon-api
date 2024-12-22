@@ -4,11 +4,17 @@ server:
 spring:
   application:
     name: book-coupon-api
-#  datasource:
-#    url: "${spring.datasource.url}"
-#    username: "${spring.datasource.username}"
-#    password: "${spring.datasource.password}"
-#    driver-class-name: com.mysql.cj.jdbc.Driver
+  cloud:
+    eureka:
+      instance:
+        instance-id: book-coupon-api
+        hostname: localhost
+        prefer-ip-address: true
+      client:
+        fetch-registry: true
+        register-with-eureka: true
+        service-url:
+          defaultZone: http://admin:1234@localhost:8761/eureka/
 
   jpa:
     hibernate:
@@ -27,16 +33,7 @@ logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
 
-eureka:
-  instance:
-    instance-id: book-coupon-api
-    hostname: localhost
-    prefer-ip-address: true
-  client:
-    fetch-registry: true
-    register-with-eureka: true
-    service-url:
-      defaultZone: http://admin:1234@localhost:8761/eureka/
+
 
 logging:
   level:
