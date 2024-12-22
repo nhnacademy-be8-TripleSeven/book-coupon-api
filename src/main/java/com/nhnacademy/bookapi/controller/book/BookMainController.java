@@ -41,6 +41,11 @@ public class BookMainController {
         return ResponseEntity.ok(monthlyBestBooks);
     }
 
+    @GetMapping("/books/recommendations")
+    public ResponseEntity<Page<BookDetailResponseDTO>> getRecommendations(Pageable pageable) {
+        return ResponseEntity.ok().build();
+    }
+
     @Operation(summary = "타입별 조회", description = "메인화면의 타입별 책 출력")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "타입별 책 출력 성공"),
