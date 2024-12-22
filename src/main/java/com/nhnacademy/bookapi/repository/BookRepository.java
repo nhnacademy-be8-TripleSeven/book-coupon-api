@@ -1,11 +1,13 @@
 package com.nhnacademy.bookapi.repository;
 
+import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Type;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -19,28 +21,33 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
 
     // 이달의 베스트
-    @Query("select b.title, bt.ranks from Book b "
+    @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url) "
+        + "from Book b "
         + "join BookType bt on bt.book.id = b.id "
-        + "order by bt.ranks asc limit 10")
-    List<Book> findBookTypeBestsellerByRankAsc();
+        + "join BookCoverImage bci on bci.book.id = b.id "
+        + "join Image i on i.id = bci.image.id "
+        + "where bt.types = 'BESTSELLER'"
+        + "order by bt.ranks asc")
+    Page<BookDetailResponseDTO> findBookTypeBestsellerByRankAsc(Pageable pageable);
 
 
     //이 도서는 어때요? ITEMNEWSPECIAL
-    @Query("select b.title,b.salePrice,b.regularPrice ,bc.name, bc.role " +
+    @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url) " +
         "from Book b " +
         "join BookType bt on bt.book.id = b.id " +
-        "join BookCreatorMap bcm on bcm.book.id = b.id " +
-        "join BookCreator bc on bc.id = bcm.creator.id " +
-        "order by b.title asc limit 8")
-    List<Book> findBookTypeItemNewSpecial();
+        "join BookCoverImage bci on bci.book.id = b.id " +
+        "join Image i on i.id = bci.image.id " +
+        "order by b.title asc")
+    Page<BookDetailResponseDTO> findBookTypeItemNewSpecial(Pageable pageable);
 
     //북 타입별 조회
-    @Query("select b.title, b.salePrice from Book b "
+    @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url) "
+        + "from Book b "
         + "join BookType bt on bt.book.id = b.id "
-        + "join BookCreatorMap bcm on bcm.book.id = b.id "
-        + "join BookCreator bc on bc.id = bcm.creator.id "
-        + "where bt.types =: type")
-    List<Book> findBookTypeItemByType(Type type);
+        + "join BookCoverImage bci on bci.book.id = b.id "
+        + "join Image i on i.id = bci.image.id "
+        + "where bt.types =:type")
+    Page<BookDetailResponseDTO> findBookTypeItemByType(@Param("type") Type type, Pageable pageable);
 
 
 }
