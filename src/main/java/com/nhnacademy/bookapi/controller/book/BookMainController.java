@@ -1,7 +1,6 @@
 package com.nhnacademy.bookapi.controller.book;
 
 
-import com.nhnacademy.bookapi.client.BookApiFeignClient;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.service.book.BookService;
@@ -25,7 +24,7 @@ public class BookMainController {
 
     private final BookService bookService;
     private final BookCreatorService bookCreatorService;
-    private final BookApiFeignClient bookApiFeignClient;
+
 
 
     @Operation(summary = "월간 베스트 조회", description = "메인화면의 월간베스트 책 출력")
@@ -38,9 +37,8 @@ public class BookMainController {
 
         Page<BookDetailResponseDTO> monthlyBestBooks =
             bookService.getMonthlyBestBooks(pageable);
-        Page<BookDetailResponseDTO> monthlyBooks = bookApiFeignClient.getMonthlyBooks(
-            pageable.getPageNumber(), pageable.getPageSize());
-        return ResponseEntity.ok(monthlyBooks);
+
+        return ResponseEntity.ok(monthlyBestBooks);
     }
 
     @GetMapping("/books/recommendations")
@@ -55,10 +53,9 @@ public class BookMainController {
     })
     @GetMapping("/books/type/{type}")
     public ResponseEntity<Page<BookDetailResponseDTO>> getBooksByType(@Valid @PathVariable String type, Pageable pageable){
+        pageable = PageRequest.of(0, 10);
         Page<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(
             Type.valueOf(type.toUpperCase()), pageable);
-        Page<BookDetailResponseDTO> booksByType = bookApiFeignClient.getBooksByType(type,
-            pageable.getPageNumber(), pageable.getPageSize());
-        return ResponseEntity.ok(booksByType);
+        return ResponseEntity.ok(bookTypeBooks);
     }
 }
