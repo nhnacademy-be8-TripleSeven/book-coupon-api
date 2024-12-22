@@ -8,7 +8,6 @@ spring:
     eureka:
       instance:
         instance-id: book-coupon-api
-        hostname: localhost
         prefer-ip-address: true
       client:
         fetch-registry: true
