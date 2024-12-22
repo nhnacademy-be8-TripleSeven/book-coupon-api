@@ -21,4 +21,8 @@ public class Tag {
     public Tag(String name) {
         this.name = name;
     }
+
+    public void updateTagName(String name) {
+        this.name = name;
+    }
 }

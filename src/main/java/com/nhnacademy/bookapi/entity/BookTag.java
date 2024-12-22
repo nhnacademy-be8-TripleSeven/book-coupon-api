@@ -28,4 +28,8 @@ public class BookTag {
         this.book = book;
         this.tag = tag;
     }
+
+    public void updateTag(Tag newTag) {
+        this.tag = newTag;
+    }
 }
