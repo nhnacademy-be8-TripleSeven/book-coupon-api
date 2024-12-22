@@ -1,6 +1,6 @@
 spring:
   profiles:
-    active: instance1
+    active: dev
 
 
 
