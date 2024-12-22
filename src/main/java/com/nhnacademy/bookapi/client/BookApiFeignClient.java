@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "book-api", url = "http://nhn24.store")
+@FeignClient(name = "book-coupon-api", url = "http://nhn24.store")
 public interface BookApiFeignClient {
 
     @GetMapping("/books/monthly")
