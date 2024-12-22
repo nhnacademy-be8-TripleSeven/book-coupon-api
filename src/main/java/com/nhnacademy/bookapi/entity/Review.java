@@ -42,4 +42,15 @@ public class Review {
         this.userId = userId;
     }
 
+    public void updateText(String text) {
+        this.text = text;
+    }
+
+    public void updateRating(int rating) {
+        this.rating = rating;
+    }
+
+    public void updateCreatedAT(LocalDateTime now) {
+        this.createdAt = now;
+    }
 }

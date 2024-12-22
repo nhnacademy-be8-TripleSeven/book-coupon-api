@@ -86,14 +86,13 @@ public class BookTagService {
         BookTag bookTag = bookTagRepository.findByBookAndTag(book, oldTag)
                 .orElseThrow(() -> new BookTagNotFoundException("Book tag not found"));
 
-        bookTag.setTag(newTag);
-        bookTagRepository.save(bookTag);
+        bookTag.updateTag(newTag);
         return true;
     }
 
     public List<BookTagResponseDTO> getBookTagsByBook(Long bookId) { // 특정 책의 모든 태그 조회
         Book book = getBook(bookId);
-        List<BookTag> tags = bookTagRepository.findByBook(book);
+        List<BookTag> tags = bookTagRepository.findAllByBookWithTags(book);
         List<BookTagResponseDTO> bookTagResponseDTOS = new ArrayList<>();
         for (BookTag bookTag : tags) {
             bookTagResponseDTOS.add(new BookTagResponseDTO(bookTag.getBook().getId(), bookTag.getTag().getId(), bookTag.getTag().getName()));

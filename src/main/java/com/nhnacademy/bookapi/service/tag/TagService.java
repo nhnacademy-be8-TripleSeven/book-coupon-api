@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -33,16 +34,16 @@ public class TagService {
 
     public boolean updateTag(Long tagId, TagRequestDto tagRequestDto) {
         if (!tagRepository.existsById(tagId)) { // 업데이트하려는 tagId가 없을 시
-            throw new TagNotFoundException(tagId + " does not exist");
+            throw new TagNotFoundException("TagID : "+ tagId + " does not exist");
         }
         Tag tag = tagRepository.findById(tagId).get();
-        tag.setName(tagRequestDto.getName());
+        tag.updateTagName(tagRequestDto.getName()); // tagRequestDto의 name은 새로 바꾸려는 newTagName이다.
         return true;
     }
 
     public boolean deleteTag(Long tagId) {
         if (!tagRepository.existsById(tagId)) { // 없는 태그를 삭제할 시
-            throw new TagNotFoundException(tagId + " does not exist");
+            throw new TagNotFoundException("TagID : " + tagId + " does not exist");
         }
         tagRepository.deleteById(tagId);
         return true;
@@ -51,7 +52,7 @@ public class TagService {
     public TagResponseDto getTagById(Long tagId) {
         Optional<Tag> tag = tagRepository.findById(tagId);
         if (tag.isEmpty()) {
-            throw new TagNotFoundException(tagId + " does not exist");
+            throw new TagNotFoundException("TagID : "+ tagId + " does not exist");
         }
         return new TagResponseDto(tag.get().getId(), tag.get().getName());
     }
@@ -66,6 +67,10 @@ public class TagService {
     // 모든 태그 조회
     public List<TagResponseDto> getAllTags() {
         List<TagResponseDto> result = new ArrayList<>();
+        if (tagRepository.findAll().isEmpty()) {
+            throw new TagNotFoundException("No tags found");
+        }
+
         for (Tag tag : tagRepository.findAll()) {
             result.add(new TagResponseDto(tag.getId(), tag.getName()));
         }

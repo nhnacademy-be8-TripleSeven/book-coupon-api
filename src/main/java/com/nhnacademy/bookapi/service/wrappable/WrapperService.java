@@ -58,13 +58,15 @@ package com.nhnacademy.bookapi.service.wrappable;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Wrapper;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
-import com.nhnacademy.bookapi.exception.WrappableAlreadyExistException;
-import com.nhnacademy.bookapi.exception.WrappableNotFoundException;
+import com.nhnacademy.bookapi.exception.WrapperAlreadyExistException;
+import com.nhnacademy.bookapi.exception.WrapperNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.WrapperRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional
 public class WrapperService {
 
     private final WrapperRepository wrapperRepository;
@@ -78,7 +80,7 @@ public class WrapperService {
     public boolean addWrappable(Long bookId, boolean wrappable) {
         Book book = getBook(bookId);
         if (wrapperRepository.existsByBook(book)) {
-            throw new WrappableAlreadyExistException("Book is already saved");
+            throw new WrapperAlreadyExistException("Book is already saved");
         }
         wrapperRepository.save(new Wrapper(book, wrappable));
         return true;
@@ -87,24 +89,23 @@ public class WrapperService {
     public boolean updateWrappable(Long bookId, boolean newWrappable) {
         Book book = getBook(bookId);
         Wrapper wrapper = wrapperRepository.findByBook(book)
-                .orElseThrow(() -> new WrappableNotFoundException("Book is not found"));
-        wrapper.setWrappable(newWrappable);
-        wrapperRepository.save(wrapper);
+                .orElseThrow(() -> new WrapperNotFoundException("Wrapper is not found"));
+        wrapper.updateWrappable(newWrappable);
         return true;
     }
 
     public boolean deleteWrappable(Long bookId) {
         Book book = getBook(bookId);
         Wrapper wrapper = wrapperRepository.findByBook(book)
-                .orElseThrow(() -> new WrappableNotFoundException("Book is not found"));
+                .orElseThrow(() -> new WrapperNotFoundException("Wrapper is not found"));
         wrapperRepository.delete(wrapper);
         return true;
     }
 
-    public Wrapper getWrappable(Long bookId) {
+    public boolean getWrappable(Long bookId) {
         Book book = getBook(bookId);
-        return wrapperRepository.findByBook(book)
-                .orElseThrow(() -> new WrappableNotFoundException("Book is not found"));
+        Wrapper wrapper = wrapperRepository.findByBook(book).orElseThrow(() -> new WrapperNotFoundException("Wrapper is not found"));
+        return wrapper.isWrappable();
     }
 
     private Book getBook(Long bookId) {
