@@ -36,7 +36,6 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 
-
 url: https://api-keymanager.nhncloudservice.com
 appKey: qTQNj7LyHhdAazH3
 keyId: f5e65a4f86194461bb3b6a01de675dcf

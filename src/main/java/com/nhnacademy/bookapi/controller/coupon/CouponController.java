@@ -52,17 +52,17 @@ public class CouponController {
         return ResponseEntity.status(201).body(response);
     }
 
-//    @Operation(summary = "쿠폰 발급", description = "특정 회원에게 쿠폰을 발급합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공"),
-//            @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음"),
-//            @ApiResponse(responseCode = "400", description = "이미 발급된 쿠폰")
-//    })
-//    @PostMapping("/admin/coupons/assign")
-//    public ResponseEntity<CouponAssignResponseDTO> assignCoupon(@RequestBody CouponAssignRequestDTO request) {
-//        CouponAssignResponseDTO response = couponService.assignCoupon(request);
-//        return ResponseEntity.ok(response);
-//    }
+    @Operation(summary = "쿠폰 발급", description = "특정 회원에게 쿠폰을 발급합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공"),
+            @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음"),
+            @ApiResponse(responseCode = "400", description = "이미 발급된 쿠폰")
+    })
+    @PostMapping("/admin/coupons/assign")
+    public ResponseEntity<CouponAssignResponseDTO> assignCoupon(@RequestBody CouponAssignRequestDTO request) {
+        CouponAssignResponseDTO response = couponService.assignCoupon(request);
+        return ResponseEntity.ok(response);
+    }
 
     @Operation(summary = "쿠폰 삭제", description = "쿠폰을 삭제합니다.")
     @ApiResponses({
