@@ -27,28 +27,28 @@
             </encoder>
         </appender>
 
-<!--        &lt;!&ndash; NHN Log & Crash Appender &ndash;&gt;-->
-<!--        <appender name="NHN_LOG_CRASH_APPENDER" class="com.nhnacademy.bookapi.logback.LogCrashHttpAppender">-->
-<!--            <appKey>${APP_KEY}</appKey>-->
-<!--            <url>${LOG_URL}</url>-->
-<!--            <logSource>BookAPI-Test</logSource>-->
-<!--            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
-<!--                <level>ERROR</level>-->
-<!--            </filter>-->
-<!--        </appender>-->
+        <!-- NHN Log & Crash Appender -->
+        <appender name="NHN_LOG_CRASH_APPENDER" class="com.nhnacademy.bookapi.logback.LogCrashHttpAppender">
+            <appKey>${APP_KEY}</appKey>
+            <url>${LOG_URL}</url>
+            <logSource>BookAPI-Test</logSource>
+            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+                <level>ERROR</level>
+            </filter>
+        </appender>
 
-<!--        &lt;!&ndash; Logstrash &ndash;&gt;-->
-<!--        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
-<!--            <destination>115.94.72.197:50000</destination>-->
-<!--            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>-->
-<!--        </appender>-->
+        <!-- Logstrash -->
+        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
+            <destination>115.94.72.197:50000</destination>
+            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>
+        </appender>
 
 
         <!-- 루트 로거: INFO 이상을 콘솔 및 NHN으로 출력 -->
         <root level="INFO">
             <appender-ref ref="CONSOLE" />
-<!--            <appender-ref ref="LOGSTASH" />-->
-<!--            <appender-ref ref="NHN_LOG_CRASH_APPENDER" />-->
+            <appender-ref ref="LOGSTASH" />
+            <appender-ref ref="NHN_LOG_CRASH_APPENDER" />
         </root>
 
     </springProfile>
