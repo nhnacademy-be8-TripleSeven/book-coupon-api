@@ -18,28 +18,28 @@ import java.time.LocalDate;
 public class CouponAssignConsumer {
     private final CouponRepository couponRepository;
 
-    @RabbitListener(queues = "coupon.assign.queue")
-    @Transactional
-    public CouponAssignResponseDTO handleCouponAssign(CouponAssignRequestDTO request) {
-        // 쿠폰 조회
-        Coupon coupon = couponRepository.findById(request.getCouponId())
-                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
-
-        // 이미 발급된 쿠폰인지 확인
-        if (coupon.getMemberId() != null) {
-            throw new CouponAlreadyAssignedException("Coupon is already assigned");
-        }
-
-        // 쿠폰 발급
-        Integer validTime = coupon.getCouponPolicy().getCouponValidTime();
-        coupon.setMemberId(request.getMemberId());
-        coupon.setCouponIssueDate(LocalDate.now());
-        coupon.setCouponExpiryDate(LocalDate.now().plusDays(validTime));
-        coupon.setCouponStatus(CouponStatus.NOTUSED);
-
-        couponRepository.save(coupon);
-
-        // 응답 메시지 생성
-        return new CouponAssignResponseDTO(coupon);
-    }
+//    @RabbitListener(queues = "nhn24.coupon.queue")
+//    @Transactional
+//    public CouponAssignResponseDTO handleCouponAssign(CouponAssignRequestDTO request) {
+//        // 쿠폰 조회
+//        Coupon coupon = couponRepository.findById(request.getCouponId())
+//                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+//
+//        // 이미 발급된 쿠폰인지 확인
+//        if (coupon.getMemberId() != null) {
+//            throw new CouponAlreadyAssignedException("Coupon is already assigned");
+//        }
+//
+//        // 쿠폰 발급
+//        Integer validTime = coupon.getCouponPolicy().getCouponValidTime();
+//        coupon.setMemberId(request.getMemberId());
+//        coupon.setCouponIssueDate(LocalDate.now());
+//        coupon.setCouponExpiryDate(LocalDate.now().plusDays(validTime));
+//        coupon.setCouponStatus(CouponStatus.NOTUSED);
+//
+//        couponRepository.save(coupon);
+//
+//        // 응답 메시지 생성
+//        return new CouponAssignResponseDTO(coupon);
+//    }
 }

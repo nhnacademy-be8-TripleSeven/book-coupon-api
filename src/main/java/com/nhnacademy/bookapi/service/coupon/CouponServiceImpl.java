@@ -146,31 +146,31 @@ public class CouponServiceImpl implements CouponService {
 //    }
 
 
-    @Override
-    public CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request) {
-        // 요청 유효성 검사
-        if (!couponRepository.existsById(request.getCouponId())) {
-            throw new CouponNotFoundException("Coupon not found");
-        }
-
-        // 메시지 전송 및 응답 수신
-        try {
-            // 메시지 큐를 통해 요청을 전송하고 응답을 기다림
-            CouponAssignResponseDTO response = (CouponAssignResponseDTO) rabbitTemplate.convertSendAndReceive(
-                    EXCHANGE,
-                    ROUTING_KEY,
-                    request
-            );
-
-            if (response == null) {
-                throw new RuntimeException("Coupon assignment failed: No response received.");
-            }
-
-            return response;
-        } catch (Exception e) {
-            throw new RuntimeException("Error during coupon assignment: " + e.getMessage(), e);
-        }
-    }
+//    @Override
+//    public CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request) {
+//        // 요청 유효성 검사
+//        if (!couponRepository.existsById(request.getCouponId())) {
+//            throw new CouponNotFoundException("Coupon not found");
+//        }
+//
+//        // 메시지 전송 및 응답 수신
+//        try {
+//            // 메시지 큐를 통해 요청을 전송하고 응답을 기다림
+//            CouponAssignResponseDTO response = (CouponAssignResponseDTO) rabbitTemplate.convertSendAndReceive(
+//                    EXCHANGE,
+//                    ROUTING_KEY,
+//                    request
+//            );
+//
+//            if (response == null) {
+//                throw new RuntimeException("Coupon assignment failed: No response received.");
+//            }
+//
+//            return response;
+//        } catch (Exception e) {
+//            throw new RuntimeException("Error during coupon assignment: " + e.getMessage(), e);
+//        }
+//    }
 
     // 쿠폰 사용 (사용자용)
     @Transactional

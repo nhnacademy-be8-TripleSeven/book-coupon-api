@@ -26,7 +26,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
         + "join BookType bt on bt.book.id = b.id "
         + "join BookCoverImage bci on bci.book.id = b.id "
         + "join Image i on i.id = bci.image.id "
-        + "where bt.types = 'BESTSELLER'"
+        + "where bt.types = 'BESTSELLER' "
         + "order by bt.ranks asc")
     Page<BookDetailResponseDTO> findBookTypeBestsellerByRankAsc(Pageable pageable);
 
@@ -38,7 +38,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
         "join BookCoverImage bci on bci.book.id = b.id " +
         "join Image i on i.id = bci.image.id " +
         "order by b.title asc")
-    Page<BookDetailResponseDTO> findBookTypeItemNewSpecial(Pageable pageable);
+    List<BookDetailResponseDTO> findBookTypeItemNewSpecial();
 
     //북 타입별 조회
     @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url) "

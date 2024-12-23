@@ -24,7 +24,7 @@ public interface BookService {
 
     SearchBookDetail searchBookDetailByBookId(Long id);
 
-    Page<BookDetailResponseDTO> getMonthlyBestBooks(Pageable pageable);
+    Page<BookDetailResponseDTO> getMonthlyBestBooks();
 
     Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable);
 
