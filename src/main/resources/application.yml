@@ -3,17 +3,10 @@ spring:
   profiles:
     active: dev
   rabbitmq:
-    host: localhost
+    username: admin
+    password: nhnacademy123!
+    host: 133.186.241.167
     port: 5672
-    username: guest
-    password: guest
-    template:
-      mandatory: true
-    listener:
-      simple:
-        acknowledge-mode: manual
-        concurrency: 1
-        max-concurrency: 10
 
   lifecycle:
     timeout-per-shutdown-phase: 30s
@@ -35,6 +28,13 @@ spring:
 logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
 
 
 url: https://api-keymanager.nhncloudservice.com

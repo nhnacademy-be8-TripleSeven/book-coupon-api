@@ -50,6 +50,23 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     Page<BookDetailResponseDTO> findBookTypeItemByType(@Param("type") Type type, Pageable pageable);
 
 
+    // 국내도서 조회
+
+
+
+
+    // 외국도서 조회
+
+
+
+
+    // 신간 소개
+
+
+
+
+    // 베스트셀러
+
 }
 
 

@@ -65,7 +65,7 @@ public class BookMainController {
     })
     @GetMapping("/books/type/{type}")
     public ResponseEntity<List<BookDetailResponseDTO>> getBooksByType(@Valid @PathVariable String type){
-        Pageable pageable = PageRequest.of(0, 10);
+        Pageable pageable = PageRequest.of(0, 6);
         Page<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(
             Type.valueOf(type.toUpperCase()), pageable);
         List<BookDetailResponseDTO> content = bookTypeBooks.getContent();

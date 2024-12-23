@@ -19,7 +19,7 @@
     </springProfile>
 
     <!-- 운영 환경  -->
-    <springProfile name="jhs">
+    <springProfile name="prod">
         <!-- 콘솔 Appender -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
