@@ -143,6 +143,7 @@ public class BookServiceImpl implements BookService {
         bookRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public SearchBookDetail searchBookDetailByBookId(Long id) {
 
@@ -175,7 +176,9 @@ public class BookServiceImpl implements BookService {
     }
 
 
+
     // 이달의 베스트 페이징을 사용하지 않고 캐싱으로
+    @Transactional(readOnly = true)
     public Page<BookDetailResponseDTO> getMonthlyBestBooks() {
         Pageable pageable = Pageable.ofSize(10);
 
@@ -192,6 +195,7 @@ public class BookServiceImpl implements BookService {
     }
 
     //type별 조회 이도서는 어때요? , 편집자의 선택, e북
+    @Transactional(readOnly = true)
     public Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable) {
 
         Page<BookDetailResponseDTO> bookTypeItemByType = bookRepository.findBookTypeItemByType(
