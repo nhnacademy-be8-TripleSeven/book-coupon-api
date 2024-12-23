@@ -7,9 +7,7 @@ spring:
     password: nhnacademy123!
     host: 133.186.241.167
     port: 5672
-    listener:
-      simple:
-        acknowledge-mode: manual
+
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
