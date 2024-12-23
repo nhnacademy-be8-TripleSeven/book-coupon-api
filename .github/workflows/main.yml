@@ -44,7 +44,7 @@ jobs:
 
       - name: Remove unused Docker images
         run: |
-          docker image prune -a --filter "until=72h
+          docker image prune -a --filter "until=72h"
 
       - name: Push Docker image
         run: |
