@@ -214,6 +214,12 @@
       <artifactId>spring-cloud-starter-openfeign</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>8.0.33</version> <!-- 최신 버전 확인 -->
+    </dependency>
+
 
   </dependencies>
 
