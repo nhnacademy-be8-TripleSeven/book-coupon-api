@@ -78,7 +78,7 @@ jobs:
               docker rm -f book-coupon-api-instance-1 || true
             fi
             docker run --name book-coupon-api-instance-1 --network nhn-book-store-network -p 8086:8086 -e SPRING_PROFILES_ACTIVE=instance1 -d lushlife99/nhn-book-coupon:${{ github.sha }}
-            docker logs -f book-coupon-api-instance-1
+            
 
       - name: Check First Instance via Eureka
         run: |
