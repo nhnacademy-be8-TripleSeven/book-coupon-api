@@ -1,10 +1,6 @@
 
-
 server:
   port: 8086
-
-
-
 
 spring:
   application:
@@ -29,22 +25,12 @@ logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
 
-
-
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 
 logging:
   level:
     com.ulisesbocchio.jasyptspringboot: info
-
-
-
-
-#??
-
-
-
 
 eureka:
   client:
