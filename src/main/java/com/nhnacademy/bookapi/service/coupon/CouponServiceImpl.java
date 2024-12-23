@@ -182,24 +182,24 @@ public class CouponServiceImpl implements CouponService {
 
 
     // 쿠폰 발급 (쿠폰 아이디, 회원 아이디)
-    @Override
-    @Transactional
-    public CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request) {
-        try {
-            log.debug("Sending message: {}", request);
-            rabbitTemplate.convertAndSend(
-                    RabbitConfig.EXCHANGE_NAME,
-                    RabbitConfig.ROUTING_KEY,
-                    request
-            );
-            log.info("Sent coupon assign request to RabbitMQ: {}", request);
-            return new CouponAssignResponseDTO(request.getCouponId(), "Coupon assignment request sent successfully");
-        } catch (Exception e) {
-            log.error("Failed to send coupon assign request: {}", e.getMessage(), e);
-            throw new MessageConversionException("Error sending coupon assign message", e);
-        }
-    }
-
+//    @Override
+//    @Transactional
+//    public CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request) {
+//        try {
+//            log.debug("Sending message: {}", request);
+//            rabbitTemplate.convertAndSend(
+//                    RabbitConfig.EXCHANGE_NAME,
+//                    RabbitConfig.ROUTING_KEY,
+//                    request
+//            );
+//            log.info("Sent coupon assign request to RabbitMQ: {}", request);
+//            return new CouponAssignResponseDTO(request.getCouponId(), "Coupon assignment request sent successfully");
+//        } catch (Exception e) {
+//            log.error("Failed to send coupon assign request: {}", e.getMessage(), e);
+//            throw new MessageConversionException("Error sending coupon assign message", e);
+//        }
+//    }
+//
 
 
 

@@ -24,8 +24,6 @@ spring:
     loadbalancer:
       retry:
         enabled: true
-  profiles:
-    active: dev
 
   elasticsearch:
     uris: http://115.94.72.197:9200
@@ -33,11 +31,6 @@ spring:
     password: nhnacademy123!
     repositories:
       enabled: true
-  rabbitmq:
-    username: admin
-    password: nhnacademy123!
-    host: 133.186.241.167
-    port: 5672
 
 logstash:
   host: 115.94.72.197
