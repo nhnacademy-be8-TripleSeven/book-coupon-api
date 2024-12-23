@@ -15,17 +15,21 @@ public class BookTag {
     private Long id;
 
     @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     private Tag tag;
 
     @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     private Book book;
 
     public BookTag(Book book, Tag tag) {
         this.book = book;
         this.tag = tag;
+    }
+
+    public void updateTag(Tag newTag) {
+        this.tag = newTag;
     }
 }

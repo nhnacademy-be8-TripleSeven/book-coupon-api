@@ -67,9 +67,10 @@ public class TagController {
             @ApiResponse(responseCode = "200", description = "태그 조회 성공"),
             @ApiResponse(responseCode = "404", description = "태그를 찾을 수 없음")
     })
-    @GetMapping("/tags/name/{tagName}")
-    public ResponseEntity<TagResponseDto> getTagByName(@PathVariable String tagName) {
-        TagResponseDto tagResponse = tagService.getTagByName(tagName);
+
+    @GetMapping("/tags/name/{name}")
+    public ResponseEntity<TagResponseDto> getTagByName(@PathVariable String name) {
+        TagResponseDto tagResponse = tagService.getTagByName(name);
         return ResponseEntity.ok(tagResponse);
     }
 

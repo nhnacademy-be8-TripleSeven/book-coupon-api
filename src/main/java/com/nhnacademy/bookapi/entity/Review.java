@@ -27,7 +27,7 @@ public class Review {
     @Setter
     private int rating; // 평점 book_rating
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false)
     private Book book; // 도서 아이디
 
@@ -42,4 +42,15 @@ public class Review {
         this.userId = userId;
     }
 
+    public void updateText(String text) {
+        this.text = text;
+    }
+
+    public void updateRating(int rating) {
+        this.rating = rating;
+    }
+
+    public void updateCreatedAT(LocalDateTime now) {
+        this.createdAt = now;
+    }
 }

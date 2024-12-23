@@ -35,6 +35,7 @@ public class WrapperController {
     @PutMapping("/admin/wrappers/{bookId}")
     public ResponseEntity<Void> updateWrappable(@PathVariable Long bookId, @RequestParam boolean wrappable) {
         wrapperService.updateWrappable(bookId, wrappable);
+
         return ResponseEntity.ok().build();
     }
 
@@ -55,8 +56,8 @@ public class WrapperController {
             @ApiResponse(responseCode = "404", description = "도서를 찾을 수 없음")
     })
     @GetMapping("/wrappers/{bookId}")
-    public ResponseEntity<Wrapper> getWrappable(@PathVariable Long bookId) {
-        Wrapper wrapper = wrapperService.getWrappable(bookId);
-        return ResponseEntity.ok(wrapper);
+    public ResponseEntity<Boolean> getWrappable(@PathVariable Long bookId) {
+        boolean isWrappable = wrapperService.getWrappable(bookId);
+        return ResponseEntity.ok(isWrappable);
     }
 }

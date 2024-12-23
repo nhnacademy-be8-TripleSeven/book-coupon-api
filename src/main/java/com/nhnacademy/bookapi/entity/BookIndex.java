@@ -19,12 +19,24 @@ public class BookIndex {
     private String indexText; // 목차 제목
 
     @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "book_id")
     private Book book; // 도서 아이디
 
-    public BookIndex(String indexText, Book book) {
+    @Setter
+    private int sequence;
+
+    public BookIndex(String indexText, Book book, int sequence) {
         this.indexText = indexText;
         this.book = book;
+        this.sequence = sequence;
+    }
+
+    public void updateIndexText(String indexText) {
+        this.indexText = indexText;
+    }
+
+    public void updateSequence(int sequence) {
+        this.sequence = sequence;
     }
 }

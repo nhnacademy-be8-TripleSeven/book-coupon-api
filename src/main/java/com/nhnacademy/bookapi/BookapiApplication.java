@@ -1,18 +1,22 @@
 package com.nhnacademy.bookapi;
 
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
-import org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchRestClientAutoConfiguration;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+
+import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 
 @SpringBootApplication
 @EnableScheduling
+@EnableDiscoveryClient
+@EnableFeignClients
 public class BookapiApplication {
     private static final Logger logger = LoggerFactory.getLogger(BookapiApplication.class);
 
@@ -23,5 +27,6 @@ public class BookapiApplication {
         logger.info("INFO 레벨 로그: 애플리케이션이 시작되었습니다.");
         logger.warn("WARN 레벨 로그: 경고 메시지입니다.");
     }
+
 
 }

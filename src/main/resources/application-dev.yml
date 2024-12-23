@@ -1,25 +1,42 @@
+server:
+  port: 8086
 
 spring:
   application:
-    name: bookapi
-  datasource:
-    url: "jdbc:mysql://133.186.241.167:3306/project_be8_triple_seven_book_coupon?serverTimezone=UTC&characterEncoding=UTF-8"
-    username: "ENC(VV/7sikUMQ8rk1gjfIENgxQ5aYOXbDWoATaRZawWjVt+44jiy3Y86g==)"
-    password: "ENC(V67TRz03gUSnvbxCOb/oeDfLNK3mEN1a)"
-    driver-class-name: com.mysql.cj.jdbc.Driver
+    name: book-coupon-api
+  cloud:
+    eureka:
+      instance:
+        instance-id: book-coupon-api
+        prefer-ip-address: true
+      client:
+        fetch-registry: true
+        register-with-eureka: true
+        service-url:
+          defaultZone: http://admin:1234@localhost:8761/eureka/
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
 
+  elasticsearch:
+    uris: http://115.94.72.197:9200
+    username: elastic
+    password: nhnacademy123!
+    repositories:
+      enabled: true
+
+logstash:
+  host: 115.94.72.197
+  port: 50000 # Logstash TCP input 포트
 
 
 
 logging:
   level:
-    com.ulisesbocchio.jasyptspringboot: DEBUG
+    com.ulisesbocchio.jasyptspringboot: info
 
 
 
