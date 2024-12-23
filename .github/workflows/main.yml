@@ -78,5 +78,19 @@ jobs:
               docker rm -f book-coupon-api-instance-1 || true
             fi
             docker run --name book-coupon-api-instance-1 --network nhn-book-store-network -p 8086:8086 -e SPRING_PROFILES_ACTIVE=instance1 -d lushlife99/nhn-book-coupon:${{ github.sha }}
-            
 
+
+
+      - name: Deploy to Second Instance
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_IP }}
+          username: ${{ secrets.SSH_ID }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            if [ "$(docker ps -aq --filter "name=book-coupon-api-instance-2")" ]; then
+              docker stop order-api-instance-2 || true
+              docker rm -f order-api-instance-2 || true
+            fi
+            docker run --name book-coupon-api-instance-2 --network nhn-book-store-network -p 8089:8089 -e SPRING_PROFILES_ACTIVE=instance2 -d lushlife99/nhn-book-coupon:${{ github.sha }}
