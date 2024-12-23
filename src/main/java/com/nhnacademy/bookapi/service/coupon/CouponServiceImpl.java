@@ -1,11 +1,18 @@
 package com.nhnacademy.bookapi.service.coupon;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nhnacademy.bookapi.config.RabbitConfig;
 import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.*;
 import com.nhnacademy.bookapi.repository.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +22,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponServiceImpl implements CouponService {
@@ -27,8 +35,7 @@ public class CouponServiceImpl implements CouponService {
 
     private final RabbitTemplate rabbitTemplate;
 
-    private static final String EXCHANGE = "coupon.exchange";
-    private static final String ROUTING_KEY = "coupon.assign";
+
 
     // 쿠폰 생성 (이름, 정책)
     @Override
@@ -146,31 +153,39 @@ public class CouponServiceImpl implements CouponService {
 //    }
 
 
-    @Override
-    public CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request) {
-        // 요청 유효성 검사
-        if (!couponRepository.existsById(request.getCouponId())) {
-            throw new CouponNotFoundException("Coupon not found");
-        }
 
-        // 메시지 전송 및 응답 수신
+    // 쿠폰 발급 (쿠폰 아이디, 회원 아이디)
+    @Override
+    @Transactional
+    public CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request) {
         try {
-            // 메시지 큐를 통해 요청을 전송하고 응답을 기다림
-            CouponAssignResponseDTO response = (CouponAssignResponseDTO) rabbitTemplate.convertSendAndReceive(
-                    EXCHANGE,
-                    ROUTING_KEY,
+            log.debug("Sending message: {}", request);
+            rabbitTemplate.convertAndSend(
+                    RabbitConfig.EXCHANGE_NAME,
+                    RabbitConfig.ROUTING_KEY,
                     request
             );
-
-            if (response == null) {
-                throw new RuntimeException("Coupon assignment failed: No response received.");
-            }
-
-            return response;
+            log.info("Sent coupon assign request to RabbitMQ: {}", request);
+            return new CouponAssignResponseDTO(request.getCouponId(), "Coupon assignment request sent successfully");
         } catch (Exception e) {
-            throw new RuntimeException("Error during coupon assignment: " + e.getMessage(), e);
+            log.error("Failed to send coupon assign request: {}", e.getMessage(), e);
+            throw new MessageConversionException("Error sending coupon assign message", e);
         }
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // 쿠폰 사용 (사용자용)
     @Transactional

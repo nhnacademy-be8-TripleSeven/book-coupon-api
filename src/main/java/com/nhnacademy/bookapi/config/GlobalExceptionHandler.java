@@ -84,6 +84,32 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(CouponAssingAmqErrorException.class)
+    public ResponseEntity<ErrorResponse> handleCouponAssingAmqErrorException(CouponAssingAmqErrorException ex, WebRequest request) {
+        HttpStatus status;
+        String detailedMessage;
+
+        if (ex.getMessage().contains("Connection refused")) {
+            status = HttpStatus.SERVICE_UNAVAILABLE; // RabbitMQ가 다운된 경우
+            detailedMessage = "RabbitMQ service is unavailable: " + ex.getMessage();
+        } else if (ex.getMessage().contains("Timeout")) {
+            status = HttpStatus.GATEWAY_TIMEOUT; // RabbitMQ 응답 시간 초과
+            detailedMessage = "RabbitMQ response timed out: " + ex.getMessage();
+        } else {
+            status = HttpStatus.BAD_GATEWAY; // 일반적인 RabbitMQ 통신 오류
+            detailedMessage = "RabbitMQ communication error: " + ex.getMessage();
+        }
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                status.value(),
+                LocalDateTime.now(),
+                detailedMessage,
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+
     @ExceptionHandler(TagAlreadyExistException.class)
     public ResponseEntity<ErrorResponse> handleTagAlreadyExistException(TagAlreadyExistException ex, WebRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -193,4 +219,5 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
+
 }
