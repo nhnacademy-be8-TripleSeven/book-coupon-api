@@ -73,11 +73,12 @@ import java.util.Map;
 @Configuration
 @EnableRabbit
 public class RabbitConfig {
-    public static final String EXCHANGE_NAME = "coupon.exchange";
-    public static final String QUEUE_NAME = "coupon.assign.queue";
-    public static final String DLQ_NAME = "coupon.assign.queue.dlq";
-    public static final String ROUTING_KEY = "coupon.assign";
-    public static final String DLQ_ROUTING_KEY = "coupon.assign.dlq";
+    public static final String EXCHANGE_NAME = "nhn24.coupon.assign.exchange";
+    public static final String QUEUE_NAME = "nhn24.coupon.assign.queue";
+    public static final String DLQ_NAME = "nhn24.coupon.assign.queue.dlq";
+    public static final String ROUTING_KEY = "nhn24.coupon.assign";
+    public static final String DLQ_ROUTING_KEY = "nhn24.coupon.assign.dlq";
+
 
     @Bean
     public DirectExchange exchange() {
