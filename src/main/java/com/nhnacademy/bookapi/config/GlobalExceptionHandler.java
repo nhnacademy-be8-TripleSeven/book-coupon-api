@@ -84,4 +84,140 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(CouponAssingAmqErrorException.class)
+    public ResponseEntity<ErrorResponse> handleCouponAssingAmqErrorException(CouponAssingAmqErrorException ex, WebRequest request) {
+        HttpStatus status;
+        String detailedMessage;
+
+        if (ex.getMessage().contains("Connection refused")) {
+            status = HttpStatus.SERVICE_UNAVAILABLE; // RabbitMQ가 다운된 경우
+            detailedMessage = "RabbitMQ service is unavailable: " + ex.getMessage();
+        } else if (ex.getMessage().contains("Timeout")) {
+            status = HttpStatus.GATEWAY_TIMEOUT; // RabbitMQ 응답 시간 초과
+            detailedMessage = "RabbitMQ response timed out: " + ex.getMessage();
+        } else {
+            status = HttpStatus.BAD_GATEWAY; // 일반적인 RabbitMQ 통신 오류
+            detailedMessage = "RabbitMQ communication error: " + ex.getMessage();
+        }
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                status.value(),
+                LocalDateTime.now(),
+                detailedMessage,
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, status);
+    }
+
+
+    @ExceptionHandler(TagAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleTagAlreadyExistException(TagAlreadyExistException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(TagNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleTagNotFoundException(TagNotFoundException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(WrapperAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleWrapperAlreadyExistException(WrapperAlreadyExistException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(WrapperNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleWrapperNotFoundException(WrapperNotFoundException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BookTagAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleBookTagAlreadyExistException(BookTagAlreadyExistException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(BookTagNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBookTagNotFoundException(BookTagNotFoundException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(BookIndexAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleBookIndexAlreadyExistException(BookIndexAlreadyExistException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(BookIndexNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleBookIndexNotFoundException(BookIndexNotFoundException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ReviewAlreadyExistException.class)
+    public ResponseEntity<ErrorResponse> handleReviewAlreadyExistException(ReviewAlreadyExistException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleReviewNotFoundException(ReviewNotFoundException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
 }

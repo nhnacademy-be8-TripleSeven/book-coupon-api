@@ -1,32 +1,43 @@
 package com.nhnacademy.bookapi.dto.book_index;
 
-import lombok.Getter;
 
-@Getter
 public class BookIndexRequestDto {
 
     private Long bookId;
-    private String bookText;
+    private String indexText;
+    private int sequence;
 
-    public BookIndexRequestDto(Long bookId, String title, int number, int sequence) {
+    public BookIndexRequestDto() {
+    }
+
+    public BookIndexRequestDto(Long bookId, String indexText, int sequence) {
         this.bookId = bookId;
-        this.bookText = bookText;
+        this.indexText = indexText;
+        this.sequence = sequence;
     }
 
     public void setBookId(Long bookId) {
         this.bookId = bookId;
     }
 
-    public void setBookText(String title) {
-        this.bookText = bookText;
+
+    public void setSequence(int sequence) {
+        this.sequence = sequence;
     }
 
     public Long getBookId() {
         return bookId;
     }
 
-    public String getBookText() {
-        return bookText;
+    public void setIndexText(String indexText) {
+        this.indexText = indexText;
     }
 
+    public String getIndexText() {
+        return indexText;
+    }
+
+    public int getSequence() {
+        return sequence;
+    }
 }

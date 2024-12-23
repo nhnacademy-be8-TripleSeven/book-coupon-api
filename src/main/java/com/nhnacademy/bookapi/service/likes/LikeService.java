@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.service.likes;
 
 import com.nhnacademy.bookapi.dto.likes.LikesRequestDto;
+import com.nhnacademy.bookapi.dto.likes.LikesResponseDto;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Likes;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
@@ -11,6 +12,7 @@ import com.nhnacademy.bookapi.repository.LikeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 //@Service
@@ -71,26 +73,38 @@ public class LikeService {
     }
 
     // 좋아요 추가
-    public void addLike(Long userId, LikesRequestDto likesRequestDto) {
-        Book book = getBook(likesRequestDto.getBookId());
-        // 이미 좋아요가 존재하는 경우 예외 처리
-        if (likeRepository.findByBookAndUserId(book, userId).isPresent()) {
-            throw new LikeAlreadyExistException("Like already exists");
+    public void addLike(Long userId, Long bookId) {
+        Book book = getBook(bookId);
+
+        if (likeRepository.existsByBookAndUserId(book, userId)) {
+            throw new LikeAlreadyExistException("The User is already liked");
         }
         Likes like = new Likes(book, userId);
         likeRepository.save(like);
     }
 
+    public boolean isLiked(Long userId, Long bookId) {
+        Book book = getBook(bookId);
+        return likeRepository.existsByBookAndUserId(book, userId);
+    }
+
     // 좋아요 삭제
-    public void deleteLike(Long userId, LikesRequestDto likesRequestDto) {
-        Book book = getBook(likesRequestDto.getBookId());
+    public void deleteLike(Long userId, Long bookId) {
+        Book book = getBook(bookId);
         Likes like = getLikes(book, userId);
         likeRepository.delete(like);
     }
 
     // 유저 아이디를 사용해 좋아요를 누른 모든 도서 조회
-    public List<Likes> getAllLikesByUserId(Long userId) {
-        return likeRepository.findAllByUserId(userId);
+    public List<LikesResponseDto> getAllLikesByUserId(Long userId) {
+        List<LikesResponseDto> result = new ArrayList<>();
+
+        List<Likes> list = likeRepository.findAllByUserIdWithBook(userId);
+
+        for (Likes like : list) {
+            result.add(new LikesResponseDto(like.getBook().getId()));
+        }
+        return result;
     }
 
     private Book getBook(Long bookId) {

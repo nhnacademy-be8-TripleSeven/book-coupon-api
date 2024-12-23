@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.service.review;
 
 import com.nhnacademy.bookapi.dto.review.ReviewRequestDto;
+import com.nhnacademy.bookapi.dto.review.ReviewResponseDto;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Review;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
@@ -8,14 +9,14 @@ import com.nhnacademy.bookapi.exception.ReviewAlreadyExistException;
 import com.nhnacademy.bookapi.exception.ReviewNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
+import org.aspectj.apache.bcel.generic.LineNumberGen;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+
 //
 //@Service
 //@Transactional
@@ -95,8 +96,8 @@ public class ReviewService {
     public boolean addReview(Long userId, ReviewRequestDto reviewRequestDto) {
         Book book = getBook(reviewRequestDto.getBookId());
 
-        if (reviewRepository.findByBookAndUserId(book, userId).isPresent()) {
-            throw new ReviewAlreadyExistException("Review already exists");
+        if (reviewRepository.existsByBookAndUserId(book, userId)) {
+            throw new ReviewAlreadyExistException("You are already reviewed on this book");
         }
 
         Review review = new Review(
@@ -114,20 +115,44 @@ public class ReviewService {
     public boolean updateReview(Long userId, ReviewRequestDto reviewRequestDto) {
         Book book = getBook(reviewRequestDto.getBookId());
         Review review = getReview(book, userId);
-        review.setText(reviewRequestDto.getText());
-        review.setRating(reviewRequestDto.getRating());
+        review.updateText(reviewRequestDto.getText());
+        review.updateRating(reviewRequestDto.getRating());
+        review.updateCreatedAT(LocalDateTime.now());
         return true;
     }
 
-    public boolean deleteReview(Long userId, ReviewRequestDto reviewRequestDto) {
-        Book book = getBook(reviewRequestDto.getBookId());
+    public boolean deleteReview(Long userId, Long bookId) {
+        Book book = getBook(bookId);
         Review review = getReview(book, userId);
         reviewRepository.delete(review);
         return true;
     }
+    // 유저가 쓴 모든 리뷰 조회
+    public List<ReviewResponseDto> getAllReviewsByUserId(Long userId) {
+        List<ReviewResponseDto> result = new ArrayList<>();
+        List<Review> reviews = reviewRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
 
-    public List<Review> getAllReviewsByUserId(Long userId) {
-        return reviewRepository.findAllByUserId(userId);
+        for (Review review : reviews) {
+            result.add(new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt()));
+        }
+
+        return result;
+    }
+    // 도서에 달려있는 개인 리뷰 조회
+    public ReviewResponseDto getReview(Long bookId, Long userId) {
+        Book book = getBook(bookId);
+        Review review = getReview(book, userId);
+        return new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt());
+    }
+    // 도서에 달려있는 모든 리뷰 조회
+    public List<ReviewResponseDto> getReviewsByBookId(Long bookId) {
+        List<ReviewResponseDto> result = new ArrayList<>();
+        Book book = getBook(bookId);
+        List<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book);
+        for (Review review : reviews) {
+            result.add(new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt()));
+        }
+        return result;
     }
 
     private Book getBook(Long bookId) {

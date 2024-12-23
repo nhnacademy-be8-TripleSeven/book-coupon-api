@@ -1,19 +1,24 @@
 spring:
+
   profiles:
     active: dev
+  rabbitmq:
+    username: admin
+    password: nhnacademy123!
+    host: 133.186.241.167
+    port: 5672
+    listener:
+      simple:
+        acknowledge-mode: manual
   lifecycle:
     timeout-per-shutdown-phase: 30s
+
   application:
     name: book-coupon-api
   cloud:
-    eureka:
-      client:
-        fetch-registry: true
-        register-with-eureka: true
-        service-url:
-          defaultZone: http://admin:1234@eureka-server:8761/eureka/
-      instance:
-        prefer-ip-address: true
+    loadbalancer:
+      retry:
+        enabled: true
 
   elasticsearch:
     uris: http://115.94.72.197:9200
@@ -26,6 +31,12 @@ logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
 
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
 
 url: https://api-keymanager.nhncloudservice.com
 appKey: qTQNj7LyHhdAazH3

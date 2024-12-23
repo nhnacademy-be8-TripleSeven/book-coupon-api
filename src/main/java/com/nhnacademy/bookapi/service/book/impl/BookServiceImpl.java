@@ -176,10 +176,10 @@ public class BookServiceImpl implements BookService {
 
 
     // 이달의 베스트 페이징을 사용하지 않고 캐싱으로
-    public Page<BookDetailResponseDTO> getMonthlyBestBooks(Pageable pageable) {
+    public Page<BookDetailResponseDTO> getMonthlyBestBooks() {
+        Pageable pageable = Pageable.ofSize(10);
 
-        Page<BookDetailResponseDTO> bookTypeBestsellerByRankAsc = bookRepository.findBookTypeBestsellerByRankAsc(
-            pageable);
+        Page<BookDetailResponseDTO> bookTypeBestsellerByRankAsc = bookRepository.findBookTypeBestsellerByRankAsc(pageable);
 
         for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeBestsellerByRankAsc) {
             long id = bookDetailResponseDTO.getId();
