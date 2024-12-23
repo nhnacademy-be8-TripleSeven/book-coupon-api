@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.controller.likes;
 
 import com.nhnacademy.bookapi.dto.likes.LikesRequestDto;
+import com.nhnacademy.bookapi.dto.likes.LikesResponseDto;
 import com.nhnacademy.bookapi.entity.Likes;
 import com.nhnacademy.bookapi.service.likes.LikeService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,9 +70,9 @@ public class LikeController {
             @ApiResponse(responseCode = "404", description = "도서를 찾을 수 없음"),
             @ApiResponse(responseCode = "400", description = "이미 좋아요가 존재함")
     })
-    @PostMapping
-    public ResponseEntity<Void> addLike(@RequestHeader("X-User") Long userId, @RequestBody LikesRequestDto likesRequestDto) {
-        likeService.addLike(userId, likesRequestDto);
+    @PostMapping("/{bookId}")
+    public ResponseEntity<Void> addLike(@RequestHeader("X-User") Long userId, @PathVariable Long bookId) {
+        likeService.addLike(userId, bookId);
         return ResponseEntity.status(201).build();
     }
 
@@ -80,9 +81,9 @@ public class LikeController {
             @ApiResponse(responseCode = "204", description = "좋아요 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "좋아요 또는 도서를 찾을 수 없음")
     })
-    @DeleteMapping
-    public ResponseEntity<Void> deleteLike(@RequestHeader("X-User") Long userId, @RequestBody LikesRequestDto likesRequestDto) {
-        likeService.deleteLike(userId, likesRequestDto);
+    @DeleteMapping("/{bookId}")
+    public ResponseEntity<Void> deleteLike(@RequestHeader("X-User") Long userId, @PathVariable Long bookId) {
+         likeService.deleteLike(userId, bookId);
         return ResponseEntity.noContent().build();
     }
 
@@ -92,8 +93,8 @@ public class LikeController {
             @ApiResponse(responseCode = "404", description = "사용자의 좋아요 기록이 없음")
     })
     @GetMapping
-    public ResponseEntity<List<Likes>> getAllLikesByUserId(@RequestHeader("X-User") Long userId) {
-        List<Likes> likes = likeService.getAllLikesByUserId(userId);
+    public ResponseEntity<List<LikesResponseDto>> getAllLikesByUserId(@RequestHeader("X-User") Long userId) {
+        List<LikesResponseDto> likes = likeService.getAllLikesByUserId(userId);
         if (likes.isEmpty()) {
             return ResponseEntity.notFound().build();
         }

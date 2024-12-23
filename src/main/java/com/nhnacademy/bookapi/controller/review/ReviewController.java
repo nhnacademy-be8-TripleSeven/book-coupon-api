@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.controller.review;
 
 import com.nhnacademy.bookapi.dto.review.ReviewRequestDto;
+import com.nhnacademy.bookapi.dto.review.ReviewResponseDto;
 import com.nhnacademy.bookapi.entity.Review;
 import com.nhnacademy.bookapi.service.review.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,9 +47,9 @@ public class ReviewController {
             @ApiResponse(responseCode = "204", description = "리뷰 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "도서 또는 리뷰를 찾을 수 없음")
     })
-    @DeleteMapping("/api/reviews")
-    public ResponseEntity<Void> deleteReview(@RequestHeader("X-User") Long userId, @RequestBody ReviewRequestDto reviewRequestDto) {
-        reviewService.deleteReview(userId, reviewRequestDto);
+    @DeleteMapping("/api/reviews/{bookId}")
+    public ResponseEntity<Void> deleteReview(@RequestHeader("X-User") Long userId, @PathVariable Long bookId) {
+        reviewService.deleteReview(userId, bookId);
         return ResponseEntity.noContent().build();
     }
 
@@ -58,8 +59,8 @@ public class ReviewController {
             @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음")
     })
     @GetMapping("/api/reviews/all")
-    public ResponseEntity<List<Review>> getAllReviewsByUserId(@RequestHeader("X-User") Long userId) {
-        List<Review> reviews = reviewService.getAllReviewsByUserId(userId);
+    public ResponseEntity<List<ReviewResponseDto>> getAllReviewsByUserId(@RequestHeader("X-User") Long userId) {
+        List<ReviewResponseDto> reviews = reviewService.getAllReviewsByUserId(userId);
         if (reviews.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -74,8 +75,9 @@ public class ReviewController {
             @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음")
     })
     @GetMapping("/api/reviews/{bookId}")
-    public ResponseEntity<Void> getMyReview(@PathVariable Long bookId, @RequestHeader("X-User") Long userId) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ReviewResponseDto> getMyReview(@PathVariable Long bookId, @RequestHeader("X-User") Long userId) {
+        ReviewResponseDto reviewResponseDto = reviewService.getReview(bookId, userId);
+        return ResponseEntity.ok(reviewResponseDto);
     }
 
     @Operation(summary = "도서별 전체 리뷰", description = "특정 도서의 전체 리뷰 조회")
@@ -84,8 +86,9 @@ public class ReviewController {
             @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음")
     })
     @GetMapping("/reviews/{bookId}")
-    public ResponseEntity<Void> getAllReviews(@PathVariable Long bookId) {
-        return ResponseEntity.ok().build();
+    public ResponseEntity<List<ReviewResponseDto>> getAllReviews(@PathVariable Long bookId) {
+        List<ReviewResponseDto> reviewResponseDtos = reviewService.getAllReviewsByUserId(bookId);
+        return ResponseEntity.ok(reviewResponseDtos);
     }
 
     @Operation(summary = "도서별 리뷰 정렬", description = "도서별 정렬")

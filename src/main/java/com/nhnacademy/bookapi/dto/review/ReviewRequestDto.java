@@ -5,13 +5,11 @@ public class ReviewRequestDto {
     private String text;
     private int rating;
     private Long bookId;
-    private Long userId;
 
-    public ReviewRequestDto(String text, int rating, Long bookId, Long userId) {
+    public ReviewRequestDto(String text, int rating, Long bookId) {
         this.text = text;
         this.rating = rating;
         this.bookId = bookId;
-        this.userId = userId;
     }
 
     public void setText(String text) {
@@ -26,10 +24,6 @@ public class ReviewRequestDto {
         this.bookId = bookId;
     }
 
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-
     public String getText() {
         return text;
     }
@@ -40,9 +34,5 @@ public class ReviewRequestDto {
 
     public Long getBookId() {
         return bookId;
-    }
-
-    public Long getUserId() {
-        return userId;
     }
 }

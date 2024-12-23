@@ -14,7 +14,7 @@ public class Wrapper {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, unique = true)
     private Book book;
 
@@ -25,5 +25,9 @@ public class Wrapper {
     public Wrapper(Book book, boolean wrappable) {
         this.book = book;
         this.wrappable = wrappable;
+    }
+
+    public void updateWrappable(boolean newWrappable) {
+        this.wrappable = newWrappable;
     }
 }

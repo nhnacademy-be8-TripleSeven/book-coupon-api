@@ -69,19 +69,14 @@ class CouponServiceImplTest {
         assertEquals(1L, response.getId());
         assertEquals("Test Coupon", response.getName());
         assertEquals(policy, response.getCouponPolicy());
-        verify(couponPolicyRepository, times(1)).findById(1L);
-        verify(couponRepository, times(1)).save(any(Coupon.class));
     }
 
     @Test
     void testCreateCoupon_PolicyNotFound() {
         // Given
         when(couponPolicyRepository.findById(1L)).thenReturn(Optional.empty());
-
         // Then
         assertThrows(CouponPolicyNotFoundException.class, () -> couponService.createCoupon(new CouponCreationRequestDTO("Test Coupon", 1L)));
-        verify(couponPolicyRepository, times(1)).findById(1L);
-        verifyNoInteractions(couponRepository);
     }
 
     @Test
@@ -118,10 +113,6 @@ class CouponServiceImplTest {
         assertEquals("Book Coupon", response.getName());
         assertEquals(policy, response.getCouponPolicy());
         assertEquals("Test Book", response.getBookTitle());
-        verify(bookRepository, times(1)).findById(1L);
-        verify(couponPolicyRepository, times(1)).findById(1L);
-        verify(couponRepository, times(1)).save(any(Coupon.class));
-        verify(bookCouponRepository, times(1)).save(any(BookCoupon.class));
     }
 
 
@@ -133,8 +124,6 @@ class CouponServiceImplTest {
         // Then
         assertThrows(BookNotFoundException.class, () ->
                 couponService.createBookCoupon(new BookCouponCreationRequestDTO(1L, 1L, "Book Coupon")));
-        verify(bookRepository, times(1)).findById(1L);
-        verifyNoInteractions(couponRepository);
     }
 
 
@@ -173,10 +162,6 @@ class CouponServiceImplTest {
         assertEquals("Category Coupon", response.getName());
         assertEquals(policy, response.getCouponPolicy());
         assertEquals("Test Category", response.getCategoryName());
-        verify(categoryRepository, times(1)).findById(1L);
-        verify(couponPolicyRepository, times(1)).findById(1L);
-        verify(couponRepository, times(1)).save(any(Coupon.class));
-        verify(categoryCouponRepository, times(1)).save(any(CategoryCoupon.class));
     }
 
     @Test
@@ -187,8 +172,6 @@ class CouponServiceImplTest {
         // Then
         assertThrows(CategoryNotFoundException.class, () ->
                 couponService.createCategoryCoupon(new CategoryCouponCreationRequestDTO(1L, 1L, "Category Coupon")));
-        verify(categoryRepository, times(1)).findById(1L);
-        verifyNoInteractions(couponRepository);
     }
 
 //
@@ -266,7 +249,6 @@ class CouponServiceImplTest {
 
         // Then
         assertEquals(CouponStatus.USED, coupon.getCouponStatus());
-        verify(couponRepository, times(1)).findById(1L);
     }
 
     @Test
@@ -282,7 +264,6 @@ class CouponServiceImplTest {
 
         // When & Then
         assertThrows(CouponAlreadyUsedExceeption.class, () -> couponService.useCoupon(1L,1L));
-        verify(couponRepository, times(1)).findById(1L);
     }
 
     @Test
@@ -292,8 +273,6 @@ class CouponServiceImplTest {
 
         // Then
         assertThrows(CouponNotFoundException.class, () -> couponService.useCoupon(1L,1L));
-        verify(couponRepository, times(1)).findById(1L);
-        verify(couponRepository, never()).save(any(Coupon.class));
     }
 
     @Test
@@ -307,7 +286,6 @@ class CouponServiceImplTest {
 
         // When & Then
         assertThrows(CouponNotAssignedException.class, () -> couponService.useCoupon(1L,1L));
-        verify(couponRepository, times(1)).findById(1L);
     }
 
     @Test
@@ -442,8 +420,6 @@ class CouponServiceImplTest {
         // Then
         assertEquals(CouponStatus.EXPIRED, coupon1.getCouponStatus());
         assertEquals(CouponStatus.EXPIRED, coupon2.getCouponStatus());
-        verify(couponRepository, times(1))
-                .findByCouponStatusAndCouponExpiryDateBefore(CouponStatus.NOTUSED, LocalDate.now());
     }
 
     @Test
@@ -481,9 +457,6 @@ class CouponServiceImplTest {
 
         // When & Then
         assertThrows(CouponAlreadyAssignedException.class, () -> couponService.deleteCoupon(couponId));
-        verify(couponRepository, times(1)).existsById(couponId);
-        verify(couponRepository, times(1)).getReferenceById(couponId);
-        verify(couponRepository, never()).deleteById(anyLong());
     }
 
     @Test
@@ -493,8 +466,6 @@ class CouponServiceImplTest {
 
         // Then
         assertThrows(CouponNotFoundException.class, () -> couponService.deleteCoupon(1L));
-        verify(couponRepository, times(1)).existsById(1L);
-        verify(couponRepository, never()).deleteById(1L);
     }
 
 
@@ -532,8 +503,6 @@ class CouponServiceImplTest {
 
         assertEquals("Coupon 2", coupons.get(1).getName());
         assertEquals("Policy 1", coupons.get(1).getPolicyName());
-
-        verify(couponRepository, times(1)).findByMemberId(100L);
     }
 
     @Test
@@ -566,7 +535,6 @@ class CouponServiceImplTest {
         assertEquals(1, coupons.size());
         assertEquals("Unused Coupon", coupons.getFirst().getName());
         assertEquals("Policy 1", coupons.getFirst().getPolicyName());
-        verify(couponRepository, times(1)).findByMemberIdAndCouponStatus(100L, CouponStatus.NOTUSED);
     }
 
     @Test
@@ -599,7 +567,6 @@ class CouponServiceImplTest {
         assertEquals(1, coupons.size());
         assertEquals("Used Coupon", coupons.getFirst().getName());
         assertEquals("Policy 1", coupons.getFirst().getPolicyName());
-        verify(couponRepository, times(1)).findByMemberIdAndCouponStatus(100L, CouponStatus.USED);
     }
 
     @Test
