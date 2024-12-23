@@ -1,20 +1,22 @@
 server:
   port: 8086
 
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@localhost:8761/eureka
+  instance:
+    instance-id: book-coupon-api
+    hostname: localhost
+    prefer-ip-address: true
+
+
+
 spring:
   application:
     name: book-coupon-api
-  cloud:
-    eureka:
-      instance:
-        instance-id: book-coupon-api
-        prefer-ip-address: true
-      client:
-        fetch-registry: true
-        register-with-eureka: true
-        service-url:
-          defaultZone: http://admin:1234@localhost:8761/eureka/
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -28,11 +30,17 @@ spring:
     repositories:
       enabled: true
 
+  rabbitmq:
+    virtual-host: vh1_dev
+
 logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
 
 
+
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 
 logging:
   level:

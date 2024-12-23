@@ -1,7 +1,6 @@
 package com.nhnacademy.bookapi.dto.book;
 
-import com.nhnacademy.bookapi.entity.BookCreator;
-import com.rabbitmq.client.LongString;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
