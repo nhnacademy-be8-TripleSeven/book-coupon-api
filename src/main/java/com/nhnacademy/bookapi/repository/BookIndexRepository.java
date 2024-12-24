@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Optional;
 
 public interface BookIndexRepository extends JpaRepository<BookIndex, Long> {
-    boolean existsByBookAndSequence(Book book, int sequence);
+    boolean existsByBook(Book book);
 
-    Optional<BookIndex> findByBookAndSequence(Book book, int sequence);
+    Optional<BookIndex> findByBook(Book book);
 
     List<BookIndex> findAllByBook(Book book);
 }

@@ -63,7 +63,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
-        Book book = CreateBookRequestDTO.createBook(createBookRequest);
+        Book book = new Book();
+        book.create(createBookRequest.getTitle(),createBookRequest.getDescription(),createBookRequest.getPublicationDate(), createBookRequest.getRegularPrice()
+            ,createBookRequest.getSalePrice(),createBookRequest.getIsbn(),createBookRequest.getStock(),createBookRequest.getPages(),null);
         book = bookRepository.save(book);
         //이미지 저장
         String imageUrl = createBookRequest.getImageUrl();
@@ -80,8 +82,9 @@ public class BookServiceImpl implements BookService {
         if(existsPublisher == null) {
             Publisher newPub = new Publisher(createBookRequest.getPublisher());
             book.publisherUpdate(newPub);
+        }else {
+            book.publisherUpdate(existsPublisher);
         }
-
         // 작가저장
         String author = createBookRequest.getAuthor();
 

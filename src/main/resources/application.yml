@@ -1,7 +1,7 @@
 spring:
 
   profiles:
-    active:
+    active: dev
   rabbitmq:
     username: admin
     password: nhnacademy123!
@@ -17,6 +17,7 @@ spring:
     loadbalancer:
       retry:
         enabled: true
+
 
   elasticsearch:
     uris: http://115.94.72.197:9200

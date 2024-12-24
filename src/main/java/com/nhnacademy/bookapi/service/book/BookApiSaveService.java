@@ -106,8 +106,7 @@ public class BookApiSaveService {
             Publisher publisher = new Publisher();
 
 
-            BookIndex saveIndex = new BookIndex();
-            saveIndex.setBook(saveBook);
+
 
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
@@ -209,9 +208,7 @@ public class BookApiSaveService {
             BookType saveBookType = new BookType();
             Publisher publisher = new Publisher();
 
-
-            BookIndex saveIndex = new BookIndex();
-            saveIndex.setBook(saveBook);
+            
 
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 

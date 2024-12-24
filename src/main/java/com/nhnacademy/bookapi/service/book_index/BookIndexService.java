@@ -110,7 +110,7 @@ public class BookIndexService {
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookIndexRequestDto.getBookId()));
 
         // 동일한 책에 목차가 이미 존재하면 예외 발생
-        if (bookIndexRepository.existsByBookAndSequence(book, bookIndexRequestDto.getSequence())) {
+        if (bookIndexRepository.existsByBook(book)) {
             throw new BookIndexAlreadyExistException("Book index already exist");
         }
 
@@ -127,7 +127,7 @@ public class BookIndexService {
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookIndexRequestDto.getBookId()));
 
         // 책과 연결된 목차 조회
-        BookIndex bookIndex = bookIndexRepository.findByBookAndSequence(book, bookIndexRequestDto.getSequence())
+        BookIndex bookIndex = bookIndexRepository.findByBook(book)
                 .orElseThrow(() -> new BookIndexNotFoundException("Book index not found for this book."));
 
         // 목차 텍스트 수정
@@ -138,12 +138,12 @@ public class BookIndexService {
     /**
      * 특정 목차 삭제
      */
-    public boolean deleteIndex(Long bookId, int sequence) {
+    public boolean deleteIndex(Long bookId) {
         // 삭제 대상 목차 존재 여부 확인 및 예외 처리
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
 
-        BookIndex bookIndex = bookIndexRepository.findByBookAndSequence(book, sequence)
+        BookIndex bookIndex = bookIndexRepository.findByBook(book)
                 .orElseThrow(() -> new BookIndexNotFoundException("Book index not found for this book."));
 
         // 삭제

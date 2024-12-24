@@ -7,7 +7,6 @@ public class BookIndexRequestDto {
 
     private Long bookId;
     private String indexText;
-    private int sequence;
 
     public BookIndexRequestDto() {
     }
