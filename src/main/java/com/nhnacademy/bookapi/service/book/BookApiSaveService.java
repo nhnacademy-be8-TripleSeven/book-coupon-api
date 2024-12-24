@@ -38,6 +38,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Optional;
 
 import com.nhnacademy.bookapi.service.object.ObjectService;
@@ -104,20 +105,22 @@ public class BookApiSaveService {
             BookType saveBookType = new BookType();
             Publisher publisher = new Publisher();
 
-
-
-
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
             String publisherName = book.path("publisher").asText();
 
-            Publisher selectPublisher = publisherRepository.existsByName(publisherName);
+            Publisher selectPublisher = publisherRepository.findByName(publisherName);
 
-            if(selectPublisher == null) {
+            if(publisherName.isEmpty()){
+                publisherName = "출판사 없음";
+            }
+            if(selectPublisher == null ) {
                 publisher = new Publisher(publisherName);
                 publisherRepository.save(publisher);
+
                 saveBook.publisherUpdate(publisher);
             }else {
+                publisher = selectPublisher;
                 saveBook.publisherUpdate(selectPublisher);
             }
 
@@ -214,13 +217,14 @@ public class BookApiSaveService {
 
             String publisherName = book.path("publisher").asText();
 
-            Publisher selectPublisher = publisherRepository.existsByName(publisherName);
+            Publisher selectPublisher = publisherRepository.findByName(publisherName);
 
             if(selectPublisher == null) {
                 publisher.update(publisherName);
                 publisherRepository.save(publisher);
                 saveBook.publisherUpdate(publisher);
             }else {
+                publisher = selectPublisher;
                 saveBook.publisherUpdate(selectPublisher);
             }
 

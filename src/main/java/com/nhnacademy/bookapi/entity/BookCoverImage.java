@@ -32,6 +32,6 @@ public class BookCoverImage {
 
     public void update(Image image, Book book) {
         this.image = image;
-        this.book = book;
-    }
+       this.book = book;
+  }
 }
