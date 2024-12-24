@@ -6,6 +6,7 @@ import com.nhnacademy.bookapi.service.tag.TagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +25,7 @@ public class TagController {
             @ApiResponse(responseCode = "400", description = "태그가 이미 존재함")
     })
     @PostMapping("/admin/tags")
-    public ResponseEntity<Void> addTag(@RequestBody TagRequestDto tagRequestDto) {
+    public ResponseEntity<Void> addTag(@Valid @RequestBody TagRequestDto tagRequestDto) {
         tagService.addTag(tagRequestDto);
         return ResponseEntity.status(201).build();
     }
@@ -35,7 +36,7 @@ public class TagController {
             @ApiResponse(responseCode = "404", description = "태그를 찾을 수 없음")
     })
     @PutMapping("/admin/tags/{tagId}")
-    public ResponseEntity<Void> updateTag(@PathVariable Long tagId, @RequestBody TagRequestDto tagRequestDto) {
+    public ResponseEntity<Void> updateTag(@PathVariable Long tagId, @Valid @RequestBody TagRequestDto tagRequestDto) {
         tagService.updateTag(tagId, tagRequestDto);
         return ResponseEntity.ok().build();
     }

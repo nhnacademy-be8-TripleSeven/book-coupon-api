@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.entity;
 
+
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -55,6 +56,7 @@ public class Book {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Publisher publisher;
+
 
 
     public Book(String title, String description, LocalDate publishDate, int regularPrice,

@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.dto.book;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.entity.BookCreator;
 import com.nhnacademy.bookapi.entity.BookIndex;
+import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Image;
 import java.time.LocalDate;
 import java.util.List;
@@ -24,10 +25,12 @@ public class SearchBookDetail {
     private String coverUrl;
     private String publisher;
 
-    private List<Image> bookImages;
+    //private List<Image> bookImages;
 
     private List<BookCreatorDetail> bookCreators;
-    private List<BookIndex> bookIndices;
+    //private List<BookIndex> bookIndices;
+
+    private StringBuilder categories;
 
     public SearchBookDetail(String title, String description, LocalDate publishedDate,
         int regularPrice,
