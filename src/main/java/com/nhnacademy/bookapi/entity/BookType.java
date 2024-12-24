@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.entity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -21,14 +22,28 @@ public class BookType {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Setter
     @Enumerated(EnumType.STRING)
     private Type types;
 
-    @Setter
     private int ranks;
 
-    @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Book book;
+
+    public BookType(Type types, int ranks, Book book) {
+        this.types = types;
+        this.ranks = ranks;
+        this.book = book;
+    }
+
+    public void create(Type types, int ranks, Book book) {
+        this.types = types;
+        this.ranks = ranks;
+        this.book = book;
+    }
+
+    public void update(Type types, int ranks) {
+        this.types = types;
+        this.ranks = ranks;
+    }
 }

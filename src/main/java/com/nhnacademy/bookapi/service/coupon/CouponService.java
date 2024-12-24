@@ -13,7 +13,7 @@ public interface CouponService {
 
     CategoryCouponResponseDTO createCategoryCoupon(CategoryCouponCreationRequestDTO request);
 
-//    CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
+    CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
 
     void deleteCoupon(Long id);
 

@@ -3,7 +3,7 @@ package com.nhnacademy.bookapi.service.book.impl;
 import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequest;
+import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
@@ -48,42 +48,42 @@ public class BookServiceImpl implements BookService {
     private final BookTagRepository bookTagRepository;
 
     @Override
-    public CreateBookRequest createBook(CreateBookRequest createBookRequest) {
-        Book book = CreateBookRequest.createBook(createBookRequest);
+    public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
+        Book book = new Book();
+        book.create(createBookRequest.getTitle(),createBookRequest.getDescription(),createBookRequest.getPublicationDate(), createBookRequest.getRegularPrice()
+            ,createBookRequest.getSalePrice(),createBookRequest.getIsbn(),createBookRequest.getStock(),createBookRequest.getPages(),null);
         book = bookRepository.save(book);
         //이미지 저장
         String imageUrl = createBookRequest.getImageUrl();
 
-        Image image = new Image();
-        image.setUrl(imageUrl);
+        Image image = new Image(imageUrl);
         image = imageRepository.save(image);
-        BookCoverImage bookCoverImage = BookCoverImage.bookCoverImageMapper(image, book);
+        BookCoverImage bookCoverImage = new BookCoverImage(image, book);
         bookCoverImageRepository.save(bookCoverImage);
 
         //출판사저장
         String publisher = createBookRequest.getPublisher();
 
         Publisher existsPublisher = publisherRepository.existsByName(publisher);
-        if (existsPublisher == null) {
-            Publisher newPub = new Publisher();
-            newPub.setName(createBookRequest.getPublisher());
-            book.setPublisher(newPub);
-        }
 
+        if(existsPublisher == null) {
+            Publisher newPub = new Publisher(createBookRequest.getPublisher());
+            book.publisherUpdate(newPub);
+        }else {
+            book.publisherUpdate(existsPublisher);
+        }
         // 작가저장
         String author = createBookRequest.getAuthor();
 
-        BookCreator bookCreator = new BookCreator();
-        bookCreator.setName(author);
-        bookCreator.setRole(Role.AUTHOR);
+        BookCreator bookCreator = new BookCreator(author, Role.AUTHOR);
+
         bookCreatorRepository.save(bookCreator);
 
-        BookCreatorMap bookCreatorMap = new BookCreatorMap();
-        bookCreatorMap.setBook(book);
-        bookCreatorMap.setCreator(bookCreator);
+        BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
+
         bookCreatorMapRepository.save(bookCreatorMap);
 
-        return null;
+        return createBookRequest;
     }
 
     @Override
@@ -103,11 +103,10 @@ public class BookServiceImpl implements BookService {
         int price = request.getPrice();
         LocalDate publishedDate = request.getPublishedDate();
 
-        book.setTitle(title);
-        book.setRegularPrice(price);
+        book.update(title, publishedDate, price);
 
         String bookIntroduction = request.getBookIntroduction();
-        BookIntroduce bookIntroduce = BookIntroduce.bookIntroduceCreate(bookIntroduction, book);
+        BookIntroduce bookIntroduce = new BookIntroduce(bookIntroduction, book);
         bookIntroduceRepository.save(bookIntroduce);
 
         String categories = request.getCategory();
@@ -128,6 +127,7 @@ public class BookServiceImpl implements BookService {
         bookRepository.deleteById(id);
     }
 
+    @Transactional(readOnly = true)
     @Override
     public SearchBookDetail searchBookDetailByBookId(Long id) {
         Book book = bookRepository.findBookWithPublisherById(id).orElseThrow(() -> new BookNotFoundException("book not found"));
@@ -179,7 +179,9 @@ public class BookServiceImpl implements BookService {
         return hierarchy;
     }
 
+
     // 이달의 베스트 페이징을 사용하지 않고 캐싱으로
+    @Transactional(readOnly = true)
     public Page<BookDetailResponseDTO> getMonthlyBestBooks() {
         Pageable pageable = Pageable.ofSize(10);
 
@@ -196,6 +198,7 @@ public class BookServiceImpl implements BookService {
     }
 
     //type별 조회 이도서는 어때요? , 편집자의 선택, e북
+    @Transactional(readOnly = true)
     public Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable) {
 
         Page<BookDetailResponseDTO> bookTypeItemByType = bookRepository.findBookTypeItemByType(

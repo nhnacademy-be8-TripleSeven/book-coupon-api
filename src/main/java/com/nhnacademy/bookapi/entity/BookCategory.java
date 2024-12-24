@@ -14,11 +14,26 @@ public class BookCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     private Book book;
 
-    @Setter
     @ManyToOne(fetch = FetchType.LAZY)
+
     private Category category;
+
+
+    public BookCategory(Book book, Category category) {
+        this.book = book;
+        this.category = category;
+    }
+
+    public void create(Book book, Category category) {
+        this.book = book;
+        this.category = category;
+    }
+
+    public void update(Book book, Category category) {
+        this.book = book;
+        this.category = category;
+    }
 }

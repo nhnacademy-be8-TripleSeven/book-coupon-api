@@ -1,6 +1,6 @@
 package com.nhnacademy.bookapi.controller.book;
 
-import com.nhnacademy.bookapi.dto.book.CreateBookRequest;
+import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import com.nhnacademy.bookapi.service.book.BookService;
@@ -23,7 +23,7 @@ public class BookController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PostMapping("/admin/books")
-    public ResponseEntity<Void> createBook(@RequestBody CreateBookRequest request) {
+    public ResponseEntity<Void> createBook(@RequestBody CreateBookRequestDTO request) {
         bookService.createBook(request);
         return ResponseEntity.status(201).build();
     }

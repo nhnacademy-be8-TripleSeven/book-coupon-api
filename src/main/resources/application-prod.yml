@@ -1,3 +1,44 @@
 
+server:
+  port: 8086
 
+spring:
+  application:
+    name: book-coupon-api
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
 
+  elasticsearch:
+    uris: http://115.94.72.197:9200
+    username: elastic
+    password: nhnacademy123!
+    repositories:
+      enabled: true
+
+  rabbitmq:
+    virtual-host: vh1_dev
+
+logstash:
+  host: 115.94.72.197
+  port: 50000 # Logstash TCP input 포트
+
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+logging:
+  level:
+    com.ulisesbocchio.jasyptspringboot: info
+
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@127.0.0.53:8761/eureka
+  instance:
+    instance-id: book-coupon-api
+    hostname: localhost
+    prefer-ip-address: true
