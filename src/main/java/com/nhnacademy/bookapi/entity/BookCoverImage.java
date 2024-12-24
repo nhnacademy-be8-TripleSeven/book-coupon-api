@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,18 +18,20 @@ public class BookCoverImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Image image;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Book book;
 
 
-    public static BookCoverImage bookCoverImageMapper(Image image, Book book) {
-        BookCoverImage bookCoverImage = new BookCoverImage();
-
-        bookCoverImage.image = image;
-        bookCoverImage.book = book;
-        return bookCoverImage;
+    public BookCoverImage(Image image, Book book) {
+        this.image = image;
+        this.book = book;
     }
+
+    public void update(Image image, Book book) {
+        this.image = image;
+       this.book = book;
+  }
 }

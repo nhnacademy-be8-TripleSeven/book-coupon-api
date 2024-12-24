@@ -1,10 +1,6 @@
 package com.nhnacademy.bookapi.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,11 +14,26 @@ public class BookCategory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Book book;
 
-    @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+
     private Category category;
+
+
+    public BookCategory(Book book, Category category) {
+        this.book = book;
+        this.category = category;
+    }
+
+    public void create(Book book, Category category) {
+        this.book = book;
+        this.category = category;
+    }
+
+    public void update(Book book, Category category) {
+        this.book = book;
+        this.category = category;
+    }
 }

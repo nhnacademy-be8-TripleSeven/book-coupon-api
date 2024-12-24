@@ -6,6 +6,7 @@ import com.nhnacademy.bookapi.service.book_tag.BookTagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -29,7 +30,7 @@ public class BookTagController {
             @ApiResponse(responseCode = "409", description = "이미 존재하는 책-태그 관계")
     })
     @PostMapping("/admin/book-tags")
-    public ResponseEntity<Void> addBookTag(@RequestBody BookTagRequestDTO bookTagRequestDTO) {
+    public ResponseEntity<Void> addBookTag(@Valid @RequestBody BookTagRequestDTO bookTagRequestDTO) {
         bookTagService.addBookTag(bookTagRequestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
@@ -59,7 +60,7 @@ public class BookTagController {
     })
     @PutMapping("/admin/book-tags")
     public ResponseEntity<Void> updateBookTag(
-            @RequestBody BookTagRequestDTO bookTagRequestDTO,
+            @Valid @RequestBody BookTagRequestDTO bookTagRequestDTO,
             @RequestParam Long newTagId
     ) {
         bookTagService.updateBookTag(bookTagRequestDTO, newTagId);

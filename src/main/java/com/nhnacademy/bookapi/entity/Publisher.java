@@ -18,7 +18,14 @@ public class Publisher {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Setter
     @Column(nullable = false, unique = true)
     private String name;
+
+    public Publisher(String name) {
+        this.name = name;
+    }
+
+    public void update(String name) {
+        this.name = name;
+    }
 }

@@ -17,6 +17,13 @@ public class Image {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Setter
     private String url;
+
+    public Image(String url) {
+        this.url = url;
+    }
+
+    public void update(String url){
+        this.url = url;
+    }
 }

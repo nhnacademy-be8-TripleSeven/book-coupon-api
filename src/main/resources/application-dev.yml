@@ -42,10 +42,6 @@ logstash:
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
 
-logging:
-  level:
-    com.ulisesbocchio.jasyptspringboot: info
-
 
 
 

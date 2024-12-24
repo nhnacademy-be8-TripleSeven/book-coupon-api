@@ -16,15 +16,12 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     private String text; // 리뷰내용 review_text
 
-    @Setter
     @Column(nullable = false)
     private LocalDateTime createdAt; // 리뷰 작성일 created_at, 시분초까지 필요함
 
     @Column(nullable = false)
-    @Setter
     private int rating; // 평점 book_rating
 
     @ManyToOne(fetch = FetchType.LAZY)

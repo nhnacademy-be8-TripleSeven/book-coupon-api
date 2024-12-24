@@ -14,14 +14,29 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     private String name;
-  
-    @Setter
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
     private Category parent;
+
+
+    public Category(String name, Category parent) {
+        this.name = name;
+        this.parent = parent;
+    }
+
+    public void create(String name, Category parent) {
+        this.name = name;
+        this.parent = parent;
+    }
+
+    public void update(String newName, Category newParent) {
+        this.name = newName;
+        this.parent = newParent;
+    }
 
     public void setTestId(Long id) {
         this.id = id;
     }
+
 }
