@@ -18,7 +18,6 @@ public class Wrapper {
     @JoinColumn(nullable = false, unique = true)
     private Book book;
 
-    @Setter
     @Column(nullable = false)
     private boolean wrappable;
 

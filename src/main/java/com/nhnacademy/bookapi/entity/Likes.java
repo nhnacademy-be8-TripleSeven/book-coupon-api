@@ -24,4 +24,5 @@ public class Likes {
         this.book = book;
         this.userId = userId;
     }
+
 }

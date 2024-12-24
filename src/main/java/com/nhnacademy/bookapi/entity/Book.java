@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.entity;
 
+import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,6 +15,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.sql.Update;
 
 
 @Entity
@@ -25,41 +27,72 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     @Column(nullable = false)
     private String title;
 
-    @Setter
     @Column(columnDefinition = "TEXT", nullable = true)
     private String description;
 
-    @Setter
     @Column(nullable = false)
     private LocalDate publishDate;
-    @Setter
+
     @Column(nullable = false)
     private int regularPrice;
-    @Setter
+
     @Column(nullable = false)
     private int salePrice;
-    @Setter
+
     @Column(nullable = false, length = 50, unique = true)
     private String isbn13;
-    @Setter
+
     @Column(nullable = false)
     private int stock;
-    @Setter
+
     @Column(nullable = false)
     private int page;
 
-
-    @Setter
     @ManyToOne
     private Publisher publisher;
 
-  
-    public void setTestId(Long id) {
-        this.id = id;
+
+    public Book(String title, String description, LocalDate publishDate, int regularPrice,
+        int salePrice, String isbn13, int stock, int page, Publisher publisher) {
+        this.title = title;
+        this.description = description;
+        this.publishDate = publishDate;
+        this.regularPrice = regularPrice;
+        this.salePrice = salePrice;
+        this.isbn13 = isbn13;
+        this.stock = stock;
+        this.page = page;
+        this.publisher = publisher;
+    }
+
+    public void create(String title, String description, LocalDate publishDate, int regularPrice, int salePrice, String isbn13, int stock, int page, Publisher publisher) {
+        this.title = title;
+        this.description = description;
+        this.publishDate = publishDate;
+        this.regularPrice = regularPrice;
+        this.salePrice = salePrice;
+        this.isbn13 = isbn13;
+        this.stock = stock;
+        this.page = page;
+        this.publisher = publisher;
+    }
+
+    public void publisherUpdate(Publisher publisher) {
+        this.publisher = publisher;
+    }
+
+    public void updatePage(int page) {
+        this.page = page;
+    }
+
+    public void update(String title, LocalDate publishDate, int price){
+        this.title = title;
+        this.publishDate = publishDate;
+        this.regularPrice = price;
+        this.salePrice = price;
     }
 }
 

@@ -13,6 +13,12 @@ spring:
     open-in-view: false
 
 eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@eureka-server:8761/eureka
   instance:
-    instance-id: book-coupon-api-2
+    instance-id: book-coupon-api
     hostname: localhost
+    prefer-ip-address: true

@@ -24,11 +24,13 @@ public class BookCoverImage {
     private Book book;
 
 
-    public static BookCoverImage bookCoverImageMapper(Image image, Book book) {
-        BookCoverImage bookCoverImage = new BookCoverImage();
+    public BookCoverImage(Image image, Book book) {
+        this.image = image;
+        this.book = book;
+    }
 
-        bookCoverImage.image = image;
-        bookCoverImage.book = book;
-        return bookCoverImage;
+    public void update(Image image, Book book) {
+        this.image = image;
+        this.book = book;
     }
 }

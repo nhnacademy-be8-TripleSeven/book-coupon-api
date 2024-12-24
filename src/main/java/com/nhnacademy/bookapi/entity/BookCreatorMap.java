@@ -18,11 +18,19 @@ public class BookCreatorMap {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Setter
     @ManyToOne
     private Book book;
 
-    @Setter
     @ManyToOne
     private BookCreator creator;
+
+    public BookCreatorMap(Book book, BookCreator creator) {
+        this.book = book;
+        this.creator = creator;
+    }
+
+    public void create(Book book, BookCreator creator) {
+        this.book = book;
+        this.creator = creator;
+    }
 }

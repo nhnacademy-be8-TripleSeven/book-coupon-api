@@ -68,10 +68,9 @@ public class BookServiceImpl implements BookService {
         //이미지 저장
         String imageUrl = createBookRequest.getImageUrl();
 
-        Image image = new Image();
-        image.setUrl(imageUrl);
+        Image image = new Image(imageUrl);
         image = imageRepository.save(image);
-        BookCoverImage bookCoverImage = BookCoverImage.bookCoverImageMapper(image, book);
+        BookCoverImage bookCoverImage = new BookCoverImage(image, book);
         bookCoverImageRepository.save(bookCoverImage);
 
         //출판사저장
@@ -79,25 +78,22 @@ public class BookServiceImpl implements BookService {
 
         Publisher existsPublisher = publisherRepository.existsByName(publisher);
         if(existsPublisher == null) {
-            Publisher newPub = new Publisher();
-            newPub.setName(createBookRequest.getPublisher());
-            book.setPublisher(newPub);
+            Publisher newPub = new Publisher(createBookRequest.getPublisher());
+            book.publisherUpdate(newPub);
         }
 
         // 작가저장
         String author = createBookRequest.getAuthor();
 
-        BookCreator bookCreator = new BookCreator();
-        bookCreator.setName(author);
-        bookCreator.setRole(Role.AUTHOR);
+        BookCreator bookCreator = new BookCreator(author, Role.AUTHOR);
+
         bookCreatorRepository.save(bookCreator);
 
-        BookCreatorMap bookCreatorMap = new BookCreatorMap();
-        bookCreatorMap.setBook(book);
-        bookCreatorMap.setCreator(bookCreator);
+        BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
+
         bookCreatorMapRepository.save(bookCreatorMap);
 
-        return null;
+        return createBookRequest;
     }
 
     @Override
@@ -117,18 +113,15 @@ public class BookServiceImpl implements BookService {
         int price = request.getPrice();
         LocalDate publishedDate = request.getPublishedDate();
 
-        book.setTitle(title);
-        book.setRegularPrice(price);
+        book.update(title, publishedDate, price);
 
         String bookIntroduction = request.getBookIntroduction();
-        BookIntroduce bookIntroduce = BookIntroduce.bookIntroduceCreate(bookIntroduction, book);
+        BookIntroduce bookIntroduce = new BookIntroduce(bookIntroduction, book);
         bookIntroduceRepository.save(bookIntroduce);
 
         String categories = request.getCategory();
 
         List<Category> categoryByBook = bookCategoryRepository.findCategoryByBook(book);
-
-
 
         return request;
     }

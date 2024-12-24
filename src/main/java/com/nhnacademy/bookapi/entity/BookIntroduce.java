@@ -26,13 +26,14 @@ public class BookIntroduce {
     @OneToOne
     private Book book;
 
-    private BookIntroduce(String description, Book book) {
+    public BookIntroduce(String description, Book book) {
         this.description = description;
         this.book = book;
     }
 
 
-    public static BookIntroduce bookIntroduceCreate(String description, Book book) {
-        return new BookIntroduce(description, book);
+    public void updateIntroduce(String description, Book book) {
+        this.description = description;
+        this.book = book;
     }
 }

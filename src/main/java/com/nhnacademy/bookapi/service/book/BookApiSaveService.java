@@ -116,26 +116,22 @@ public class BookApiSaveService {
             Publisher selectPublisher = publisherRepository.existsByName(publisherName);
 
             if(selectPublisher == null) {
-                publisher.setName(publisherName);
+                publisher.update(publisherName);
                 publisherRepository.save(publisher);
-                saveBook.setPublisher(publisher);
+                saveBook.publisherUpdate(publisher);
             }else {
-                saveBook.setPublisher(selectPublisher);
+                saveBook.publisherUpdate(selectPublisher);
             }
 
             String coverUrl = book.path("cover").asText();
             String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
 
-            image.setUrl(book.path("cover").asText());
+            image.update(book.path("cover").asText());
             Image imageFk = imageRepository.save(image);
 
             //bookcoverimage mapping
-            BookCoverImage bookCoverImage = BookCoverImage.bookCoverImageMapper(imageFk, saveBook);
+            BookCoverImage bookCoverImage = new BookCoverImage(imageFk, saveBook);
             bookCoverImageRepository.save(bookCoverImage);
-
-            saveBook.setTitle(book.path("title").asText());
-            saveBook.setDescription(book.path("description").asText());
-            saveBook.setIsbn13(isbn);
 
             LocalDate pubDate = null;
 
@@ -144,37 +140,31 @@ public class BookApiSaveService {
                 pubDate = LocalDate.parse(pubDateStr);
             }
 
-            saveBook.setPublishDate(pubDate);
-
-            saveBook.setStock(1000);
-
-            saveBook.setRegularPrice(book.path("priceStandard").asInt());
-            saveBook.setSalePrice(book.path("priceSales").asInt());
-
+            saveBook.create(book.path("title").asText(), book.path("description").asText(), pubDate,
+                book.path("priceStandard").asInt(),
+                book.path("priceSales").asInt(), isbn, 1000, 0, publisher);
 
             if(bookDetail != null) {
                 JsonNode subInfo = bookDetail.path("subInfo");
-                saveBook.setPage(subInfo.path("itemPage").asInt());
+                saveBook.updatePage(subInfo.path("itemPage").asInt());
             }
             List<BookType> bookTypes = new ArrayList<>();
             //북타입 추가1
-            saveBookType.setRanks(book.path("bestRank").asInt());
-            saveBookType.setTypes(Type.valueOf(bookType.toUpperCase(Locale.ROOT)));
-            saveBookType.setBook(saveBook);
-            Book bookFk = bookRepository.save(saveBook);
+            if(!book.path("bestRank").isEmpty()){
+                saveBookType.create(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
+                bookTypes.add(saveBookType);
+            }
 
-            bookTypes.add(saveBookType);
+            bookRepository.save(saveBook);
 
-            //북타입 추가2
+
             BookType newBookType = new BookType();
-            newBookType.setTypes(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)));
-            newBookType.setBook(saveBook);
-            newBookType.setRanks(0);
-
+            newBookType.create(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
             bookTypes.add(newBookType);
+
             bookTypeRepository.saveAll(bookTypes);
 
-            bookImage.setBook(bookFk);
+            bookImage.setBook(saveBook);
             bookImage.setImage(imageFk);
             bookImageRepository.save(bookImage);
 
@@ -184,17 +174,9 @@ public class BookApiSaveService {
 
 
             //책인기도 초기화
-            bookPopularity.setSearchRank(0);
-            bookPopularity.setClickRank(0);
-            bookPopularity.setCartCount(0);
-            bookPopularity.setBook(bookFk);
+            bookPopularity.create(saveBook);
             bookPopularRepository.save(bookPopularity);
-            //도서 제작자 저장
-            List<BookCreator> bookCreators = authorParseSave(author, bookFk);
-            //카테고리 제작자 저장
-            List<Category> categoryList = categoryParseSave(category, bookFk);
-            //엘라스틱서치 저장
-//            saveBookDocument(saveBook,image.getUrl(), publisherName, bookCreators,categoryList);
+
         }
         
     }
@@ -238,26 +220,24 @@ public class BookApiSaveService {
             Publisher selectPublisher = publisherRepository.existsByName(publisherName);
 
             if(selectPublisher == null) {
-                publisher.setName(publisherName);
+                publisher.update(publisherName);
                 publisherRepository.save(publisher);
-                saveBook.setPublisher(publisher);
+                saveBook.publisherUpdate(publisher);
             }else {
-                saveBook.setPublisher(selectPublisher);
+                saveBook.publisherUpdate(selectPublisher);
             }
 
             String coverUrl = book.path("cover").asText();
             String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
 
-            image.setUrl(book.path("cover").asText());
+            image.update(book.path("cover").asText());
             Image imageFk = imageRepository.save(image);
 
             //bookcoverimage mapping
-            BookCoverImage bookCoverImage = BookCoverImage.bookCoverImageMapper(imageFk, saveBook);
+            BookCoverImage bookCoverImage = new BookCoverImage(imageFk, saveBook);
             bookCoverImageRepository.save(bookCoverImage);
 
-            saveBook.setTitle(book.path("title").asText());
-            saveBook.setDescription(book.path("description").asText());
-            saveBook.setIsbn13(isbn);
+
 
             LocalDate pubDate = null;
 
@@ -266,37 +246,33 @@ public class BookApiSaveService {
                 pubDate = LocalDate.parse(pubDateStr);
             }
 
-            saveBook.setPublishDate(pubDate);
-
-            saveBook.setStock(1000);
-
-            saveBook.setRegularPrice(book.path("priceStandard").asInt());
-            saveBook.setSalePrice(book.path("priceSales").asInt());
-
-
             if(bookDetail != null) {
                 JsonNode subInfo = bookDetail.path("subInfo");
-                saveBook.setPage(subInfo.path("itemPage").asInt());
+                saveBook.updatePage(subInfo.path("itemPage").asInt());
             }
+
+            saveBook.create(book.path("title").asText(), book.path("description").asText(), pubDate,
+                book.path("priceStandard").asInt(),
+                book.path("priceSales").asInt(), isbn, 1000, 0, publisher);
+
             List<BookType> bookTypes = new ArrayList<>();
             //북타입 추가1
-            saveBookType.setRanks(book.path("bestRank").asInt());
-            saveBookType.setTypes(Type.valueOf(bookType.toUpperCase(Locale.ROOT)));
-            saveBookType.setBook(saveBook);
-            Book bookFk = bookRepository.save(saveBook);
+            if(!book.path("bestRank").isEmpty()){
+                saveBookType.create(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
+            }
+
+            bookRepository.save(saveBook);
 
             bookTypes.add(saveBookType);
 
             //북타입 추가2
             BookType newBookType = new BookType();
-            newBookType.setTypes(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)));
-            newBookType.setBook(saveBook);
-            newBookType.setRanks(0);
+            newBookType.create(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
 
             bookTypes.add(newBookType);
             bookTypeRepository.saveAll(bookTypes);
 
-            bookImage.setBook(bookFk);
+            bookImage.setBook(saveBook);
             bookImage.setImage(imageFk);
             bookImageRepository.save(bookImage);
 
@@ -306,17 +282,11 @@ public class BookApiSaveService {
 
 
             //책인기도 초기화
-            bookPopularity.setSearchRank(0);
-            bookPopularity.setClickRank(0);
-            bookPopularity.setCartCount(0);
-            bookPopularity.setBook(bookFk);
+
+            bookPopularity.create(saveBook);
+
             bookPopularRepository.save(bookPopularity);
-            //도서 제작자 저장
-            List<BookCreator> bookCreators = authorParseSave(author, bookFk);
-            //카테고리 제작자 저장
-            List<Category> categoryList = categoryParseSave(category, bookFk);
-            //엘라스틱서치 저장
-//            saveBookDocument(saveBook,image.getUrl(), publisherName, bookCreators,categoryList);
+
         }
 
     }
@@ -350,17 +320,15 @@ public class BookApiSaveService {
                 if(bookCreator == null){
                     bookCreatorMap = new BookCreatorMap();
                     bookCreator = new BookCreator();
-                    bookCreator.setName(name.trim());
-                    bookCreator.setRole(role);
-                    bookCreatorMap.setBook(book);
-                    bookCreatorMap.setCreator(bookCreator);
+                    bookCreator.create(name.trim(), role);
+
+                    bookCreatorMap.create(book, bookCreator);
                     BookCreator saveBookCreator = bookCreatorRepository.save(bookCreator);
                     bookCreatorList.add(saveBookCreator);
                     bookCreatorMapRepository.save(bookCreatorMap);
                 }else {
                     bookCreatorMap = new BookCreatorMap();
-                    bookCreatorMap.setCreator(bookCreator);
-                    bookCreatorMap.setBook(book);
+                    bookCreatorMap.create(book, bookCreator);
                     bookCreatorMapRepository.save(bookCreatorMap);
                 }
             }
@@ -385,16 +353,14 @@ public class BookApiSaveService {
                 saveCategory = existingCategory.get();
             } else {
                 saveCategory = new Category();
-                saveCategory.setName(categoryName);
-                saveCategory.setParent(parentCategory);
+                saveCategory.create(categoryName, parentCategory);
                 saveCategory = categoryRepository.save(saveCategory);
                 categoryList.add(saveCategory);
             }
 
             // 도서와 카테고리 매핑 저장
             BookCategory bookCategory = new BookCategory();
-            bookCategory.setBook(book);
-            bookCategory.setCategory(saveCategory);
+            bookCategory.create(book,saveCategory);
             bookCategoryRepository.save(bookCategory);
 
             // 부모 카테고리 갱신

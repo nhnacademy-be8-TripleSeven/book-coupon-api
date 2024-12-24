@@ -22,12 +22,23 @@ public class BookCreator {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Setter
     private String name;
 
-    @Setter
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    public BookCreator(String name, Role role) {
+        this.name = name;
+        this.role = role;
+    }
 
+    public void create(String newName, Role newRole) {
+        this.name = newName;
+        this.role = newRole;
+    }
+
+    public void update(String newName, Role newRole) {
+        this.name = newName;
+        this.role = newRole;
+    }
 }
