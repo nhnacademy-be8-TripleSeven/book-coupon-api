@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import lombok.Getter;
 
 @Getter
-public class CreateBookRequest {
+public class CreateBookRequestDTO {
 
     private String title;
     private String author;
@@ -21,7 +21,7 @@ public class CreateBookRequest {
 
 
     //이걸 static말고 메서드로 처리
-    public static Book createBook(CreateBookRequest request) {
+    public static Book createBook(CreateBookRequestDTO request) {
         Book book = new Book();
         book.setTitle(request.getTitle());
         book.setStock(request.getStock());

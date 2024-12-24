@@ -2,7 +2,7 @@ package com.nhnacademy.bookapi.service.book.impl;
 
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequest;
+import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
@@ -62,8 +62,8 @@ public class BookServiceImpl implements BookService {
     private final BookCreatorService bookCreatorService;
 
     @Override
-    public CreateBookRequest createBook(CreateBookRequest createBookRequest) {
-        Book book = CreateBookRequest.createBook(createBookRequest);
+    public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
+        Book book = CreateBookRequestDTO.createBook(createBookRequest);
         book = bookRepository.save(book);
         //이미지 저장
         String imageUrl = createBookRequest.getImageUrl();

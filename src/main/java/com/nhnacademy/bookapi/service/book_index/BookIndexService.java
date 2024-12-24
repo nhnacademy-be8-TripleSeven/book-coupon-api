@@ -115,39 +115,12 @@ public class BookIndexService {
         }
 
         // 목차 저장
-        BookIndex bookIndex = new BookIndex(bookIndexRequestDto.getIndexText(), book, bookIndexRequestDto.getSequence());
+        BookIndex bookIndex = new BookIndex(bookIndexRequestDto.getIndexText(), book);
         bookIndexRepository.save(bookIndex);
         return true;
     }
 
-    /**
-     * 특정 책의 모든 목차 조회
-     */
-    public List<BookIndexResponseDto> getIndicesByBook(Long bookId) {
-        // 책 조회 및 예외 처리
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
-        // 해당 책의 목차 조회
-        List<BookIndex> list = bookIndexRepository.findAllByBook(book);
-        //sequence 순으로 정렬
-        Collections.sort(list, new Comparator<BookIndex>() {
 
-            @Override
-            public int compare(BookIndex o1, BookIndex o2) {
-                return o1.getSequence() - o2.getSequence();
-            }
-        });
-        List<BookIndexResponseDto> result = new ArrayList<>();
-        for (BookIndex bookIndex : list) {
-            result.add(new BookIndexResponseDto(bookIndex.getIndexText(), bookIndex.getSequence()));
-        }
-        // DTO로 변환하여 반환
-        return result;
-    }
-
-    /**
-     * 특정 목차 수정
-     */
     public boolean updateIndex(BookIndexRequestDto bookIndexRequestDto) {
         // 책 조회 및 예외 처리
         Book book = bookRepository.findById(bookIndexRequestDto.getBookId())
@@ -159,7 +132,6 @@ public class BookIndexService {
 
         // 목차 텍스트 수정
         bookIndex.updateIndexText(bookIndexRequestDto.getIndexText());
-        bookIndex.updateSequence(bookIndexRequestDto.getSequence());
         return true;
     }
 

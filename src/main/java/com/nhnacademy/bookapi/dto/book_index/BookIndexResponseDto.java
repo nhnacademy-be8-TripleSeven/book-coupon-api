@@ -10,10 +10,8 @@ import lombok.RequiredArgsConstructor;
 public class BookIndexResponseDto {
 
     private String indexText;
-    private int sequence;
 
-    public BookIndexResponseDto(String indexText, int sequence) {
+    public BookIndexResponseDto(String indexText) {
         this.indexText = indexText;
-        this.sequence = sequence;
     }
 }
