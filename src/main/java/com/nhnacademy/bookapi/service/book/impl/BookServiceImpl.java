@@ -78,7 +78,7 @@ public class BookServiceImpl implements BookService {
         //출판사저장
         String publisher = createBookRequest.getPublisher();
 
-        Publisher existsPublisher = publisherRepository.existsByName(publisher);
+        Publisher existsPublisher = publisherRepository.findByName(publisher);
         if(existsPublisher == null) {
             Publisher newPub = new Publisher(createBookRequest.getPublisher());
             book.publisherUpdate(newPub);
