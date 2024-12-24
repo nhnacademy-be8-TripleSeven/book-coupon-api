@@ -1,8 +1,13 @@
 package com.nhnacademy.bookapi.dto.review;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
 public class ReviewRequestDto {
 
+    @NotBlank(message = "리뷰 내용은 비어있을 수 없습니다.")
     private String text;
+    @NotNull(message = "평점은 필수입니다.")
     private int rating;
     private Long bookId;
 
