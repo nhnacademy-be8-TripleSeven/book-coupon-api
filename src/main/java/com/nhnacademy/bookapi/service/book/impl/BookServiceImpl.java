@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
+import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequest;
@@ -8,34 +9,18 @@ import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
-import com.nhnacademy.bookapi.entity.Book;
-import com.nhnacademy.bookapi.entity.BookCoverImage;
-import com.nhnacademy.bookapi.entity.BookCreator;
-import com.nhnacademy.bookapi.entity.BookCreatorMap;
-import com.nhnacademy.bookapi.entity.BookIntroduce;
-import com.nhnacademy.bookapi.entity.Category;
-import com.nhnacademy.bookapi.entity.Image;
-import com.nhnacademy.bookapi.entity.Publisher;
-import com.nhnacademy.bookapi.entity.Role;
-import com.nhnacademy.bookapi.entity.Type;
+import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.BookCreatorNotFoundException;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
-import com.nhnacademy.bookapi.repository.BookCategoryRepository;
-import com.nhnacademy.bookapi.repository.BookCoverImageRepository;
-import com.nhnacademy.bookapi.repository.BookCreatorMapRepository;
-import com.nhnacademy.bookapi.repository.BookCreatorRepository;
-import com.nhnacademy.bookapi.repository.BookImageRepository;
-import com.nhnacademy.bookapi.repository.BookIndexRepository;
-import com.nhnacademy.bookapi.repository.BookIntroduceRepository;
-import com.nhnacademy.bookapi.repository.BookRepository;
-import com.nhnacademy.bookapi.repository.CategoryRepository;
-import com.nhnacademy.bookapi.repository.ImageRepository;
-import com.nhnacademy.bookapi.repository.PublisherRepository;
+import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
+
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -60,6 +45,7 @@ public class BookServiceImpl implements BookService {
     private final BookCoverImageRepository bookCoverImageRepository;
     private final ElasticSearchBookSearchRepository elasticSearchBookSearchRepository;
     private final BookCreatorService bookCreatorService;
+    private final BookTagRepository bookTagRepository;
 
     @Override
     public CreateBookRequest createBook(CreateBookRequest createBookRequest) {
@@ -78,7 +64,7 @@ public class BookServiceImpl implements BookService {
         String publisher = createBookRequest.getPublisher();
 
         Publisher existsPublisher = publisherRepository.existsByName(publisher);
-        if(existsPublisher == null) {
+        if (existsPublisher == null) {
             Publisher newPub = new Publisher();
             newPub.setName(createBookRequest.getPublisher());
             book.setPublisher(newPub);
@@ -109,7 +95,7 @@ public class BookServiceImpl implements BookService {
     public UpdateBookRequest update(UpdateBookRequest request) {
 
         Book book = bookRepository.findById(request.getBookId()).orElse(null);
-        if(book == null) {
+        if (book == null) {
             throw new BookNotFoundException("Book not found");
         }
         String title = request.getTitle();
@@ -129,7 +115,6 @@ public class BookServiceImpl implements BookService {
         List<Category> categoryByBook = bookCategoryRepository.findCategoryByBook(book);
 
 
-
         return request;
     }
 
@@ -137,7 +122,7 @@ public class BookServiceImpl implements BookService {
     @Override
     public void delete(Long id) {
         boolean exist = bookRepository.existsById(id);
-        if(!exist) {
+        if (!exist) {
             throw new BookNotFoundException("book not found");
         }
         bookRepository.deleteById(id);
@@ -145,35 +130,54 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public SearchBookDetail searchBookDetailByBookId(Long id) {
-
-        SearchBookDetail searchBookDetail = bookRepository.searchBookById(id).orElse(null);
-        if(searchBookDetail == null) {
-            throw new BookNotFoundException("Book not found");
+        Book book = bookRepository.findBookWithPublisherById(id).orElseThrow(() -> new BookNotFoundException("book not found"));
+        BookImage bookImage = bookImageRepository.findFirstByBookOrderByIdAsc(book).orElse(null);
+        String imageUrl = bookImage.getImage().getUrl(); // 이미지의 Url
+        List<BookCreatorMap> bookCreatorMaps = bookCreatorMapRepository.findByBook(book);
+        List<BookCreatorDetail> bookCreators = new ArrayList<>();
+        for (BookCreatorMap bookCreatorMap : bookCreatorMaps) {
+            bookCreators.add(new BookCreatorDetail(bookCreatorMap.getCreator().getName(), bookCreatorMap.getCreator().getRole().toString()));
         }
 
-        List<BookCreatorDetail> creatorDetails = bookCreatorRepository.findCreatorByBookId(id).stream()
-            .map(bookCreator -> {
-                BookCreatorDetail bookCreatorDetail = new BookCreatorDetail();
-                bookCreatorDetail.setName(bookCreator.getName());
-                bookCreatorDetail.setRole(bookCreator.getRole().getDescription());
-                return bookCreatorDetail;
-            })
-            .collect(Collectors.toList());
+        SearchBookDetail searchBookDetail = new SearchBookDetail(book.getTitle(), book.getDescription(),
+                book.getPublishDate(), book.getRegularPrice(), book.getSalePrice(), book.getIsbn13(),
+                book.getStock(), book.getPage(), imageUrl, book.getPublisher().getName());
+        searchBookDetail.setBookCreators(bookCreators);
 
-        // bookCreator -> bookCreatorDetails 변환 role을 한글로 변환
+        List<BookCategory> bookCategories = bookCategoryRepository.findAllByBook(book);
+        List<List<String>> categoryHierarchies = new ArrayList<>();
 
-        if(creatorDetails.isEmpty()) {
-            throw new BookCreatorNotFoundException("BookCreator not found");
+        for (BookCategory bookCategory : bookCategories) {
+            Category category = bookCategory.getCategory(); // 하나의 카테고리 객체
+            List<String> hierarchy = getCategoryHierarchy(category);
+            categoryHierarchies.add(hierarchy);
         }
-        searchBookDetail.setBookCreators(creatorDetails);
 
-//        List<BookIndex> byBookId = bookIndexRepository.findByBookId(id);
+        StringBuilder categories = getCategoryResult(categoryHierarchies.getLast());
+        searchBookDetail.setCategories(categories);
 
-//        searchBookDetail.setBookIndices(byBookId);
+        List<BookTag> bookTags = bookTagRepository.findAllByBookWithTags(book);
 
         return searchBookDetail;
     }
 
+    private StringBuilder getCategoryResult(List<String> categoryHierarchies) {
+        StringBuilder categoryResult = new StringBuilder();
+        for (String categoryName : categoryHierarchies) {
+            categoryResult.append(categoryName).append(">");
+        }
+        categoryResult.deleteCharAt(categoryResult.length() - 1);
+        return categoryResult;
+    }
+
+    private List<String> getCategoryHierarchy(Category category) {
+        List<String> hierarchy = new ArrayList<>();
+        while (category != null) {
+            hierarchy.add(0, category.getName());
+            category = category.getParent();
+        }
+        return hierarchy;
+    }
 
     // 이달의 베스트 페이징을 사용하지 않고 캐싱으로
     public Page<BookDetailResponseDTO> getMonthlyBestBooks() {
@@ -184,7 +188,7 @@ public class BookServiceImpl implements BookService {
         for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeBestsellerByRankAsc) {
             long id = bookDetailResponseDTO.getId();
             BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.BookCreatorListByBookId(
-                id);
+                    id);
             bookDetailResponseDTO.setCreator(bookCreatorResponseDTO.getCreators());
         }
         return bookTypeBestsellerByRankAsc;
@@ -195,7 +199,7 @@ public class BookServiceImpl implements BookService {
     public Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable) {
 
         Page<BookDetailResponseDTO> bookTypeItemByType = bookRepository.findBookTypeItemByType(
-            bookType, pageable);
+                bookType, pageable);
         for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeItemByType) {
             long id = bookDetailResponseDTO.getId();
             BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.BookCreatorListByBookId(id);

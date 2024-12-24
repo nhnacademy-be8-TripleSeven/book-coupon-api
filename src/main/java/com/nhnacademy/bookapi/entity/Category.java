@@ -18,7 +18,7 @@ public class Category {
     private String name;
   
     @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Category parent;
 
     public void setTestId(Long id) {

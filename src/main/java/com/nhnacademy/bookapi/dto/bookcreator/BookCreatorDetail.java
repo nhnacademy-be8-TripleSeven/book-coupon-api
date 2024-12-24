@@ -9,4 +9,9 @@ public class BookCreatorDetail {
 
     private String name;
     private String role;
+
+    public BookCreatorDetail(String name, String role) {
+        this.name = name;
+        this.role = role;
+    }
 }
