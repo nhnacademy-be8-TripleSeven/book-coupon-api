@@ -1,6 +1,15 @@
 package com.nhnacademy.bookapi.entity;
 
-import jakarta.persistence.*;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,25 +25,25 @@ public class BookIndex {
 
     @Column(columnDefinition = "TEXT", nullable = true)
     @Setter
-    private String index; // 목차 제목
+    private String indexes; // 목차 제목
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(nullable = false, name = "book_id")
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(nullable = false, unique = true)
     private Book book; // 도서 아이디
 
 
     public BookIndex(String index, Book book) {
-        this.index = index;
+        this.indexes = index;
         this.book = book;
     }
 
     public void create(String index, Book book) {
-        this.index = index;
+        this.indexes = index;
         this.book = book;
     }
 
     public void updateIndexText(String indexText) {
-        this.index = indexText;
+        this.indexes = indexText;
     }
 
 }

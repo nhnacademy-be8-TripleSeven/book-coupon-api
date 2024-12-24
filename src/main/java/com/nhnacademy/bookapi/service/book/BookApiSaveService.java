@@ -8,7 +8,6 @@ import com.nhnacademy.bookapi.entity.BookCoverImage;
 import com.nhnacademy.bookapi.entity.BookCreator;
 import com.nhnacademy.bookapi.entity.BookCreatorMap;
 import com.nhnacademy.bookapi.entity.BookImage;
-import com.nhnacademy.bookapi.entity.BookIndex;
 import com.nhnacademy.bookapi.entity.BookPopularity;
 import com.nhnacademy.bookapi.entity.BookType;
 import com.nhnacademy.bookapi.entity.Category;
@@ -101,7 +100,7 @@ public class BookApiSaveService {
             Book saveBook = new Book();
             BookPopularity bookPopularity = new BookPopularity();
             BookImage bookImage = new BookImage();
-            Image image = new Image();
+            Image image;
             BookType saveBookType = new BookType();
             Publisher publisher = new Publisher();
 
@@ -115,7 +114,7 @@ public class BookApiSaveService {
             Publisher selectPublisher = publisherRepository.existsByName(publisherName);
 
             if(selectPublisher == null) {
-                publisher.update(publisherName);
+                publisher = new Publisher(publisherName);
                 publisherRepository.save(publisher);
                 saveBook.publisherUpdate(publisher);
             }else {
@@ -125,11 +124,11 @@ public class BookApiSaveService {
             String coverUrl = book.path("cover").asText();
             String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
 
-            image.update(book.path("cover").asText());
-            Image imageFk = imageRepository.save(image);
+            image= new Image(book.path("cover").asText());
+            imageRepository.save(image);
 
             //bookcoverimage mapping
-            BookCoverImage bookCoverImage = new BookCoverImage(imageFk, saveBook);
+            BookCoverImage bookCoverImage = new BookCoverImage(image, saveBook);
             bookCoverImageRepository.save(bookCoverImage);
 
             LocalDate pubDate = null;
@@ -150,7 +149,7 @@ public class BookApiSaveService {
             List<BookType> bookTypes = new ArrayList<>();
             //북타입 추가1
             if(!book.path("bestRank").isEmpty()){
-                saveBookType.create(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
+                saveBookType = new BookType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
                 bookTypes.add(saveBookType);
             }
 
@@ -158,19 +157,20 @@ public class BookApiSaveService {
 
 
             BookType newBookType = new BookType();
-            newBookType.create(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
+            newBookType = new BookType(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
             bookTypes.add(newBookType);
 
             bookTypeRepository.saveAll(bookTypes);
 
             bookImage.setBook(saveBook);
-            bookImage.setImage(imageFk);
+            bookImage.setImage(image);
             bookImageRepository.save(bookImage);
 
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
 
-
+            authorParseSave(author, saveBook);
+            categoryParseSave(category, saveBook);
 
             //책인기도 초기화
             bookPopularity.create(saveBook);
@@ -204,11 +204,11 @@ public class BookApiSaveService {
             Book saveBook = new Book();
             BookPopularity bookPopularity = new BookPopularity();
             BookImage bookImage = new BookImage();
-            Image image = new Image();
+            Image image;
             BookType saveBookType = new BookType();
             Publisher publisher = new Publisher();
 
-            
+
 
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
@@ -227,11 +227,11 @@ public class BookApiSaveService {
             String coverUrl = book.path("cover").asText();
             String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
 
-            image.update(book.path("cover").asText());
-            Image imageFk = imageRepository.save(image);
+            image = new Image(book.path("cover").asText());
+            imageRepository.save(image);
 
             //bookcoverimage mapping
-            BookCoverImage bookCoverImage = new BookCoverImage(imageFk, saveBook);
+            BookCoverImage bookCoverImage = new BookCoverImage(image, saveBook);
             bookCoverImageRepository.save(bookCoverImage);
 
 
@@ -270,7 +270,7 @@ public class BookApiSaveService {
             bookTypeRepository.saveAll(bookTypes);
 
             bookImage.setBook(saveBook);
-            bookImage.setImage(imageFk);
+            bookImage.setImage(image);
             bookImageRepository.save(bookImage);
 
             String author = book.path("author").asText().trim();

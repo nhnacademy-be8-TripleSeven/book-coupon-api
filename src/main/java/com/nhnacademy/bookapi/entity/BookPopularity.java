@@ -23,7 +23,6 @@ public class BookPopularity {
 
     @MapsId
     @OneToOne
-    @JoinColumn(name = "book_id")
     private Book book;
 
     private long clickRank;

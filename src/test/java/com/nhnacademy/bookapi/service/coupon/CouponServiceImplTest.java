@@ -83,8 +83,8 @@ class CouponServiceImplTest {
     void testCreateBookCoupon_Success() {
         // Given
         Book book = new Book();
-        book.setTestId(1L);
-        book.setTitle("Test Book");
+
+
 
         CouponPolicy policy = new CouponPolicy();
         policy.setTestId(1L);
@@ -133,7 +133,7 @@ class CouponServiceImplTest {
         // Given
         Category category = new Category();
         category.setTestId(1L);
-        category.setName("Test Category");
+        category.create("Test Category", null);
 
         CouponPolicy policy = new CouponPolicy();
         policy.setTestId(1L);
@@ -292,8 +292,7 @@ class CouponServiceImplTest {
     void testUseBookCoupon_Success() {
         // Given
         Book book = new Book();
-        book.setTestId(1L);
-        book.setTitle("Test Book");
+
 
         CouponPolicy policy = new CouponPolicy(1L, "Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
@@ -324,7 +323,7 @@ class CouponServiceImplTest {
     void testUseBookCoupon_InvalidBook() {
         // Given
         Book book = new Book();
-        book.setTestId(1L);
+
 
         Coupon coupon = new Coupon();
         coupon.setTestId(1L);
@@ -346,7 +345,7 @@ class CouponServiceImplTest {
         // Given
         Category category = new Category();
         category.setTestId(1L);
-        category.setName("Test Category");
+        category.create("Test Category",null);
 
         CouponPolicy policy = new CouponPolicy(1L, "Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);

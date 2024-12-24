@@ -23,7 +23,7 @@ public class BookIntroduce {
 
     private String description;
 
-    @OneToOne
+    @ManyToOne
     private Book book;
 
     public BookIntroduce(String description, Book book) {

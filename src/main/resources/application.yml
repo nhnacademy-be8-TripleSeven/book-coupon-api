@@ -71,12 +71,10 @@ management:
 server:
   shutdown: graceful
 
-
-
-
 aladin:
   api:
     key: ttbrlgus45311101001
+
 logging:
   level:
     root: info
