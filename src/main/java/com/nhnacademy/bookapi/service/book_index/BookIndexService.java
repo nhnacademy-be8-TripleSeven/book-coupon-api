@@ -110,68 +110,40 @@ public class BookIndexService {
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookIndexRequestDto.getBookId()));
 
         // 동일한 책에 목차가 이미 존재하면 예외 발생
-        if (bookIndexRepository.existsByBookAndSequence(book, bookIndexRequestDto.getSequence())) {
+        if (bookIndexRepository.existsByBook(book)) {
             throw new BookIndexAlreadyExistException("Book index already exist");
         }
 
         // 목차 저장
-        BookIndex bookIndex = new BookIndex(bookIndexRequestDto.getIndexText(), book, bookIndexRequestDto.getSequence());
+        BookIndex bookIndex = new BookIndex(bookIndexRequestDto.getIndexText(), book);
         bookIndexRepository.save(bookIndex);
         return true;
     }
 
-    /**
-     * 특정 책의 모든 목차 조회
-     */
-    public List<BookIndexResponseDto> getIndicesByBook(Long bookId) {
-        // 책 조회 및 예외 처리
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
-        // 해당 책의 목차 조회
-        List<BookIndex> list = bookIndexRepository.findAllByBook(book);
-        //sequence 순으로 정렬
-        Collections.sort(list, new Comparator<BookIndex>() {
 
-            @Override
-            public int compare(BookIndex o1, BookIndex o2) {
-                return o1.getSequence() - o2.getSequence();
-            }
-        });
-        List<BookIndexResponseDto> result = new ArrayList<>();
-        for (BookIndex bookIndex : list) {
-            result.add(new BookIndexResponseDto(bookIndex.getIndexText(), bookIndex.getSequence()));
-        }
-        // DTO로 변환하여 반환
-        return result;
-    }
-
-    /**
-     * 특정 목차 수정
-     */
     public boolean updateIndex(BookIndexRequestDto bookIndexRequestDto) {
         // 책 조회 및 예외 처리
         Book book = bookRepository.findById(bookIndexRequestDto.getBookId())
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookIndexRequestDto.getBookId()));
 
         // 책과 연결된 목차 조회
-        BookIndex bookIndex = bookIndexRepository.findByBookAndSequence(book, bookIndexRequestDto.getSequence())
+        BookIndex bookIndex = bookIndexRepository.findByBook(book)
                 .orElseThrow(() -> new BookIndexNotFoundException("Book index not found for this book."));
 
         // 목차 텍스트 수정
         bookIndex.updateIndexText(bookIndexRequestDto.getIndexText());
-        bookIndex.updateSequence(bookIndexRequestDto.getSequence());
         return true;
     }
 
     /**
      * 특정 목차 삭제
      */
-    public boolean deleteIndex(Long bookId, int sequence) {
+    public boolean deleteIndex(Long bookId) {
         // 삭제 대상 목차 존재 여부 확인 및 예외 처리
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
 
-        BookIndex bookIndex = bookIndexRepository.findByBookAndSequence(book, sequence)
+        BookIndex bookIndex = bookIndexRepository.findByBook(book)
                 .orElseThrow(() -> new BookIndexNotFoundException("Book index not found for this book."));
 
         // 삭제

@@ -19,7 +19,7 @@ spring:
     name: book-coupon-api
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
     database-platform: org.hibernate.dialect.MySQL8Dialect
     show-sql: true
 
@@ -41,10 +41,6 @@ logstash:
 
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
-
-logging:
-  level:
-    com.ulisesbocchio.jasyptspringboot: info
 
 
 

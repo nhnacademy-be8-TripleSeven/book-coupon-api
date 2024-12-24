@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,11 +19,19 @@ public class BookCreatorMap {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private Book book;
 
-    @Setter
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     private BookCreator creator;
+
+    public BookCreatorMap(Book book, BookCreator creator) {
+        this.book = book;
+        this.creator = creator;
+    }
+
+    public void create(Book book, BookCreator creator) {
+        this.book = book;
+        this.creator = creator;
+    }
 }

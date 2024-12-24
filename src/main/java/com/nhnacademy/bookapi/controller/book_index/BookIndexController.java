@@ -40,8 +40,8 @@ public class BookIndexController {
     })
     @GetMapping("/book-indices/{bookId}")
     public ResponseEntity<List<BookIndexResponseDto>> getIndicesByBook(@PathVariable Long bookId) {
-        List<BookIndexResponseDto> indices = bookIndexService.getIndicesByBook(bookId);
-        return ResponseEntity.ok(indices);
+        //Todo-1 bookindex
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "책 목차 수정", description = "특정 책의 목차를 수정합니다.")
@@ -62,7 +62,7 @@ public class BookIndexController {
     })
     @DeleteMapping("/admin/book-indices/{bookId}")
     public ResponseEntity<Void> deleteIndex(@PathVariable Long bookId, @RequestParam int sequence) {
-        bookIndexService.deleteIndex(bookId, sequence);
+        bookIndexService.deleteIndex(bookId);
         return ResponseEntity.noContent().build();
     }
 }

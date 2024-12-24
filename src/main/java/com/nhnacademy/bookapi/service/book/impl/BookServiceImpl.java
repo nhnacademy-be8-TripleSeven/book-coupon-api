@@ -2,7 +2,7 @@ package com.nhnacademy.bookapi.service.book.impl;
 
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequest;
+import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
@@ -62,16 +62,17 @@ public class BookServiceImpl implements BookService {
     private final BookCreatorService bookCreatorService;
 
     @Override
-    public CreateBookRequest createBook(CreateBookRequest createBookRequest) {
-        Book book = CreateBookRequest.createBook(createBookRequest);
+    public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
+        Book book = new Book();
+        book.create(createBookRequest.getTitle(),createBookRequest.getDescription(),createBookRequest.getPublicationDate(), createBookRequest.getRegularPrice()
+            ,createBookRequest.getSalePrice(),createBookRequest.getIsbn(),createBookRequest.getStock(),createBookRequest.getPages(),null);
         book = bookRepository.save(book);
         //이미지 저장
         String imageUrl = createBookRequest.getImageUrl();
 
-        Image image = new Image();
-        image.setUrl(imageUrl);
+        Image image = new Image(imageUrl);
         image = imageRepository.save(image);
-        BookCoverImage bookCoverImage = BookCoverImage.bookCoverImageMapper(image, book);
+        BookCoverImage bookCoverImage = new BookCoverImage(image, book);
         bookCoverImageRepository.save(bookCoverImage);
 
         //출판사저장
@@ -79,25 +80,23 @@ public class BookServiceImpl implements BookService {
 
         Publisher existsPublisher = publisherRepository.existsByName(publisher);
         if(existsPublisher == null) {
-            Publisher newPub = new Publisher();
-            newPub.setName(createBookRequest.getPublisher());
-            book.setPublisher(newPub);
+            Publisher newPub = new Publisher(createBookRequest.getPublisher());
+            book.publisherUpdate(newPub);
+        }else {
+            book.publisherUpdate(existsPublisher);
         }
-
         // 작가저장
         String author = createBookRequest.getAuthor();
 
-        BookCreator bookCreator = new BookCreator();
-        bookCreator.setName(author);
-        bookCreator.setRole(Role.AUTHOR);
+        BookCreator bookCreator = new BookCreator(author, Role.AUTHOR);
+
         bookCreatorRepository.save(bookCreator);
 
-        BookCreatorMap bookCreatorMap = new BookCreatorMap();
-        bookCreatorMap.setBook(book);
-        bookCreatorMap.setCreator(bookCreator);
+        BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
+
         bookCreatorMapRepository.save(bookCreatorMap);
 
-        return null;
+        return createBookRequest;
     }
 
     @Override
@@ -117,18 +116,15 @@ public class BookServiceImpl implements BookService {
         int price = request.getPrice();
         LocalDate publishedDate = request.getPublishedDate();
 
-        book.setTitle(title);
-        book.setRegularPrice(price);
+        book.update(title, publishedDate, price);
 
         String bookIntroduction = request.getBookIntroduction();
-        BookIntroduce bookIntroduce = BookIntroduce.bookIntroduceCreate(bookIntroduction, book);
+        BookIntroduce bookIntroduce = new BookIntroduce(bookIntroduction, book);
         bookIntroduceRepository.save(bookIntroduce);
 
         String categories = request.getCategory();
 
         List<Category> categoryByBook = bookCategoryRepository.findCategoryByBook(book);
-
-
 
         return request;
     }
