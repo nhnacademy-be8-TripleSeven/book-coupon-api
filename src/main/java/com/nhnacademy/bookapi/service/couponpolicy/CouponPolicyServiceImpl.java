@@ -27,13 +27,8 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
     public CouponPolicyResponseDTO createCouponPolicy(CouponPolicyRequestDTO request) {
         validateCouponPolicyRequest(request);
 
-        CouponPolicy couponPolicy = new CouponPolicy();
-        couponPolicy.setName(request.getName());
-        couponPolicy.setCouponDiscountAmount(request.getCouponDiscountAmount());
-        couponPolicy.setCouponDiscountRate(request.getCouponDiscountRate());
-        couponPolicy.setCouponMaxAmount(request.getCouponMaxAmount());
-        couponPolicy.setCouponMinAmount(request.getCouponMinAmount());
-        couponPolicy.setCouponValidTime(request.getCouponValidTime());
+        CouponPolicy couponPolicy = new CouponPolicy(request.getName(), request.getCouponMinAmount(), request.getCouponMaxAmount(),
+                request.getCouponDiscountRate(), request.getCouponDiscountAmount(), request.getCouponValidTime());
 
         CouponPolicy savedCouponPolicy = couponPolicyRepository.save(couponPolicy);
 
@@ -49,12 +44,8 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
         CouponPolicy policy = couponPolicyRepository.findById(id)
                 .orElseThrow(() -> new CouponPolicyNotFoundException("CouponPolicy not found"));
 
-        policy.setName(request.getName());
-        policy.setCouponDiscountAmount(request.getCouponDiscountAmount());
-        policy.setCouponDiscountRate(request.getCouponDiscountRate());
-        policy.setCouponMaxAmount(request.getCouponMaxAmount());
-        policy.setCouponMinAmount(request.getCouponMinAmount());
-        policy.setCouponValidTime(request.getCouponValidTime());
+        policy.setCouponPolicyUpdateData(request.getName(), request.getCouponMinAmount(),request.getCouponMaxAmount(),
+                request.getCouponDiscountRate(), request.getCouponDiscountAmount(), request.getCouponValidTime());
 
         CouponPolicy updatedCouponPolicy = couponPolicyRepository.save(policy);
 
@@ -111,16 +102,25 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
         return toResponse(policy);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<CouponPolicyResponseDTO> searchCouponPoliciesByName(String name) {
+        List<CouponPolicy> policies = couponPolicyRepository.findByNameContainingIgnoreCase(name);
+
+        if (policies.isEmpty()) {
+            throw new CouponPolicyNotFoundException("No coupon policies found matching the query: " + name);
+        }
+
+        return policies.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+    }
+
     // 쿠폰 응답 DTO 제작 메소드
     private CouponPolicyResponseDTO toResponse(CouponPolicy policy) {
-        CouponPolicyResponseDTO response = new CouponPolicyResponseDTO();
-        response.setId(policy.getId());
-        response.setName(policy.getName());
-        response.setCouponMinAmount(policy.getCouponMinAmount());
-        response.setCouponDiscountRate(policy.getCouponDiscountRate());
-        response.setCouponDiscountAmount(policy.getCouponDiscountAmount());
-        response.setCouponMaxAmount(policy.getCouponMaxAmount());
-        response.setCouponValidTime(policy.getCouponValidTime());
+        CouponPolicyResponseDTO response = new CouponPolicyResponseDTO(policy.getId(), policy.getName(),
+                policy.getCouponMinAmount(), policy.getCouponMaxAmount(), policy.getCouponDiscountRate(),
+                policy.getCouponDiscountAmount(), policy.getCouponValidTime());
         return response;
     }
 

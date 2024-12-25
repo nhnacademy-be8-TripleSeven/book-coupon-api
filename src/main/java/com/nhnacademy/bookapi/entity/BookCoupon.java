@@ -17,13 +17,16 @@ public class BookCoupon {
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "book_id", nullable = false)
-    @Setter
     private Book book;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     @JoinColumn(name = "coupon_id", nullable = false)
-    @Setter
     private Coupon coupon;
+
+    public BookCoupon(Book book, Coupon coupon) {
+        this.book = book;
+        this.coupon = coupon;
+    }
 
     public void setTestId(Long id) {
         this.id = id;

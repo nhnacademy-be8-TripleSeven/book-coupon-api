@@ -14,14 +14,18 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     private String name;
-  
-    @Setter
+
     @ManyToOne
     private Category parent;
+
+    public Category(String name) {
+        this.name = name;
+    }
 
     public void setTestId(Long id) {
         this.id = id;
     }
+
+
 }
