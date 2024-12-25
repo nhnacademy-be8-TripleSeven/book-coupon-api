@@ -19,6 +19,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     boolean existsByIsbn13(String isbn13);
 
+    Optional<Book> findByIsbn13(String isbn13);
+
 
     // 이달의 베스트
     @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url) "
