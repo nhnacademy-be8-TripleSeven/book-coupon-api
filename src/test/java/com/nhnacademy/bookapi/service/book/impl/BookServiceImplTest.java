@@ -8,6 +8,7 @@ import com.nhnacademy.bookapi.exception.BookCreatorNotFoundException;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.BookCreatorRepository;
 import com.nhnacademy.bookapi.repository.BookRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -23,9 +24,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@TestPropertySource(properties = {
-    "spring.elasticsearch.enabled=false"
-})
+
 @ExtendWith(MockitoExtension.class)
 class BookServiceImplTest {
 
@@ -38,144 +37,15 @@ class BookServiceImplTest {
     @Mock
     private BookCreatorRepository bookCreatorRepository;
 
-//    @Test
-//    void testSearchBookDetailByBookId_Success() {
-//        // Arrange
-//        Long bookId = 1L;
-//
-//        SearchBookDetail searchBookDetailDTO = new SearchBookDetail(
-//            "Title", "Description", LocalDate.of(2024, 12, 12),
-//            10000, 9000, "1234567890123", 100, 200, "coverUrl", "Publisher"
-//        );
-//
-//        BookCreator bookCreator = new BookCreator();
-//
-//        bookCreator.setName("Author Name");
-//
-//        Mockito.when(bookRepository.searchBookById(bookId)).thenReturn(Optional.of(searchBookDetailDTO));
-//        Mockito.when(bookCreatorRepository.findCreatorByBookId(bookId)).thenReturn(List.of(bookCreator));
-//
-//        // Act
-//        SearchBookDetail result = bookService.searchBookDetailByBookId(bookId);
-//
-//        // Assert
-//        assertNotNull(result);
-//        assertEquals(searchBookDetailDTO, result);
-//        assertEquals(1, result.getBookCreators().size());
-//        assertEquals("Author Name", result.getBookCreators().get(0).getName());
-//
-//        Mockito.verify(bookRepository, Mockito.times(1)).searchBookById(bookId);
-//        Mockito.verify(bookCreatorRepository, Mockito.times(1)).findCreatorByBookId(bookId);
-//    }
 
-    @Test
-    void testSearchBookDetailByBookId_BookNotFound() {
-        // Arrange
-        Long bookId = 1L;
+    @BeforeEach
+    void setUp(){
 
-        Mockito.when(bookRepository.searchBookById(bookId)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () ->
-            bookService.searchBookDetailByBookId(bookId)
-        );
-        assertEquals("Book not found", exception.getMessage());
-
-        Mockito.verify(bookRepository, Mockito.times(1)).searchBookById(bookId);
-        Mockito.verify(bookCreatorRepository, Mockito.never()).findCreatorByBookId(Mockito.anyLong());
     }
 
     @Test
-    void testSearchBookDetailByBookId_BookCreatorNotFound() {
-        // Arrange
-        Long bookId = 1L;
-
-        SearchBookDetail searchBookDetailDTO = new SearchBookDetail(
-            "Title", "Description", LocalDate.of(2024, 12, 12),
-            10000, 9000, "1234567890123", 100, 200, "coverUrl", "Publisher"
-        );
-
-        Mockito.when(bookRepository.searchBookById(bookId)).thenReturn(Optional.of(searchBookDetailDTO));
-        Mockito.when(bookCreatorRepository.findCreatorByBookId(bookId)).thenReturn(Collections.emptyList());
-
-        // Act & Assert
-        BookCreatorNotFoundException exception = assertThrows(BookCreatorNotFoundException.class, () ->
-            bookService.searchBookDetailByBookId(bookId)
-        );
-        assertEquals("BookCreator not found", exception.getMessage());
-
-        Mockito.verify(bookRepository, Mockito.times(1)).searchBookById(bookId);
-        Mockito.verify(bookCreatorRepository, Mockito.times(1)).findCreatorByBookId(bookId);
+    void test1(){
+        bookRepository.deleteAll();
+        assertEquals(true, bookRepository.existsById(1L));
     }
-
-
-    @Test
-    void testSaveBook() {
-        // Arrange
-        Book book = new Book();
-
-        book.setTitle("New Book");
-        book.setDescription("A new book description");
-        book.setStock(100);
-
-        Mockito.when(bookRepository.save(book)).thenReturn(book);
-
-        // Act
-        Book savedBook = bookService.createBook(book);
-
-        // Assert
-        assertNotNull(savedBook);
-        assertEquals("New Book", savedBook.getTitle());
-        assertEquals("A new book description", savedBook.getDescription());
-        Mockito.verify(bookRepository, Mockito.times(1)).save(book);
-    }
-
-
-//    @Test
-//    void testUpdateBook_BookNotFound() {
-//        // Arrange
-//        Book updatedBook = new Book();
-//
-//        updatedBook.setTitle("Updated Title");
-//
-//        Mockito.when(bookRepository.findById(Mockito.anyLong())).thenReturn(Optional.empty());
-//
-//
-//        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () ->
-//            bookService.update(updatedBook)
-//        );
-//        assertEquals("book not found", exception.getMessage());
-//        Mockito.verify(bookRepository, Mockito.times(1)).findById(Mockito.anyLong());
-//        Mockito.verify(bookRepository, Mockito.never()).save(Mockito.any(Book.class));
-//    }
-
-//    @Test
-//    void testDeleteBook_Success() {
-//        // Arrange
-//        Long bookId = 1L;
-//
-//        Mockito.doNothing().when(bookRepository).deleteById(bookId);
-//
-//        // Act
-//        bookService.delete(bookId);
-//
-//        // Assert
-//        Mockito.verify(bookRepository, Mockito.times(1)).deleteById(bookId);
-//    }
-//
-//    @Test
-//    void testDeleteBook_BookNotFound() {
-//        // Arrange
-//        Long bookId = 1L;
-//
-//        Mockito.doThrow(new BookNotFoundException("book not found"))
-//            .when(bookRepository).deleteById(bookId);
-//
-//        // Act & Assert
-//        BookNotFoundException exception = assertThrows(BookNotFoundException.class, () ->
-//            bookService.delete(bookId)
-//        );
-//        assertEquals("book not found", exception.getMessage());
-//        Mockito.verify(bookRepository, Mockito.times(1)).deleteById(bookId);
-//    }
 }

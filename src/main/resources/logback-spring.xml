@@ -74,6 +74,7 @@
         </root>
     </springProfile>
 
+
     <!-- 인스턴스1 환경 -->
     <springProfile name="instance1">
         <!-- 콘솔 Appender -->
@@ -106,6 +107,7 @@
             <appender-ref ref="NHN_LOG_CRASH_APPENDER" />
         </root>
     </springProfile>
+
 
     <!-- 인스턴스2 환경 -->
     <springProfile name="instance2">

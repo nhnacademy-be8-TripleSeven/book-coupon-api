@@ -7,9 +7,7 @@ spring:
     password: nhnacademy123!
     host: 133.186.241.167
     port: 5672
-    listener:
-      simple:
-        acknowledge-mode: manual
+
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
@@ -20,16 +18,22 @@ spring:
       retry:
         enabled: true
 
+
   elasticsearch:
     uris: http://115.94.72.197:9200
     username: elastic
     password: nhnacademy123!
-    repositories:
-      enabled: true
 
-logstash:
-  host: 115.94.72.197
-  port: 50000 # Logstash TCP input 포트
+eureka:
+  client:
+    fetch-registry: true
+    register-with-eureka: true
+    service-url:
+      defaultZone: http://admin:1234@eureka-server:8761/eureka
+  instance:
+    instance-id: book-coupon-api
+    hostname: localhost
+    prefer-ip-address: true
 
 springdoc:
   api-docs:
@@ -44,9 +48,6 @@ keyId: f5e65a4f86194461bb3b6a01de675dcf
 
 keyStoreFilePath: triple-seven.p12
 password: nhn24
-
-
-
 
 
 management:
@@ -70,12 +71,16 @@ management:
 server:
   shutdown: graceful
 
-
-
-
 aladin:
   api:
     key: ttbrlgus45311101001
+
+logging:
+  level:
+    root: info
+  logstash:
+    host: 115.94.72.197
+    port: 50000 # Logstash TCP input 포트
 
 
 

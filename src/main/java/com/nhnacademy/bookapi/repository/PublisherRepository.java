@@ -8,5 +8,5 @@ public interface PublisherRepository extends JpaRepository<Publisher, Long> {
 
 
     @Query("select p from Publisher p where p.name =:name")
-    Publisher existsByName(String name);
+    Publisher findByName(String name);
 }

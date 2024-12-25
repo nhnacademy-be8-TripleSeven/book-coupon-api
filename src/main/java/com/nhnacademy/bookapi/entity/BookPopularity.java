@@ -23,17 +23,32 @@ public class BookPopularity {
 
     @MapsId
     @OneToOne
-    @JoinColumn(name = "book_id")
-    @Setter
     private Book book;
 
-    @Setter
     private long clickRank;
 
-    @Setter
     private long searchRank;
 
-    @Setter
     private long cartCount;
+
+    public BookPopularity(Book book, long clickRank, long searchRank, long cartCount) {
+        this.book = book;
+        this.clickRank = clickRank;
+        this.searchRank = searchRank;
+        this.cartCount = cartCount;
+    }
+
+    public void create(Book book) {
+        this.book = book;
+        this.clickRank = 0;
+        this.searchRank = 0;
+        this.cartCount = 0;
+    }
+
+    public void update(long clickRank, long searchRank, long cartCount) {
+        this.clickRank = clickRank;
+        this.searchRank = searchRank;
+        this.cartCount = cartCount;
+    }
 
 }

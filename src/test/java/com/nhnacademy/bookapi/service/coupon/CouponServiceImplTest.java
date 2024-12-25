@@ -85,8 +85,8 @@ class CouponServiceImplTest {
     void testCreateBookCoupon_Success() {
         // Given
         Book book = new Book();
-        book.setTestId(1L);
-        book.setTitle("Test Book");
+
+
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
@@ -130,7 +130,7 @@ class CouponServiceImplTest {
     @Test
     void testCreateCategoryCoupon_Success() {
         // Given
-        Category category = new Category("Test Category");
+        Category category = new Category("Test Category", null);
         category.setTestId(1L);
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
@@ -312,8 +312,7 @@ class CouponServiceImplTest {
     void testUseBookCoupon_Success() {
         // Given
         Book book = new Book();
-        book.setTestId(1L);
-        book.setTitle("Test Book");
+
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
@@ -348,6 +347,7 @@ class CouponServiceImplTest {
                 10000L, BigDecimal.ZERO, 500L, 30);
         policy.setTestId(1l);
 
+
         Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(1L);
         coupon.setCouponAssignData(123L, LocalDate.now(),
@@ -366,8 +366,11 @@ class CouponServiceImplTest {
     @Test
     void testUseCategoryCoupon_Success() {
         // Given
-        Category category = new Category("Test Category");
+        Category category = new Category("Test Category", null);
         category.setTestId(1L);
+
+        category.create("Test Category",null);
+
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
@@ -395,7 +398,7 @@ class CouponServiceImplTest {
     @Test
     void testUseCategoryCoupon_InvalidCategory() {
         // Given
-        Category category = new Category("Test Category");
+        Category category = new Category("Test Category", null);
         category.setTestId(1L);
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,

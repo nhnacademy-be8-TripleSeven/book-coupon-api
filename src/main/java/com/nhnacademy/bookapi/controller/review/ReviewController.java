@@ -7,6 +7,7 @@ import com.nhnacademy.bookapi.service.review.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,7 +27,7 @@ public class ReviewController {
             @ApiResponse(responseCode = "400", description = "이미 리뷰가 존재함")
     })
     @PostMapping("/api/reviews")
-    public ResponseEntity<Void> addReview(@RequestHeader("X-User") Long userId, @RequestBody ReviewRequestDto reviewRequestDto) {
+    public ResponseEntity<Void> addReview(@RequestHeader("X-User") Long userId, @Valid @RequestBody ReviewRequestDto reviewRequestDto) {
         reviewService.addReview(userId, reviewRequestDto);
         return ResponseEntity.status(201).build();
     }
@@ -37,7 +38,7 @@ public class ReviewController {
             @ApiResponse(responseCode = "404", description = "도서 또는 리뷰를 찾을 수 없음")
     })
     @PutMapping("/api/reviews")
-    public ResponseEntity<Void> updateReview(@RequestHeader("X-User") Long userId, @RequestBody ReviewRequestDto reviewRequestDto) {
+    public ResponseEntity<Void> updateReview(@RequestHeader("X-User") Long userId, @Valid @RequestBody ReviewRequestDto reviewRequestDto) {
         reviewService.updateReview(userId, reviewRequestDto);
         return ResponseEntity.ok().build();
     }
