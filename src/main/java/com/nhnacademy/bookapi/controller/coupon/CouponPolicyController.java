@@ -85,4 +85,16 @@ public class CouponPolicyController {
         CouponPolicyResponseDTO response = couponPolicyService.getCouponPolicyByName(name);
         return ResponseEntity.ok(response);
     }
+
+
+    @Operation(summary = "쿠폰 정책 이름 검색", description = "입력한 이름을 포함하는 쿠폰 정책을 검색합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "쿠폰 정책 검색 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 이름의 쿠폰 정책을 찾을 수 없음")
+    })
+    @GetMapping("/search")
+    public ResponseEntity<List<CouponPolicyResponseDTO>> searchCouponPoliciesByName(@RequestParam String query) {
+        List<CouponPolicyResponseDTO> response = couponPolicyService.searchCouponPoliciesByName(query);
+        return ResponseEntity.ok(response);
+    }
 }

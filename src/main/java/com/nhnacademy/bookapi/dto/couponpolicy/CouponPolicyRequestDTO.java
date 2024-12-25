@@ -7,7 +7,6 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
 public class CouponPolicyRequestDTO {
 
     private String name;
