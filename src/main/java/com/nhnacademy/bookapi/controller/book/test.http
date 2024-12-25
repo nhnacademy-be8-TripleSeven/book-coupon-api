@@ -4,8 +4,8 @@ GET https://examples.http-client.intellij.net/get
 
 ###
 
-GET localhost:8080/books/monthly
+GET localhost:8086/api/books/monthly
 
 ###
 
-GET localhost:8080/books/type/bestseller?page=0&size=10
+GET localhost:8086/api/books/type/ItemEditorChoice?page=0&size=10

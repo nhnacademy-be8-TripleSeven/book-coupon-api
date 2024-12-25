@@ -19,9 +19,7 @@ public class BookCreatorService {
         List<BookCreator> creatorByBookId = bookCreatorRepository.findCreatorByBookId(bookId);
 
         BookCreatorResponseDTO bookCreatorResponseDTO = new BookCreatorResponseDTO(creatorByBookId);
-        if(bookCreatorResponseDTO.getCreators().isEmpty()) {
-            throw new BookCreatorNotFoundException("bookCreator not found");
-        }
+
         return bookCreatorResponseDTO;
     }
 }
