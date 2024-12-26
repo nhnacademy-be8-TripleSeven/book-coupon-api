@@ -9,6 +9,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -51,14 +53,14 @@ class CouponServiceImplTest {
     @Test
     void testCreateCoupon_Success() {
         // Given
-        CouponPolicy policy = new CouponPolicy();
-        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1L);
 
-        Coupon coupon = new Coupon();
+        Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(1L);
-        coupon.setName("Test Coupon");
-        coupon.setCouponPolicy(policy);
 
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
         when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
 
         // When
@@ -86,18 +88,15 @@ class CouponServiceImplTest {
 
 
 
-        CouponPolicy policy = new CouponPolicy();
-        policy.setTestId(1L);
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
 
-        Coupon coupon = new Coupon();
+        Coupon coupon = new Coupon("Book Coupon", policy);
         coupon.setTestId(1L);
-        coupon.setName("Book Coupon");
-        coupon.setCouponPolicy(policy);
 
-        BookCoupon bookCoupon = new BookCoupon();
+        BookCoupon bookCoupon = new BookCoupon(book, coupon);
         bookCoupon.setTestId(1L);
-        bookCoupon.setBook(book);
-        bookCoupon.setCoupon(coupon);
 
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
         when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
@@ -131,22 +130,18 @@ class CouponServiceImplTest {
     @Test
     void testCreateCategoryCoupon_Success() {
         // Given
-        Category category = new Category();
+        Category category = new Category("Test Category", null);
         category.setTestId(1L);
-        category.create("Test Category", null);
 
-        CouponPolicy policy = new CouponPolicy();
-        policy.setTestId(1L);
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
 
-        Coupon coupon = new Coupon();
+        Coupon coupon = new Coupon("Category Coupon", policy);
         coupon.setTestId(1L);
-        coupon.setName("Category Coupon");
-        coupon.setCouponPolicy(policy);
 
-        CategoryCoupon categoryCoupon = new CategoryCoupon();
+        CategoryCoupon categoryCoupon = new CategoryCoupon(category, coupon);
         categoryCoupon.setTestId(1L);
-        categoryCoupon.setCategory(category);
-        categoryCoupon.setCoupon(coupon);
 
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
         when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
@@ -229,23 +224,41 @@ class CouponServiceImplTest {
 //    }
 
     @Test
+    void testAssignCoupon_Success() {
+        // Given
+        RabbitTemplate mockRabbitTemplate = mock(RabbitTemplate.class); // Mock RabbitTemplate 생성
+        ReflectionTestUtils.setField(couponService, "rabbitTemplate", mockRabbitTemplate); // Mock 객체 주입
+
+        CouponAssignRequestDTO request = new CouponAssignRequestDTO(1L, 123L);
+
+        // When
+        CouponAssignResponseDTO response = couponService.assignCoupon(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(1L, response.getCouponId());
+        assertEquals("Coupon assignment request sent successfully", response.getStatusMessage());
+
+    }
+
+
+    @Test
     void testUseCoupon_Success() {
         // Given
-        CouponPolicy couponPolicy = new CouponPolicy(1L, "Test Policy", 1000L,
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
 
 
-        Coupon coupon = new Coupon();
+        Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(1L);
-        coupon.setMemberId(123L);
-        coupon.setCouponStatus(CouponStatus.NOTUSED);
-        coupon.setCouponPolicy(couponPolicy);
-        coupon.setMemberId(1L);
+        coupon.setCouponAssignData(123L, LocalDate.now(),
+                LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.NOTUSED);
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
         // When
-        couponService.useCoupon(1L,1L);
+        couponService.useCoupon(123L,1L);
 
         // Then
         assertEquals(CouponStatus.USED, coupon.getCouponStatus());
@@ -254,11 +267,15 @@ class CouponServiceImplTest {
     @Test
     void testUseCoupon_AlreadyUsed() {
         // Given
-        Coupon coupon = new Coupon();
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
+
+        Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(1L);
-        coupon.setMemberId(123L);
-        coupon.setCouponStatus(CouponStatus.USED);
-        coupon.setMemberId(1L);
+        coupon.setCouponAssignData(123L, LocalDate.now(),
+                LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.USED);
+
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
@@ -278,9 +295,12 @@ class CouponServiceImplTest {
     @Test
     void testUseCoupon_NotAssigned() {
         // Given
-        Coupon coupon = new Coupon();
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
+
+        Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(1L);
-        coupon.setMemberId(null);
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
 
@@ -294,26 +314,23 @@ class CouponServiceImplTest {
         Book book = new Book();
 
 
-        CouponPolicy policy = new CouponPolicy(1L, "Test Policy", 1000L,
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1L);
 
-        Coupon coupon = new Coupon();
+        Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(1L);
-        coupon.setMemberId(123L);
-        coupon.setCouponStatus(CouponStatus.NOTUSED);
-        coupon.setCouponPolicy(policy);
-        coupon.setMemberId(1L);
+        coupon.setCouponAssignData(123L, LocalDate.now(),  // 수정된 userId
+                LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.NOTUSED);
 
-        BookCoupon bookCoupon = new BookCoupon();
+        BookCoupon bookCoupon = new BookCoupon(book, coupon);
         bookCoupon.setTestId(1L);
-        bookCoupon.setCoupon(coupon);
-        bookCoupon.setBook(book);
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
         when(bookCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(bookCoupon));
 
         // When
-        couponService.useBookCoupon(1L, 1L, 1L);
+        couponService.useBookCoupon(123L, 1L, 1L);  // 수정된 userId
 
         // Then
         assertEquals(CouponStatus.USED, coupon.getCouponStatus());
@@ -325,49 +342,53 @@ class CouponServiceImplTest {
         Book book = new Book();
 
 
-        Coupon coupon = new Coupon();
-        coupon.setTestId(1L);
-        coupon.setMemberId(1L);
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
 
-        BookCoupon bookCoupon = new BookCoupon();
-        bookCoupon.setCoupon(coupon);
-        bookCoupon.setBook(book);
+
+        Coupon coupon = new Coupon("Test Coupon", policy);
+        coupon.setTestId(1L);
+        coupon.setCouponAssignData(123L, LocalDate.now(),
+                LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.USED);
+
+        BookCoupon bookCoupon = new BookCoupon(book, coupon);
+        bookCoupon.setTestId(1L);
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
         when(bookCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(bookCoupon));
 
         // When & Then
-        assertThrows(InvalidCouponUsageException.class, () -> couponService.useBookCoupon(1L,1L, 2L));
+        assertThrows(InvalidCouponUsageException.class, () -> couponService.useBookCoupon(123L,1L, 2L));
     }
 
     @Test
     void testUseCategoryCoupon_Success() {
         // Given
-        Category category = new Category();
+        Category category = new Category("Test Category", null);
         category.setTestId(1L);
+
         category.create("Test Category",null);
 
-        CouponPolicy policy = new CouponPolicy(1L, "Test Policy", 1000L,
+
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
 
-        Coupon coupon = new Coupon();
+        Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(1L);
-        coupon.setMemberId(123L);
-        coupon.setCouponStatus(CouponStatus.NOTUSED);
-        coupon.setCouponPolicy(policy);
-        coupon.setMemberId(1L);
+        coupon.setCouponAssignData(123L, LocalDate.now(),
+                LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.NOTUSED);
 
-        CategoryCoupon categoryCoupon = new CategoryCoupon();
+        CategoryCoupon categoryCoupon = new CategoryCoupon(category, coupon);
         categoryCoupon.setTestId(1L);
-        categoryCoupon.setCategory(category);
-        categoryCoupon.setCoupon(coupon);
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
         when(categoryCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(categoryCoupon));
         when(categoryRepository.findSubcategories(1L)).thenReturn(List.of(1L, 2L, 3L));
 
         // When
-        couponService.useCategoryCoupon(1L,1L, 1L);
+        couponService.useCategoryCoupon(123L,1L, 1L);
 
         // Then
         assertEquals(CouponStatus.USED, coupon.getCouponStatus());
@@ -376,37 +397,44 @@ class CouponServiceImplTest {
     @Test
     void testUseCategoryCoupon_InvalidCategory() {
         // Given
-        Category category = new Category();
+        Category category = new Category("Test Category", null);
         category.setTestId(1L);
 
-        Coupon coupon = new Coupon();
-        coupon.setTestId(1L);
-        coupon.setMemberId(1L);
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1L);
 
-        CategoryCoupon categoryCoupon = new CategoryCoupon();
-        categoryCoupon.setCategory(category);
-        categoryCoupon.setCoupon(coupon);
+        Coupon coupon = new Coupon("Test Coupon", policy);
+        coupon.setTestId(1L);
+        coupon.setCouponAssignData(1L, LocalDate.now(),  // 수정된 userId
+                LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.USED);
+
+        CategoryCoupon categoryCoupon = new CategoryCoupon(category, coupon);
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
         when(categoryCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(categoryCoupon));
         when(categoryRepository.findSubcategories(1L)).thenReturn(List.of(2L, 3L));
 
         // When & Then
-        assertThrows(InvalidCouponUsageException.class, () -> couponService.useCategoryCoupon(1L,1L, 4L));
+        assertThrows(InvalidCouponUsageException.class, () -> couponService.useCategoryCoupon(1L, 1L, 4L));
     }
 
     @Test
     void testExpireCoupons_Success() {
         // Given
-        Coupon coupon1 = new Coupon();
-        coupon1.setTestId(1L);
-        coupon1.setCouponStatus(CouponStatus.NOTUSED);
-        coupon1.setCouponExpiryDate(LocalDate.now().minusDays(1));
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
 
-        Coupon coupon2 = new Coupon();
+        Coupon coupon1 = new Coupon("Test Coupon", policy);
+        coupon1.setTestId(1L);
+        coupon1.setCouponAssignData(123L, LocalDate.now(),
+                LocalDate.now().minusDays(1), CouponStatus.NOTUSED);
+
+        Coupon coupon2 = new Coupon("Test Coupon2", policy);
         coupon2.setTestId(2L);
-        coupon2.setCouponStatus(CouponStatus.NOTUSED);
-        coupon2.setCouponExpiryDate(LocalDate.now().minusDays(2));
+        coupon2.setCouponAssignData(123L, LocalDate.now(),
+                LocalDate.now().minusDays(2), CouponStatus.NOTUSED);
 
         List<Coupon> expiredCoupons = List.of(coupon1, coupon2);
 
@@ -424,11 +452,12 @@ class CouponServiceImplTest {
     @Test
     void testDeleteCoupon_Success() {
         // Given
-        long couponId = 1L;
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
 
-        Coupon coupon = new Coupon();
+        long couponId = 1L;
+        Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(couponId);
-        coupon.setMemberId(null);
 
         when(couponRepository.existsById(couponId)).thenReturn(true);
         when(couponRepository.getReferenceById(couponId)).thenReturn(coupon);
@@ -447,9 +476,14 @@ class CouponServiceImplTest {
         // Given
         long couponId = 1L;
 
-        Coupon coupon = new Coupon();
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
+                10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1l);
+
+        Coupon coupon = new Coupon("Test Coupon", policy);
         coupon.setTestId(couponId);
-        coupon.setMemberId(123L);
+        coupon.setCouponAssignData(123L, LocalDate.now(),
+                LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.USED);
 
         when(couponRepository.existsById(couponId)).thenReturn(true);
         when(couponRepository.getReferenceById(couponId)).thenReturn(coupon);
@@ -471,22 +505,17 @@ class CouponServiceImplTest {
     @Test
     void testGetAllCouponsByMemberId() {
         // Given
-        CouponPolicy couponPolicy = new CouponPolicy(1L, "Policy 1", 1000L,
+        CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
+        policy.setTestId(1L);
 
-        Coupon coupon1 = new Coupon();
+        Coupon coupon1 = new Coupon("Coupon 1", policy);
         coupon1.setTestId(1L);
-        coupon1.setName("Coupon 1");
-        coupon1.setMemberId(100L);
-        coupon1.setCouponPolicy(couponPolicy);
-        coupon1.setCouponStatus(CouponStatus.NOTUSED);
+        coupon1.setCouponAssignData(100L, LocalDate.now(), LocalDate.now().plusDays(30), CouponStatus.NOTUSED);
 
-        Coupon coupon2 = new Coupon();
+        Coupon coupon2 = new Coupon("Coupon 2", policy);
         coupon2.setTestId(2L);
-        coupon2.setName("Coupon 2");
-        coupon2.setMemberId(100L);
-        coupon2.setCouponPolicy(couponPolicy);
-        coupon2.setCouponStatus(CouponStatus.USED);
+        coupon2.setCouponAssignData(100L, LocalDate.now(), LocalDate.now().plusDays(30), CouponStatus.USED);
 
         when(couponRepository.findByMemberId(100L)).thenReturn(Arrays.asList(coupon1, coupon2));
 
@@ -498,10 +527,10 @@ class CouponServiceImplTest {
         assertEquals(2, coupons.size());
 
         assertEquals("Coupon 1", coupons.get(0).getName());
-        assertEquals("Policy 1", coupons.get(0).getPolicyName());
+        assertEquals("Test Policy", coupons.get(0).getPolicyName());
 
         assertEquals("Coupon 2", coupons.get(1).getName());
-        assertEquals("Policy 1", coupons.get(1).getPolicyName());
+        assertEquals("Test Policy", coupons.get(1).getPolicyName());
     }
 
     @Test
@@ -513,15 +542,13 @@ class CouponServiceImplTest {
     @Test
     void testGetUnusedCouponsByMemberId() {
         // Given
-        CouponPolicy couponPolicy = new CouponPolicy(1L, "Policy 1", 1000L,
+        CouponPolicy couponPolicy = new CouponPolicy("Policy 1", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
+        couponPolicy.setTestId(1L);
 
-        Coupon coupon1 = new Coupon();
+        Coupon coupon1 = new Coupon("Unused Coupon", couponPolicy);
         coupon1.setTestId(1L);
-        coupon1.setName("Unused Coupon");
-        coupon1.setMemberId(100L);
-        coupon1.setCouponPolicy(couponPolicy);
-        coupon1.setCouponStatus(CouponStatus.NOTUSED);
+        coupon1.setCouponAssignData(100L, LocalDate.now(), LocalDate.now().plusDays(30), CouponStatus.NOTUSED);
 
         when(couponRepository.findByMemberIdAndCouponStatus(100L, CouponStatus.NOTUSED))
                 .thenReturn(List.of(coupon1));
@@ -532,28 +559,27 @@ class CouponServiceImplTest {
         // Then
         assertNotNull(coupons);
         assertEquals(1, coupons.size());
-        assertEquals("Unused Coupon", coupons.getFirst().getName());
-        assertEquals("Policy 1", coupons.getFirst().getPolicyName());
+        assertEquals("Unused Coupon", coupons.get(0).getName());
+        assertEquals("Policy 1", coupons.get(0).getPolicyName());
     }
 
     @Test
     void testGetUnusedCouponsByMemberId_NotFound() {
-        when(couponRepository.findByMemberId(100L)).thenReturn(Collections.emptyList());
+        when(couponRepository.findByMemberIdAndCouponStatus(100L, CouponStatus.NOTUSED))
+                .thenReturn(Collections.emptyList());
         assertThrows(CouponsNotFoundException.class, () -> couponService.getUnusedCouponsByMemberId(100L));
     }
 
     @Test
     void testGetUsedCouponsByMemberId() {
         // Given
-        CouponPolicy couponPolicy = new CouponPolicy(1L, "Policy 1", 1000L,
+        CouponPolicy couponPolicy = new CouponPolicy("Policy 1", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
+        couponPolicy.setTestId(1L);
 
-        Coupon coupon1 = new Coupon();
+        Coupon coupon1 = new Coupon("Used Coupon", couponPolicy);
         coupon1.setTestId(1L);
-        coupon1.setName("Used Coupon");
-        coupon1.setMemberId(100L);
-        coupon1.setCouponPolicy(couponPolicy);
-        coupon1.setCouponStatus(CouponStatus.USED);
+        coupon1.setCouponAssignData(100L, LocalDate.now(), LocalDate.now().plusDays(30), CouponStatus.USED);
 
         when(couponRepository.findByMemberIdAndCouponStatus(100L, CouponStatus.USED))
                 .thenReturn(List.of(coupon1));
@@ -564,8 +590,8 @@ class CouponServiceImplTest {
         // Then
         assertNotNull(coupons);
         assertEquals(1, coupons.size());
-        assertEquals("Used Coupon", coupons.getFirst().getName());
-        assertEquals("Policy 1", coupons.getFirst().getPolicyName());
+        assertEquals("Used Coupon", coupons.get(0).getName());
+        assertEquals("Policy 1", coupons.get(0).getPolicyName());
     }
 
     @Test

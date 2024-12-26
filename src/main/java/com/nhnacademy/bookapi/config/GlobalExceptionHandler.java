@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.config;
 
 import com.nhnacademy.bookapi.dto.error.ErrorResponse;
 import com.nhnacademy.bookapi.exception.*;
+import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -13,6 +14,7 @@ import java.time.LocalDateTime;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 전역 예외 처리
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGlobalException(Exception ex, WebRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
@@ -84,31 +86,39 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(CouponAssingAmqErrorException.class)
-    public ResponseEntity<ErrorResponse> handleCouponAssingAmqErrorException(CouponAssingAmqErrorException ex, WebRequest request) {
-        HttpStatus status;
-        String detailedMessage;
+    // RabbitMQ 메시지 변환 실패 예외 처리
+    @ExceptionHandler(MessageConversionException.class)
+    public ResponseEntity<ErrorResponse> handleMessageConversionException(MessageConversionException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_GATEWAY.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_GATEWAY);
+    }
 
-        if (ex.getMessage().contains("Connection refused")) {
-            status = HttpStatus.SERVICE_UNAVAILABLE; // RabbitMQ가 다운된 경우
-            detailedMessage = "RabbitMQ service is unavailable: " + ex.getMessage();
-        } else if (ex.getMessage().contains("Timeout")) {
+
+    // RabbitMQ 통신 오류 예외 처리
+    @ExceptionHandler(CouponAssingAmqErrorException.class)
+    public ResponseEntity<ErrorResponse> handleRabbitMqException(CouponAssingAmqErrorException ex, WebRequest request) {
+        HttpStatus status;
+        if (ex.getMessage().contains("service unavailable")) {
+            status = HttpStatus.SERVICE_UNAVAILABLE; // RabbitMQ 서비스 불가
+        } else if (ex.getMessage().contains("communication timeout")) {
             status = HttpStatus.GATEWAY_TIMEOUT; // RabbitMQ 응답 시간 초과
-            detailedMessage = "RabbitMQ response timed out: " + ex.getMessage();
         } else {
             status = HttpStatus.BAD_GATEWAY; // 일반적인 RabbitMQ 통신 오류
-            detailedMessage = "RabbitMQ communication error: " + ex.getMessage();
         }
 
         ErrorResponse errorResponse = new ErrorResponse(
                 status.value(),
                 LocalDateTime.now(),
-                detailedMessage,
+                ex.getMessage(),
                 request.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(errorResponse, status);
     }
-
 
     @ExceptionHandler(TagAlreadyExistException.class)
     public ResponseEntity<ErrorResponse> handleTagAlreadyExistException(TagAlreadyExistException ex, WebRequest request) {

@@ -20,4 +20,6 @@ public interface CouponPolicyService {
 
     CouponPolicyResponseDTO getCouponPolicyByName(String name);
 
+    List<CouponPolicyResponseDTO> searchCouponPoliciesByName(String name);
+
 }

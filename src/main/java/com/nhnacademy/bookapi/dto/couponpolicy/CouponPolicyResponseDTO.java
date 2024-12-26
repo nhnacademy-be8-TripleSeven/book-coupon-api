@@ -4,10 +4,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
-@AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Setter
 public class CouponPolicyResponseDTO {
 
     private Long id;
@@ -24,4 +22,14 @@ public class CouponPolicyResponseDTO {
 
     private Integer couponValidTime;
 
+    public CouponPolicyResponseDTO(Long id, String name, Long couponMinAmount, Long couponMaxAmount,
+                                   BigDecimal couponDiscountRate, Long couponDiscountAmount, Integer couponValidTime) {
+        this.id = id;
+        this.name = name;
+        this.couponMinAmount = couponMinAmount;
+        this.couponMaxAmount = couponMaxAmount;
+        this.couponDiscountRate = couponDiscountRate;
+        this.couponDiscountAmount = couponDiscountAmount;
+        this.couponValidTime = couponValidTime;
+    }
 }

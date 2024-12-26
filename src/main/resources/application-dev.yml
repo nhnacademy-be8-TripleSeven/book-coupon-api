@@ -12,7 +12,7 @@ eureka:
     hostname: localhost
     prefer-ip-address: true
 
-
+P12_PASSWORD: nhn24
 
 spring:
   application:
@@ -36,8 +36,6 @@ spring:
 logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
-
-
 
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration

@@ -38,5 +38,9 @@ public class Category {
     public void setTestId(Long id) {
         this.id = id;
     }
+    
+    public Category(String name) {
+        this.name = name;
+    }
 
 }

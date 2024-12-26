@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.entity;
 
 
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -23,7 +24,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @Getter
-@Table(name = "book")
 public class Book {
 
     @Id
@@ -54,7 +54,7 @@ public class Book {
     @Column(nullable = false)
     private int page;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
     private Publisher publisher;
 
 
