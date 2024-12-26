@@ -25,15 +25,16 @@ spring:
     password: nhnacademy123!
 
 eureka:
+  instance:
+    health-check-url: /actuator/health
+    instance-id: book-coupon-api
+    hostname: localhost
+    prefer-ip-address: true
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
-      defaultZone: http://admin:1234@eureka-server:8761/eureka
-  instance:
-    instance-id: book-coupon-api
-    hostname: localhost
-    prefer-ip-address: true
+      defaultZone: http://admin:1234@localhost:8761/eureka/
 
 springdoc:
   api-docs:
