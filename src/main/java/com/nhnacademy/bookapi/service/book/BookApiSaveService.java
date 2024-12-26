@@ -23,7 +23,7 @@ import com.nhnacademy.bookapi.repository.BookCreatorRepository;
 
 import com.nhnacademy.bookapi.repository.BookImageRepository;
 import com.nhnacademy.bookapi.repository.BookIndexRepository;
-import com.nhnacademy.bookapi.repository.BookPopularRepository;
+import com.nhnacademy.bookapi.repository.BookPopularityRepository;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.BookTypeRepository;
 import com.nhnacademy.bookapi.repository.CategoryRepository;
@@ -34,7 +34,6 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -57,7 +56,7 @@ public class BookApiSaveService {
 
     private final BookRepository bookRepository;
     private final BookCreatorRepository bookCreatorRepository;
-    private final BookPopularRepository bookPopularRepository;
+    private final BookPopularityRepository bookPopularRepository;
     private final BookImageRepository bookImageRepository;
     private final ImageRepository imageRepository;
     private final BookTypeRepository bookTypeRepository;

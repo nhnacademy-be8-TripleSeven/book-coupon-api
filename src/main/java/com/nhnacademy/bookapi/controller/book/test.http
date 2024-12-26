@@ -7,5 +7,24 @@ GET https://examples.http-client.intellij.net/get
 GET localhost:8086/api/books/monthly
 
 ###
+GET localhost:8080/books/type/bestseller?page=0&size=10
 
+###
 GET localhost:8086/api/books/type/ItemEditorChoice?page=0&size=10
+
+###
+GET localhost:8086/books/600
+
+###
+POST localhost:8086/api/reviews
+Content-Type: application/json
+X-User: 15
+
+{
+  "text": "재밌는 책입니다.",
+  "rating": "5",
+  "bookId": 1
+}
+
+###
+GET localhost:8086/reviews/1
