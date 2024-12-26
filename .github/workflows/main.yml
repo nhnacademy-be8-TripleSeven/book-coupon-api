@@ -49,6 +49,15 @@ jobs:
       - name: Push Docker image
         run: |
           docker push lushlife99/nhn-book-coupon:${{ github.sha }}
+      - name: Decode the p12 file
+
+      - name: Set P12 file as environment variable
+        run: |
+          export P12_FILE=$(echo "${{ secrets.P12_FILE }}" | base64 --decode | base64)
+        env:
+          P12_FILE: ${{ secrets.P12_FILE }}
+
+
 
   deploy:
     runs-on: ubuntu-latest
@@ -76,9 +85,54 @@ jobs:
               docker stop book-coupon-api-instance-1 || true
               docker rm -f book-coupon-api-instance-1 || true
             fi
-            docker run --name book-coupon-api-instance-1 --network nhn-book-store-network -p 8086:8086 -e SPRING_PROFILES_ACTIVE=instance1 -d lushlife99/nhn-book-coupon:${{ github.sha }}
+            docker run --name book-coupon-api-instance-1 \
+            --network nhn-book-store-network \
+            -p 8086:8086 \
+            -e SPRING_PROFILES_ACTIVE=instance1 \
+            -e P12_FILE_PATH=$GITHUB_WORKSPACE/secrets/triple-seven.p12 \
+            -e P12_PASSWORD=${{ secrets.P12_PASSWORD }} \
+            -d lushlife99/nhn-book-coupon:${{ github.sha }}
 
+      - name: Check First Instance via Eureka
+        run: |
+          START_TIME=$(date +%s)
+          while : ; do
+            RESPONSE=$(curl -s -H "Accept: application/xml" http://${{ secrets.EUREKA_USERNAME }}:${{ secrets.EUREKA_PASSWORD }}@nhn24.store/eureka/eureka/instances/book-coupon-api-1)
 
+            # 응답이 비어 있는지 확인
+            if [ -z "$RESPONSE" ]; then
+              echo "Error: Empty response from Eureka server."
+              exit 1
+            fi
+
+            # XML 파싱을 위해 xmllint 사용
+            STATUS=$(echo "$RESPONSE" | xmllint --xpath "string(//status)" - 2>/dev/null)
+
+            # xmllint 파싱이 실패하면 오류 처리
+            if [ $? -ne 0 ]; then
+              echo "Error: Failed to parse XML response."
+              echo "Response received: $RESPONSE"
+              exit 1
+            fi
+
+            # 상태가 "UP"이면 종료
+            if [ "$STATUS" == "UP" ]; then
+              echo "First instance is healthy and UP."
+              break
+            fi
+
+            # 180초 경과 체크
+            CURRENT_TIME=$(date +%s)
+            ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+            if [ $ELAPSED_TIME -ge 180 ]; then
+              echo "First instance is not healthy within 3 minutes. Aborting deployment."
+              exit 1
+            fi
+
+            # 10초 대기 후 재시도
+            sleep 10
+          done
+            
 
       - name: Deploy to Second Instance
         uses: appleboy/ssh-action@master
@@ -92,4 +146,50 @@ jobs:
               docker stop book-coupon-api-instance-2 || true
               docker rm -f book-coupon-api-instance-2 || true
             fi
-            docker run --name book-coupon-api-instance-2 --network nhn-book-store-network -p 8087:8087 -e SPRING_PROFILES_ACTIVE=instance2 -d lushlife99/nhn-book-coupon:${{ github.sha }}
+            docker run --name book-coupon-api-instance-2 
+              --network nhn-book-store-network \
+              -p 8087:8087 \
+              -e SPRING_PROFILES_ACTIVE=instance2 \
+              -e P12_FILE_PATH=$GITHUB_WORKSPACE/secrets/triple-seven.p12 \
+              -e P12_PASSWORD=${{ secrets.P12_PASSWORD }} \
+              -d lushlife99/nhn-book-coupon:${{ github.sha }}
+
+      - name: Check Second Instance via Eureka
+        run: |
+          START_TIME=$(date +%s)
+          while : ; do
+            RESPONSE=$(curl -s -H "Accept: application/xml" http://${{ secrets.EUREKA_USERNAME }}:${{ secrets.EUREKA_PASSWORD }}@nhn24.store/eureka/eureka/instances/book-coupon-api-2)
+          
+            # 응답이 비어 있는지 확인
+            if [ -z "$RESPONSE" ]; then
+              echo "Error: Empty response from Eureka server."
+              exit 1
+            fi
+          
+            # XML 파싱을 위해 xmllint 사용
+            STATUS=$(echo "$RESPONSE" | xmllint --xpath "string(//status)" - 2>/dev/null)
+          
+            # xmllint 파싱이 실패하면 오류 처리
+            if [ $? -ne 0 ]; then
+              echo "Error: Failed to parse XML response."
+              echo "Response received: $RESPONSE"
+              exit 1
+            fi
+          
+            # 상태가 "UP"이면 종료
+            if [ "$STATUS" == "UP" ]; then
+              echo "Second instance is healthy and UP."
+              break
+            fi
+          
+            # 180초 경과 체크
+            CURRENT_TIME=$(date +%s)
+            ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
+            if [ $ELAPSED_TIME -ge 180 ]; then
+              echo "Second instance is not healthy within 3 minutes. Aborting deployment."
+              exit 1
+            fi
+          
+            # 10초 대기 후 재시도
+            sleep 10
+          done

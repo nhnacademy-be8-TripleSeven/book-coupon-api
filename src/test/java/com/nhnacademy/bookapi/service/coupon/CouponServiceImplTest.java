@@ -340,8 +340,7 @@ class CouponServiceImplTest {
     void testUseBookCoupon_InvalidBook() {
         // Given
         Book book = new Book();
-        book.setTestId(1L);
-        book.setTitle("Test Book");
+
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);

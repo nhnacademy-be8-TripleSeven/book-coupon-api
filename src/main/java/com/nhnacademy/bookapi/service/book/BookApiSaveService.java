@@ -178,7 +178,6 @@ public class BookApiSaveService {
             bookPopularRepository.save(bookPopularity);
 
         }
-        
     }
 
 
