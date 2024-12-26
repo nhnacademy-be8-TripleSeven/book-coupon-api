@@ -151,10 +151,8 @@ public class BookApiSaveService {
             }
             List<BookType> bookTypes = new ArrayList<>();
             //북타입 추가1
-            if(!book.path("bestRank").isEmpty()){
                 saveBookType = new BookType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
                 bookTypes.add(saveBookType);
-            }
 
             bookRepository.save(saveBook);
 
@@ -180,12 +178,12 @@ public class BookApiSaveService {
             bookPopularRepository.save(bookPopularity);
 
         }
-        
     }
 
 
     public void aladinApiEditorChoiceSaveBook(String bookType, String searchTarget, int start, int max, int categoryId) throws Exception {
         JsonNode bookList = bookApiService.getEditorChoiceBookList(bookType, searchTarget, start, max, categoryId);
+
         //object storage에 저장
         ObjectService objectService = new ObjectService(storageUrl);
         objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
@@ -201,6 +199,8 @@ public class BookApiSaveService {
 
             }
             if(findIsbn) {
+                BookType saveBookType = new BookType(Type.valueOf(bookType.toUpperCase()), book.path("bestRank").asInt(), bookRepository.findByIsbn13(isbn).get());
+                bookTypeRepository.save(saveBookType);
                 continue;
             }
 
@@ -211,17 +211,19 @@ public class BookApiSaveService {
             BookType saveBookType = new BookType();
             Publisher publisher = new Publisher();
 
-
-
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
             String publisherName = book.path("publisher").asText();
 
             Publisher selectPublisher = publisherRepository.findByName(publisherName);
 
-            if(selectPublisher == null) {
-                publisher.update(publisherName);
+            if(publisherName.isEmpty()){
+                publisherName = "출판사 없음";
+            }
+            if(selectPublisher == null ) {
+                publisher = new Publisher(publisherName);
                 publisherRepository.save(publisher);
+
                 saveBook.publisherUpdate(publisher);
             }else {
                 publisher = selectPublisher;
@@ -231,14 +233,12 @@ public class BookApiSaveService {
             String coverUrl = book.path("cover").asText();
             String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
 
-            image = new Image(book.path("cover").asText());
+            image= new Image(book.path("cover").asText());
             imageRepository.save(image);
 
             //bookcoverimage mapping
             BookCoverImage bookCoverImage = new BookCoverImage(image, saveBook);
             bookCoverImageRepository.save(bookCoverImage);
-
-
 
             LocalDate pubDate = null;
 
@@ -247,30 +247,26 @@ public class BookApiSaveService {
                 pubDate = LocalDate.parse(pubDateStr);
             }
 
-            if(bookDetail != null) {
-                JsonNode subInfo = bookDetail.path("subInfo");
-                saveBook.updatePage(subInfo.path("itemPage").asInt());
-            }
-
             saveBook.create(book.path("title").asText(), book.path("description").asText(), pubDate,
                 book.path("priceStandard").asInt(),
                 book.path("priceSales").asInt(), isbn, 1000, 0, publisher);
 
+            if(bookDetail != null) {
+                JsonNode subInfo = bookDetail.path("subInfo");
+                saveBook.updatePage(subInfo.path("itemPage").asInt());
+            }
             List<BookType> bookTypes = new ArrayList<>();
             //북타입 추가1
-            if(!book.path("bestRank").isEmpty()){
-                saveBookType.create(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
-            }
+            saveBookType = new BookType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
+            bookTypes.add(saveBookType);
 
             bookRepository.save(saveBook);
 
-            bookTypes.add(saveBookType);
 
-            //북타입 추가2
             BookType newBookType = new BookType();
-            newBookType.create(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
-
+            newBookType = new BookType(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
             bookTypes.add(newBookType);
+
             bookTypeRepository.saveAll(bookTypes);
 
             bookImage.setBook(saveBook);
@@ -280,12 +276,11 @@ public class BookApiSaveService {
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
 
-
+            authorParseSave(author, saveBook);
+            categoryParseSave(category, saveBook);
 
             //책인기도 초기화
-
             bookPopularity.create(saveBook);
-
             bookPopularRepository.save(bookPopularity);
 
         }

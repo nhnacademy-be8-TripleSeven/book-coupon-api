@@ -10,7 +10,6 @@ import lombok.Setter;
 import java.math.BigDecimal;
 
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
 @Entity
 public class CouponPolicy {
@@ -19,29 +18,44 @@ public class CouponPolicy {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Setter
     @Column(unique = true, nullable = false)
     private String name;
 
-    @Setter
     private Long couponMinAmount;
 
-    @Setter
     private Long couponMaxAmount;
 
-    @Setter
     @Column(precision = 4, scale = 2)
     private BigDecimal couponDiscountRate;
 
-    @Setter
     private Long couponDiscountAmount;
 
-    @Setter
     @Column(nullable = false)
     private Integer couponValidTime;
+
+    public CouponPolicy(String name, Long couponMinAmount, Long couponMaxAmount,
+                        BigDecimal couponDiscountRate, Long couponDiscountAmount, Integer couponValidTime) {
+        this.name = name;
+        this.couponMinAmount = couponMinAmount;
+        this.couponMaxAmount = couponMaxAmount;
+        this.couponDiscountRate = couponDiscountRate;
+        this.couponDiscountAmount = couponDiscountAmount;
+        this.couponValidTime = couponValidTime;
+    }
+
+    public void setCouponPolicyUpdateData(String name, Long couponMinAmount, Long couponMaxAmount,
+                                          BigDecimal couponDiscountRate, Long couponDiscountAmount, Integer couponValidTime) {
+        this.name = name;
+        this.couponMinAmount = couponMinAmount;
+        this.couponMaxAmount = couponMaxAmount;
+        this.couponDiscountRate = couponDiscountRate;
+        this.couponDiscountAmount = couponDiscountAmount;
+        this.couponValidTime = couponValidTime;
+    }
 
     // Test 전용 메서드
     public void setTestId(Long id) {
         this.id = id;
     }
+
 }

@@ -56,7 +56,9 @@ public class CouponController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음"),
-            @ApiResponse(responseCode = "400", description = "이미 발급된 쿠폰")
+            @ApiResponse(responseCode = "400", description = "이미 발급된 쿠폰"),
+            @ApiResponse(responseCode = "502", description = "RabbitMQ 통신 오류"),
+            @ApiResponse(responseCode = "503", description = "RabbitMQ 서비스 불가")
     })
     @PostMapping("/admin/coupons/assign")
     public ResponseEntity<CouponAssignResponseDTO> assignCoupon(@RequestBody CouponAssignRequestDTO request) {

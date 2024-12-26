@@ -1,6 +1,6 @@
 package com.nhnacademy.bookapi.service.coupon;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.nhnacademy.bookapi.config.RabbitConfig;
 import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.entity.*;
@@ -8,6 +8,8 @@ import com.nhnacademy.bookapi.exception.*;
 import com.nhnacademy.bookapi.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.amqp.AmqpConnectException;
+import org.springframework.amqp.AmqpTimeoutException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.connection.CorrelationData;
@@ -44,9 +46,7 @@ public class CouponServiceImpl implements CouponService {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                 .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
 
-        Coupon coupon = new Coupon();
-        coupon.setName(request.getName());
-        coupon.setCouponPolicy(policy);
+        Coupon coupon = new Coupon(request.getName(), policy);
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
@@ -63,15 +63,11 @@ public class CouponServiceImpl implements CouponService {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                 .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
 
-        Coupon coupon = new Coupon();
-        coupon.setName(request.getName());
-        coupon.setCouponPolicy(policy);
+        Coupon coupon = new Coupon(request.getName(), policy);
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
-        BookCoupon bookCoupon = new BookCoupon();
-        bookCoupon.setBook(book);
-        bookCoupon.setCoupon(savedCoupon);
+        BookCoupon bookCoupon = new BookCoupon(book, savedCoupon);
 
         bookCouponRepository.save(bookCoupon);
 
@@ -88,15 +84,11 @@ public class CouponServiceImpl implements CouponService {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                 .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
 
-        Coupon coupon = new Coupon();
-        coupon.setName(request.getName());
-        coupon.setCouponPolicy(policy);
+        Coupon coupon = new Coupon(request.getName(), policy);
 
         Coupon savedCoupon = couponRepository.save(coupon);
 
-        CategoryCoupon categoryCoupon = new CategoryCoupon();
-        categoryCoupon.setCategory(category);
-        categoryCoupon.setCoupon(savedCoupon);
+        CategoryCoupon categoryCoupon = new CategoryCoupon(category, savedCoupon);
 
         categoryCouponRepository.save(categoryCoupon);
 
@@ -127,7 +119,7 @@ public class CouponServiceImpl implements CouponService {
         }
 
         for (Coupon coupon : coupons) {
-            coupon.setCouponStatus(CouponStatus.EXPIRED);
+            coupon.updateCouponStatus(CouponStatus.EXPIRED);
         }
     }
 
@@ -176,9 +168,15 @@ public class CouponServiceImpl implements CouponService {
             );
             log.info("Sent coupon assign request to RabbitMQ: {}", request);
             return new CouponAssignResponseDTO(request.getCouponId(), "Coupon assignment request sent successfully");
+        } catch (AmqpConnectException e) {
+            log.error("RabbitMQ connection failed: {}", e.getMessage(), e);
+            throw new CouponAssingAmqErrorException("RabbitMQ service unavailable: " + e.getMessage());
+        } catch (AmqpTimeoutException e) {
+            log.error("RabbitMQ response timed out: {}", e.getMessage(), e);
+            throw new CouponAssingAmqErrorException("RabbitMQ communication timeout: " + e.getMessage());
         } catch (Exception e) {
-            log.error("Failed to send coupon assign request: {}", e.getMessage(), e);
-            throw new MessageConversionException("Error sending coupon assign message", e);
+            log.error("General RabbitMQ error: {}", e.getMessage(), e);
+            throw new CouponAssingAmqErrorException("RabbitMQ communication error: " + e.getMessage());
         }
     }
 
@@ -202,10 +200,6 @@ public class CouponServiceImpl implements CouponService {
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
-        if (!Objects.equals(coupon.getMemberId(), userId)) {
-            throw new CouponNotAssignedException("Coupon does not belong to the authenticated user");
-        }
-
         if (coupon.getCouponStatus() == CouponStatus.USED) {
             throw new CouponAlreadyUsedExceeption("Coupon is already used");
         }
@@ -214,8 +208,12 @@ public class CouponServiceImpl implements CouponService {
             throw new CouponExpiredException("Coupon is expired");
         }
 
-        coupon.setCouponStatus(CouponStatus.USED);
-        coupon.setCouponUseAt(LocalDateTime.now());
+        if (!Objects.equals(coupon.getMemberId(), userId)) {
+            throw new CouponNotAssignedException("Coupon does not belong to the authenticated user");
+        }
+
+        coupon.updateCouponStatus(CouponStatus.USED);
+        coupon.updateCouponUseAt(LocalDateTime.now());
 
         return new CouponUseResponseDTO(coupon);
     }

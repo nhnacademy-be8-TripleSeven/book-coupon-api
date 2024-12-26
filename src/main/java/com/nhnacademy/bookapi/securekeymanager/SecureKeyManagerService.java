@@ -3,6 +3,8 @@ package com.nhnacademy.bookapi.securekeymanager;
 
 import com.nhnacademy.bookapi.dto.key.KeyResponseDto;
 import com.nhnacademy.bookapi.exception.KeyManagerException;
+import java.io.ByteArrayInputStream;
+import java.util.Base64;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -40,23 +42,22 @@ public class SecureKeyManagerService {
     @Value("${keyId}")
     private String keyId;
 
-    @Value("${keyStoreFilePath}")
-    private String keyStoreFilePath;
-
-    @Value("${password}")
+    @Value("${P12_PASSWORD}")
     private String password;
 
     public String fetchSecretFromKeyManager() {
         try {
 
+            // 환경변수에서 P12 파일 데이터를 읽고 디코딩
+            String p12Data = System.getenv("P12_FILE");
+            if (p12Data == null || p12Data.isEmpty()) {
+                throw new KeyManagerException("P12 file data not found in environment variables");
+            }
+            // 디코딩된 P12 데이터를 InputStream으로 변환
+            InputStream keyStoreInputStream = new ByteArrayInputStream(Base64.getDecoder().decode(p12Data));
+
             // 키 저장소 객체를 만들되 키 유형이 PKCS12인 인스턴스를 가져오기
             KeyStore clientStore = KeyStore.getInstance("PKCS12");
-
-            // 클래스패스에서 키스토어 파일을 InputStream으로 로드
-            InputStream keyStoreInputStream = getClass().getClassLoader().getResourceAsStream(keyStoreFilePath);
-            if (keyStoreInputStream == null) {
-                throw new KeyManagerException(keyStoreFilePath);
-            }
 
             // Java KeyStore (JKS) 객체에 키 저장소 파일이랑 비밀번호 입력
             clientStore.load(keyStoreInputStream, password.toCharArray());
