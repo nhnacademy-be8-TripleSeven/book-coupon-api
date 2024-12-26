@@ -2,6 +2,8 @@ package com.nhnacademy.bookapi.repository;
 
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Review;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
@@ -14,5 +16,5 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     //@Query("select r from Review r join fetch r.book where r.userId = :userId")
     List<Review> findAllByUserIdOrderByCreatedAtDesc(Long id);
 
-    List<Review> findAllByBookOrderByCreatedAtDesc(Book book);
+    Page<Review> findAllByBookOrderByCreatedAtDesc(Book book, Pageable pageable);
 }

@@ -1,33 +1,23 @@
 package com.nhnacademy.bookapi.service.book;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import com.nhnacademy.bookapi.entity.Book;
-
-import com.nhnacademy.bookapi.entity.Publisher;
 
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCreatorMapRepository;
 import com.nhnacademy.bookapi.repository.BookCreatorRepository;
 import com.nhnacademy.bookapi.repository.BookImageRepository;
-import com.nhnacademy.bookapi.repository.BookPopularRepository;
+import com.nhnacademy.bookapi.repository.BookPopularityRepository;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.BookTypeRepository;
 import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -44,7 +34,7 @@ class BookApiSaveServiceTest {
     @Mock
     private  BookCreatorRepository bookCreatorRepository;
     @Mock
-    private  BookPopularRepository bookPopularRepository;
+    private BookPopularityRepository bookPopularRepository;
     @Mock
     private  BookImageRepository bookImageRepository;
     @Mock
