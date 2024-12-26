@@ -21,3 +21,4 @@ eureka:
     instance-id: book-coupon-api
     hostname: localhost
     prefer-ip-address: true
+
