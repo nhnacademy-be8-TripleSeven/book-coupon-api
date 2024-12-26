@@ -93,6 +93,13 @@ jobs:
             -e P12_PASSWORD=${{ secrets.P12_PASSWORD }} \
             -d lushlife99/nhn-book-coupon:${{ github.sha }}
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl libxml2-utils
+          date +%s # 명령어 테스트
+
+
       - name: Check First Instance via Eureka
         run: |
           START_TIME=$(date +%s)
