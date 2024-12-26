@@ -50,6 +50,10 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     Page<BookDetailResponseDTO> findBookTypeItemByType(@Param("type") Type type, Pageable pageable);
 
 
+    Optional<Book> findBookWithPublisherById(Long id);
+
+
+    Optional<Book> findByIsbn13(String isbn13);
     // 국내도서 조회
 
 
