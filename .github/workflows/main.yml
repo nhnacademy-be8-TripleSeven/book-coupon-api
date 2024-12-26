@@ -49,11 +49,12 @@ jobs:
       - name: Push Docker image
         run: |
           docker push lushlife99/nhn-book-coupon:${{ github.sha }}
-      - name: Decode the p12 file
 
       - name: Set P12 file as environment variable
         run: |
-          export P12_FILE=$(echo "${{ secrets.P12_FILE }}" | base64 --decode | base64)
+          echo "${{ secrets.P12_FILE }}" | base64 --decode > p12_encoded_file
+          echo "P12_FILE=$(cat p12_encoded_file | base64)" >> $GITHUB_ENV
+          rm p12_encoded_file
         env:
           P12_FILE: ${{ secrets.P12_FILE }}
 
