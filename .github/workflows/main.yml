@@ -102,7 +102,7 @@ jobs:
           echo "Start time: $START_TIME"
           
           while : ; do
-            RESPONSE=$(curl -s -H "Accept: application/xml" http://${{ secrets.EUREKA_USERNAME }}:${{ secrets.EUREKA_PASSWORD }}@nhn24.store/eureka/eureka/instances/book-coupon-api-1)
+            RESPONSE=$(curl -s -H "Accept: application/xml" http://${{ secrets.EUREKA_USERNAME }}:${{ secrets.EUREKA_PASSWORD }}@nhn24.store/eureka/instances/book-coupon-api-1)
           
             # 응답이 비어 있는지 확인
             if [ -z "$RESPONSE" ]; then
@@ -175,7 +175,7 @@ jobs:
           echo "Start time: $START_TIME"
           
           while : ; do
-            RESPONSE=$(curl -s -H "Accept: application/xml" http://${{ secrets.EUREKA_USERNAME }}:${{ secrets.EUREKA_PASSWORD }}@nhn24.store/eureka/eureka/instances/book-coupon-api-1)
+            RESPONSE=$(curl -s -H "Accept: application/xml" http://${{ secrets.EUREKA_USERNAME }}:${{ secrets.EUREKA_PASSWORD }}@nhn24.store/eureka/instances/book-coupon-api-1)
           
             # 응답이 비어 있는지 확인
             if [ -z "$RESPONSE" ]; then
