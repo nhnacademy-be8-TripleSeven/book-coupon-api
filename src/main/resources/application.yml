@@ -7,6 +7,9 @@ spring:
     password: nhnacademy123!
     host: 133.186.241.167
     port: 5672
+    ssl:
+      enabled: true
+
 
   lifecycle:
     timeout-per-shutdown-phase: 30s
@@ -47,7 +50,7 @@ url: https://api-keymanager.nhncloudservice.com
 appKey: qTQNj7LyHhdAazH3
 keyId: f5e65a4f86194461bb3b6a01de675dcf
 
-
+P12_PASSWORD: nhn24
 
 management:
   health:
