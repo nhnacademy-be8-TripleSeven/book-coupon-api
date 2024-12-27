@@ -18,7 +18,7 @@ eureka:
     service-url:
       defaultZone: http://admin:1234@eureka-server:8761/eureka
   instance:
-    instance-id: book-coupon-api
+    instance-id: book-coupon-api-1
     hostname: localhost
     prefer-ip-address: true
 
