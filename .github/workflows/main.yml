@@ -94,45 +94,56 @@ jobs:
             -d lushlife99/nhn-book-coupon:${{ github.sha }}
 
 
+
       - name: Check First Instance via Eureka
         run: |
+          shell: bash
           START_TIME=$(date +%s)
+          echo "Start time: $START_TIME"
+          
           while : ; do
             RESPONSE=$(curl -s -H "Accept: application/xml" http://${{ secrets.EUREKA_USERNAME }}:${{ secrets.EUREKA_PASSWORD }}@nhn24.store/eureka/eureka/instances/book-coupon-api-1)
-
+          
             # 응답이 비어 있는지 확인
             if [ -z "$RESPONSE" ]; then
               echo "Error: Empty response from Eureka server."
               exit 1
             fi
-
+          
+            echo "Response: $RESPONSE"
+          
             # XML 파싱을 위해 xmllint 사용
             STATUS=$(echo "$RESPONSE" | xmllint --xpath "string(//status)" - 2>/dev/null)
-
+          
             # xmllint 파싱이 실패하면 오류 처리
             if [ $? -ne 0 ]; then
               echo "Error: Failed to parse XML response."
               echo "Response received: $RESPONSE"
               exit 1
             fi
-
+          
+            echo "Parsed status: $STATUS"
+          
             # 상태가 "UP"이면 종료
             if [ "$STATUS" == "UP" ]; then
               echo "First instance is healthy and UP."
               break
             fi
-
+          
             # 180초 경과 체크
             CURRENT_TIME=$(date +%s)
             ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
-            if [ $ELAPSED_TIME -ge 180 ]; then
+            echo "Elapsed time: $ELAPSED_TIME seconds"
+          
+            if [ $ELAPSED_TIME -ge 300 ]; then
               echo "First instance is not healthy within 3 minutes. Aborting deployment."
               exit 1
             fi
-
+          
             # 10초 대기 후 재시도
             sleep 10
           done
+
             
 
       - name: Deploy to Second Instance
@@ -154,8 +165,10 @@ jobs:
               -e P12_FILE="$(echo ${{ secrets.P12_FILE }} | base64 --decode | base64 -w 0)" \
               -e P12_PASSWORD=${{ secrets.P12_PASSWORD }} \
               -d lushlife99/nhn-book-coupon:${{ github.sha }}
+            
+      
 
-      - name: Check First Instance via Eureka
+      - name: Check Second Instance via Eureka
         run: |
           shell: bash
           START_TIME=$(date +%s)
