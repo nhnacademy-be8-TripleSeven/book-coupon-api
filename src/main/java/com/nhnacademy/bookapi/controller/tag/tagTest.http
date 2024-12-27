@@ -1,0 +1,18 @@
+POST localhost:8086/admin/tags
+Content-Type: application/json
+
+{
+  "name": "testTag5"
+}
+
+###
+GET localhost:8086/books/1
+
+###
+POST localhost:8086/admin/book-tags
+Content-Type: application/json
+
+{
+  "bookId": 1,
+  "tagId": 3
+}

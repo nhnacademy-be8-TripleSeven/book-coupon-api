@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
+import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
@@ -19,6 +20,7 @@ import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -46,12 +48,13 @@ public class BookServiceImpl implements BookService {
     private final ElasticSearchBookSearchRepository elasticSearchBookSearchRepository;
     private final BookCreatorService bookCreatorService;
     private final BookTagRepository bookTagRepository;
+    private final BookTypeRepository bookTypeRepository;
 
     @Override
     public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
         Book book = new Book();
-        book.create(createBookRequest.getTitle(),createBookRequest.getDescription(),createBookRequest.getPublicationDate(), createBookRequest.getRegularPrice()
-            ,createBookRequest.getSalePrice(),createBookRequest.getIsbn(),createBookRequest.getStock(),createBookRequest.getPages(),null);
+        book.create(createBookRequest.getTitle(), createBookRequest.getDescription(), createBookRequest.getPublicationDate(), createBookRequest.getRegularPrice()
+                , createBookRequest.getSalePrice(), createBookRequest.getIsbn(), createBookRequest.getStock(), createBookRequest.getPages(), null);
         book = bookRepository.save(book);
         //이미지 저장
         String imageUrl = createBookRequest.getImageUrl();
@@ -67,10 +70,10 @@ public class BookServiceImpl implements BookService {
 
         Publisher existsPublisher = publisherRepository.findByName(publisher);
 
-        if(existsPublisher == null) {
+        if (existsPublisher == null) {
             Publisher newPub = new Publisher(createBookRequest.getPublisher());
             book.publisherUpdate(newPub);
-        }else {
+        } else {
             book.publisherUpdate(existsPublisher);
         }
         // 작가저장
@@ -128,38 +131,81 @@ public class BookServiceImpl implements BookService {
         bookRepository.deleteById(id);
     }
 
+    private List<BookCreatorDetail> getBookCreators(List<BookCreatorMap> bookCreatorMap) {
+        List<BookCreatorDetail> bookCreatorDetails = new ArrayList<>();
+        for (BookCreatorMap bookCreatorMap1 : bookCreatorMap) {
+            bookCreatorDetails.add(new BookCreatorDetail(bookCreatorMap1.getCreator().getName(), bookCreatorMap1.getCreator().getRole().toString()));
+        }
+        return bookCreatorDetails;
+    }
     @Transactional(readOnly = true)
     @Override
     public SearchBookDetail searchBookDetailByBookId(Long id) {
         Book book = bookRepository.findBookWithPublisherById(id).orElseThrow(() -> new BookNotFoundException("book not found"));
-        BookImage bookImage = bookImageRepository.findFirstByBookOrderByIdAsc(book).orElse(null);
-        String imageUrl = bookImage.getImage().getUrl(); // 이미지의 Url
+        BookCoverImage bookCoverImage = bookCoverImageRepository.findByBook(book);
+        String imageUrl = bookCoverImage != null ? bookCoverImage.getImage().getUrl() : null;
         List<BookCreatorMap> bookCreatorMaps = bookCreatorMapRepository.findByBook(book);
-        List<BookCreatorDetail> bookCreators = new ArrayList<>();
-        for (BookCreatorMap bookCreatorMap : bookCreatorMaps) {
-            bookCreators.add(new BookCreatorDetail(bookCreatorMap.getCreator().getName(), bookCreatorMap.getCreator().getRole().toString()));
-        }
-
         SearchBookDetail searchBookDetail = new SearchBookDetail(book.getTitle(), book.getDescription(),
                 book.getPublishDate(), book.getRegularPrice(), book.getSalePrice(), book.getIsbn13(),
                 book.getStock(), book.getPage(), imageUrl, book.getPublisher().getName());
-        searchBookDetail.setBookCreators(bookCreators);
+        searchBookDetail.setBookCreators(getBookCreators(bookCreatorMaps));
 
         List<BookCategory> bookCategories = bookCategoryRepository.findAllByBook(book);
         List<List<String>> categoryHierarchies = new ArrayList<>();
 
-        for (BookCategory bookCategory : bookCategories) {
-            Category category = bookCategory.getCategory(); // 하나의 카테고리 객체
-            List<String> hierarchy = getCategoryHierarchy(category);
-            categoryHierarchies.add(hierarchy);
+        if (!bookCategories.isEmpty()) {
+            for (BookCategory bookCategory : bookCategories) {
+                Category category = bookCategory.getCategory(); // 하나의 카테고리 객체
+                List<String> hierarchy = getCategoryHierarchy(category);
+                categoryHierarchies.add(hierarchy);
+            }
+            StringBuilder categories = getCategoryResult(categoryHierarchies.getLast());
+            searchBookDetail.setCategories(categories);
         }
 
-        StringBuilder categories = getCategoryResult(categoryHierarchies.getLast());
-        searchBookDetail.setCategories(categories);
-
         List<BookTag> bookTags = bookTagRepository.findAllByBookWithTags(book);
-
+        searchBookDetail.setTags(getBookTags(bookTags));
+        BookIndex bookIndex = bookIndexRepository.findByBook(book).orElse(null);
+        searchBookDetail.setBookIndex(getBookIndex(bookIndex));
+        List<BookType> bookTypes = bookTypeRepository.findAllByBook(book);
+        searchBookDetail.setBookTypes(getBookTypes(bookTypes));
+        List<BookImage> bookImages = bookImageRepository.findAllByBookWithImage(book);
+        searchBookDetail.setDetailImages(getDetailImages(bookImages));
         return searchBookDetail;
+    }
+
+    private List<String> getDetailImages(List<BookImage> bookImages) {
+        //https://image.yes24.com/momo/Noimg_XL.gif -> 이미지 없은 url
+        List<String> detailImages = new ArrayList<>();
+        for (BookImage bookImage : bookImages) {
+            if (!bookImage.getImage().getUrl().contains("Noimg_XL")) {
+                detailImages.add(bookImage.getImage().getUrl());
+            }
+        }
+        return detailImages;
+    }
+    private StringBuilder getBookTypes(List<BookType> bookTypes) {
+        StringBuilder types = new StringBuilder();
+        for (BookType bookType : bookTypes) {
+            types.append(bookType.getTypes()).append(",");
+        }
+        types.deleteCharAt(types.lastIndexOf(","));
+        return types;
+    }
+
+    private String getBookIndex(BookIndex bookIndex) {
+        if (Objects.isNull(bookIndex)) {
+            return "";
+        }
+        return bookIndex.getIndexes();
+    }
+
+    private StringBuilder getBookTags(List<BookTag> bookTags) {
+        StringBuilder tags = new StringBuilder();
+        for (BookTag bookTag : bookTags) {
+            tags.append("#").append(bookTag.getTag().getName()).append(",");
+        }
+        return tags;
     }
 
     private StringBuilder getCategoryResult(List<String> categoryHierarchies) {
@@ -232,6 +278,12 @@ public class BookServiceImpl implements BookService {
             default:
                 throw new IllegalArgumentException("Invalid search condition: " + condition);
         }
+    }
+
+    public List<BookSearchResponseDTO> mapToDTOList(List<BookDocument> documents) {
+        return documents.stream()
+            .map(BookSearchResponseDTO::new) // 생성자를 호출하여 매핑
+            .collect(Collectors.toList());
     }
 
 }

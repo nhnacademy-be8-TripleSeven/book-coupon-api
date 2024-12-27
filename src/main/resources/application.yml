@@ -1,12 +1,23 @@
 spring:
 
   profiles:
-    active: dev
+    active: hs
   rabbitmq:
     username: admin
     password: nhnacademy123!
     host: 133.186.241.167
     port: 5672
+    ssl:
+      enabled: true
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 5
+          initial-interval: 500
+          multiplier: 2.0
+          max-interval: 10000
+
 
   lifecycle:
     timeout-per-shutdown-phase: 30s
@@ -25,15 +36,16 @@ spring:
     password: nhnacademy123!
 
 eureka:
+  instance:
+    health-check-url: /actuator/health
+    instance-id: book-coupon-api
+    hostname: localhost
+    prefer-ip-address: true
   client:
     fetch-registry: true
     register-with-eureka: true
     service-url:
-      defaultZone: http://admin:1234@eureka-server:8761/eureka
-  instance:
-    instance-id: book-coupon-api
-    hostname: localhost
-    prefer-ip-address: true
+      defaultZone: http://admin:1234@localhost:8761/eureka/
 
 springdoc:
   api-docs:
@@ -46,9 +58,7 @@ url: https://api-keymanager.nhncloudservice.com
 appKey: qTQNj7LyHhdAazH3
 keyId: f5e65a4f86194461bb3b6a01de675dcf
 
-keyStoreFilePath: triple-seven.p12
-password: nhn24
-
+P12_PASSWORD: nhn24
 
 management:
   health:
@@ -61,9 +71,10 @@ management:
       enabled: true
     resume:
       enabled: true
+  endpoints:
     web:
       exposure:
-        include: health
+        include: health, info
   info:
     env:
       enabled: true

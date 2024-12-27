@@ -377,6 +377,8 @@ class CouponServiceImplTest {
         );
         ReflectionTestUtils.setField(book, "id", 1L);
 
+
+
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
         policy.setTestId(1l);

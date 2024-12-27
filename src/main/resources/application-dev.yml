@@ -12,7 +12,7 @@ eureka:
     hostname: localhost
     prefer-ip-address: true
 
-
+P12_PASSWORD: nhn24
 
 spring:
   application:
@@ -27,8 +27,6 @@ spring:
     uris: http://115.94.72.197:9200
     username: elastic
     password: nhnacademy123!
-    repositories:
-      enabled: true
 
   rabbitmq:
     virtual-host: vh1_dev
@@ -36,8 +34,6 @@ spring:
 logstash:
   host: 115.94.72.197
   port: 50000 # Logstash TCP input 포트
-
-
 
   autoconfigure:
     exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
