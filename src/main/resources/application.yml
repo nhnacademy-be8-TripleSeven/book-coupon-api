@@ -1,22 +1,12 @@
 spring:
 
   profiles:
-    active: hs
+    active: dev
   rabbitmq:
     username: admin
     password: nhnacademy123!
     host: 133.186.241.167
     port: 5672
-    ssl:
-      enabled: true
-    listener:
-      simple:
-        retry:
-          enabled: true
-          max-attempts: 5
-          initial-interval: 500
-          multiplier: 2.0
-          max-interval: 10000
 
 
   lifecycle:
