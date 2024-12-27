@@ -27,8 +27,6 @@ spring:
     uris: http://115.94.72.197:9200
     username: elastic
     password: nhnacademy123!
-    repositories:
-      enabled: true
 
   rabbitmq:
     virtual-host: vh1_dev

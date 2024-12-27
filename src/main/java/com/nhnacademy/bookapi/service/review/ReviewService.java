@@ -10,6 +10,8 @@ import com.nhnacademy.bookapi.exception.ReviewNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import org.aspectj.apache.bcel.generic.LineNumberGen;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -145,14 +147,11 @@ public class ReviewService {
         return new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt());
     }
     // 도서에 달려있는 모든 리뷰 조회
-    public List<ReviewResponseDto> getReviewsByBookId(Long bookId) {
-        List<ReviewResponseDto> result = new ArrayList<>();
+    public Page<ReviewResponseDto> getPagedReviewsByBookId(Long bookId, Pageable pageable) {
         Book book = getBook(bookId);
-        List<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book);
-        for (Review review : reviews) {
-            result.add(new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt()));
-        }
-        return result;
+        Page<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book, pageable);
+        return reviews.map(review ->
+                new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt()));
     }
 
     private Book getBook(Long bookId) {

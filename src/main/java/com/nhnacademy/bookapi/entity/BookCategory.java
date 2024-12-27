@@ -18,7 +18,6 @@ public class BookCategory {
     private Book book;
 
     @ManyToOne(fetch = FetchType.LAZY)
-
     private Category category;
 
 
