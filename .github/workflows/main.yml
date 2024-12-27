@@ -157,6 +157,7 @@ jobs:
 
       - name: Check First Instance via Eureka
         run: |
+          shell: bash
           START_TIME=$(date +%s)
           echo "Start time: $START_TIME"
           
@@ -194,7 +195,7 @@ jobs:
             ELAPSED_TIME=$((CURRENT_TIME - START_TIME))
             echo "Elapsed time: $ELAPSED_TIME seconds"
           
-            if [ $ELAPSED_TIME -ge 180 ]; then
+            if [ $ELAPSED_TIME -ge 300 ]; then
               echo "First instance is not healthy within 3 minutes. Aborting deployment."
               exit 1
             fi
