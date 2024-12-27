@@ -109,7 +109,7 @@ jobs:
               docker stop book-coupon-api-instance-2 || true
               docker rm -f book-coupon-api-instance-2 || true
             fi
-            docker run --name book-coupon-api-instance-2 
+            docker run --name book-coupon-api-instance-2 \
               --network nhn-book-store-network \
               -p 8087:8087 \
               -e SPRING_PROFILES_ACTIVE=instance2 \
