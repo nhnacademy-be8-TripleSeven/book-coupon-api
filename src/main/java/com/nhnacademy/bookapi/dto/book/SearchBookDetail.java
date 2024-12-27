@@ -24,13 +24,13 @@ public class SearchBookDetail {
     private int page;
     private String coverUrl;
     private String publisher;
-
+    private String bookIndex;
     //private List<Image> bookImages;
-
+    private List<String> detailImages;
     private List<BookCreatorDetail> bookCreators;
-    //private List<BookIndex> bookIndices;
-
     private StringBuilder categories;
+    private StringBuilder tags;
+    private StringBuilder bookTypes;
 
     public SearchBookDetail(String title, String description, LocalDate publishedDate,
         int regularPrice,

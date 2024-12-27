@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -86,9 +88,9 @@ public class ReviewController {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음")
     })
-    @GetMapping("/reviews/{bookId}")
-    public ResponseEntity<List<ReviewResponseDto>> getAllReviews(@PathVariable Long bookId) {
-        List<ReviewResponseDto> reviewResponseDtos = reviewService.getAllReviewsByUserId(bookId);
+    @GetMapping("/api/reviews/{bookId}/paged")
+    public ResponseEntity<Page<ReviewResponseDto>> getPagedReviewsByBookId(@PathVariable Long bookId, Pageable pageable) {
+        Page<ReviewResponseDto> reviewResponseDtos = reviewService.getPagedReviewsByBookId(bookId, pageable);
         return ResponseEntity.ok(reviewResponseDtos);
     }
 
