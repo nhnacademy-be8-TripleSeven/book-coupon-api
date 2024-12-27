@@ -11,4 +11,8 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     List<Coupon> findByMemberId(Long memberId);
     List<Coupon> findByCouponPolicyId(Long id);
     List<Coupon> findByMemberIdAndCouponStatus(Long memberId, CouponStatus couponStatus);
+
+    List<Coupon> findByMemberIdAndCouponIssueDateAfterOrderByCouponIssueDateDesc(Long memberId, LocalDate date);
+    List<Coupon> findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(Long memberId, CouponStatus status, LocalDate date);
 }
+

@@ -84,9 +84,20 @@ class CouponServiceImplTest {
     @Test
     void testCreateBookCoupon_Success() {
         // Given
-        Book book = new Book();
+        Publisher publisher = new Publisher("Test Publisher");
 
-
+        Book book = new Book(
+                "Test Book",
+                "Initial Description",
+                LocalDate.of(2020, 1, 1),
+                20000,
+                15000,
+                "9781234567897",
+                100,
+                300,
+                publisher
+        );
+        ReflectionTestUtils.setField(book, "id", 1L);
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
@@ -311,8 +322,20 @@ class CouponServiceImplTest {
     @Test
     void testUseBookCoupon_Success() {
         // Given
-        Book book = new Book();
+        Publisher publisher = new Publisher("Test Publisher");
 
+        Book book = new Book(
+                "Initial Title",
+                "Initial Description",
+                LocalDate.of(2020, 1, 1),
+                20000,
+                15000,
+                "9781234567897",
+                100,
+                300,
+                publisher
+        );
+        ReflectionTestUtils.setField(book, "id", 1L);
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
@@ -339,9 +362,20 @@ class CouponServiceImplTest {
     @Test
     void testUseBookCoupon_InvalidBook() {
         // Given
-        Book book = new Book();
-        book.setTestId(1L);
-        book.setTitle("Test Book");
+        Publisher publisher = new Publisher("Test Publisher");
+
+        Book book = new Book(
+                "Initial Title",
+                "Initial Description",
+                LocalDate.of(2020, 1, 1),
+                20000,
+                15000,
+                "9781234567897",
+                100,
+                300,
+                publisher
+        );
+        ReflectionTestUtils.setField(book, "id", 1L);
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
                 10000L, BigDecimal.ZERO, 500L, 30);
@@ -528,10 +562,10 @@ class CouponServiceImplTest {
         assertEquals(2, coupons.size());
 
         assertEquals("Coupon 1", coupons.get(0).getName());
-        assertEquals("Test Policy", coupons.get(0).getPolicyName());
+        assertEquals(500L , coupons.get(0).getDiscountAmount());
 
         assertEquals("Coupon 2", coupons.get(1).getName());
-        assertEquals("Test Policy", coupons.get(1).getPolicyName());
+        assertEquals(BigDecimal.ZERO, coupons.get(1).getDiscountRate());
     }
 
     @Test
@@ -561,7 +595,7 @@ class CouponServiceImplTest {
         assertNotNull(coupons);
         assertEquals(1, coupons.size());
         assertEquals("Unused Coupon", coupons.get(0).getName());
-        assertEquals("Policy 1", coupons.get(0).getPolicyName());
+        assertEquals(500L, coupons.get(0).getDiscountAmount());
     }
 
     @Test
@@ -592,7 +626,7 @@ class CouponServiceImplTest {
         assertNotNull(coupons);
         assertEquals(1, coupons.size());
         assertEquals("Used Coupon", coupons.get(0).getName());
-        assertEquals("Policy 1", coupons.get(0).getPolicyName());
+        assertEquals(BigDecimal.ZERO, coupons.get(0).getDiscountRate());
     }
 
     @Test

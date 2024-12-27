@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -88,64 +89,6 @@ public class CouponController {
         return ResponseEntity.ok(response);
     }
 
-    // **사용자 전용 API** //
-//
-//    @Operation(summary = "쿠폰 사용", description = "사용자가 쿠폰을 사용합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "쿠폰 사용 성공"),
-//            @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰")
-//    })
-//    @PostMapping("/api/coupons/use/{id}")
-//    public ResponseEntity<CouponUseResponseDTO> useCoupon(@PathVariable Long id) {
-//        CouponUseResponseDTO response = couponService.useCoupon(id);
-//        return ResponseEntity.ok(response);
-//    }
-//
-//    @Operation(summary = "책 쿠폰 사용", description = "사용자가 특정 도서에 쿠폰을 사용합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "책 쿠폰 사용 성공"),
-//            @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰")
-//    })
-//    @PostMapping("/api/coupons/use/{couponId}/book/{bookId}")
-//    public ResponseEntity<CouponUseResponseDTO> useBookCoupon(@PathVariable Long couponId, @PathVariable Long bookId) {
-//        CouponUseResponseDTO response = couponService.useBookCoupon(couponId, bookId);
-//        return ResponseEntity.ok(response);
-//    }
-//
-//    @Operation(summary = "카테고리 쿠폰 사용", description = "사용자가 특정 카테고리에 쿠폰을 사용합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "카테고리 쿠폰 사용 성공"),
-//            @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰")
-//    })
-//    @PostMapping("/api/coupons/use/{couponId}/category/{categoryId}")
-//    public ResponseEntity<CouponUseResponseDTO> useCategoryCoupon(@PathVariable Long couponId, @PathVariable Long categoryId) {
-//        CouponUseResponseDTO response = couponService.useCategoryCoupon(couponId, categoryId);
-//        return ResponseEntity.ok(response);
-//    }
-//
-//    @Operation(summary = "회원 쿠폰 조회", description = "특정 회원의 모든 쿠폰을 조회합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "회원의 쿠폰 조회 성공"),
-//            @ApiResponse(responseCode = "404", description = "해당 회원의 쿠폰을 찾을 수 없음")
-//    })
-//    @GetMapping("/api/coupons/member/{memberId}")
-//    public ResponseEntity<List<CouponDetailsDTO>> getAllCouponsByMemberId(@PathVariable Long memberId) {
-//        List<CouponDetailsDTO> response = couponService.getAllCouponsByMemberId(memberId);
-//        return ResponseEntity.ok(response);
-//    }
-//
-//    @Operation(summary = "회원 미사용 쿠폰 조회", description = "특정 회원의 미사용 쿠폰만 조회합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "회원의 미사용 쿠폰 조회 성공"),
-//            @ApiResponse(responseCode = "404", description = "해당 회원의 미사용 쿠폰을 찾을 수 없음")
-//    })
-//    @GetMapping("/api/coupons/member/{memberId}/unused")
-//    public ResponseEntity<List<CouponDetailsDTO>> getUnusedCouponsByMemberId(@PathVariable Long memberId) {
-//        List<CouponDetailsDTO> response = couponService.getUnusedCouponsByMemberId(memberId);
-//        return ResponseEntity.ok(response);
-//    }
-
-
     @Operation(summary = "사용자 쿠폰 사용", description = "사용자가 본인의 쿠폰을 사용합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "쿠폰 사용 성공"),
@@ -187,16 +130,74 @@ public class CouponController {
         return ResponseEntity.ok(response);
     }
 
+//    @Operation(summary = "사용자 쿠폰 조회", description = "사용자가 본인의 모든 쿠폰을 조회합니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "쿠폰 조회 성공"),
+//            @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
+//    })
+//    @GetMapping("/api/coupons")
+//    public ResponseEntity<List<CouponDetailsDTO>> getCouponsForUser(@RequestHeader("X-User") Long userId) {
+//        List<CouponDetailsDTO> response = couponService.getAllCouponsByMemberId(userId);
+//        return ResponseEntity.ok(response);
+//    }
+//
+//    @Operation(summary = "사용자 사용 쿠폰 조회", description = "사용자가 본인의 사용한 쿠폰만 조회합니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "사용 쿠폰 조회 성공"),
+//            @ApiResponse(responseCode = "404", description = "사용 쿠폰을 찾을 수 없음")
+//    })
+//    @GetMapping("/api/coupons/used")
+//    public ResponseEntity<List<CouponDetailsDTO>> getUsedCouponsForUser(@RequestHeader("X-User") Long userId) {
+//        List<CouponDetailsDTO> response = couponService.getUsedCouponsByMemberId(userId);
+//        return ResponseEntity.ok(response);
+//    }
+
+//    @Operation(summary = "사용자 미사용 쿠폰 조회", description = "사용자가 본인의 미사용 쿠폰만 조회합니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "미사용 쿠폰 조회 성공"),
+//            @ApiResponse(responseCode = "404", description = "미사용 쿠폰을 찾을 수 없음")
+//    })
+//    @GetMapping("/api/coupons/unused")
+//    public ResponseEntity<List<CouponDetailsDTO>> getUnusedCouponsForUser(@RequestHeader("X-User") Long userId) {
+//        List<CouponDetailsDTO> response = couponService.getUnusedCouponsByMemberId(userId);
+//        return ResponseEntity.ok(response);
+//    }
+
+
+
+
+
+
     @Operation(summary = "사용자 쿠폰 조회", description = "사용자가 본인의 모든 쿠폰을 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "쿠폰 조회 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
     @GetMapping("/api/coupons")
-    public ResponseEntity<List<CouponDetailsDTO>> getCouponsForUser(@RequestHeader("X-User") Long userId) {
-        List<CouponDetailsDTO> response = couponService.getAllCouponsByMemberId(userId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<CouponDetailsDTO>> getCouponsForUser(@RequestHeader("X-User") Long userId,
+                                                                    @RequestParam(required = false) String keyword,
+                                                                    @RequestParam(required = false) LocalDate startDate,
+                                                                    @RequestParam(required = false) LocalDate endDate) {
+        List<CouponDetailsDTO> coupons = couponService.getCouponsForUser(userId, keyword, startDate, endDate);
+        return ResponseEntity.ok(coupons);
     }
+
+    @Operation(summary = "사용자 사용 쿠폰 조회", description = "사용자가 본인의 사용한 쿠폰만 조회합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "사용 쿠폰 조회 성공"),
+            @ApiResponse(responseCode = "404", description = "사용 쿠폰을 찾을 수 없음")
+    })
+    @GetMapping("/api/coupons/used")
+    public ResponseEntity<List<CouponDetailsDTO>> getUsedCouponsForUser(
+            @RequestHeader(value = "X-User") Long userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
+
+        List<CouponDetailsDTO> usedCoupons = couponService.getUsedCouponsForUser(userId, keyword, startDate, endDate);
+        return ResponseEntity.ok(usedCoupons);
+    }
+
 
     @Operation(summary = "사용자 미사용 쿠폰 조회", description = "사용자가 본인의 미사용 쿠폰만 조회합니다.")
     @ApiResponses({
@@ -204,25 +205,21 @@ public class CouponController {
             @ApiResponse(responseCode = "404", description = "미사용 쿠폰을 찾을 수 없음")
     })
     @GetMapping("/api/coupons/unused")
-    public ResponseEntity<List<CouponDetailsDTO>> getUnusedCouponsForUser(@RequestHeader("X-User") Long userId) {
-        List<CouponDetailsDTO> response = couponService.getUnusedCouponsByMemberId(userId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<List<CouponDetailsDTO>> getUnUsedCouponsForUser(
+            @RequestHeader(value = "X-User") Long userId,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) LocalDate startDate,
+            @RequestParam(required = false) LocalDate endDate) {
+
+        List<CouponDetailsDTO> usedCoupons = couponService.getUsedCouponsForUser(userId, keyword, startDate, endDate);
+        return ResponseEntity.ok(usedCoupons);
     }
 
-    @Operation(summary = "사용자 사용 쿠폰 조회", description = "사용자가 본인의 사용 쿠폰만 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "사용 쿠폰 조회 성공"),
-            @ApiResponse(responseCode = "404", description = "사용 쿠폰을 찾을 수 없음")
-    })
-    @GetMapping("/api/coupons/used")
-    public ResponseEntity<List<CouponDetailsDTO>> getUsedCouponsForUser(@RequestHeader("X-User") Long userId) {
-        List<CouponDetailsDTO> response = couponService.getUsedCouponsByMemberId(userId);
-        return ResponseEntity.ok(response);
-    }
+
+
 
 
     // 미구현
-
     @Operation(summary = "결제 시 사용 가능한 쿠폰 조회", description = "사용 가능한 쿠폰 목록 조회")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
