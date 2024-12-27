@@ -9,6 +9,14 @@ spring:
     port: 5672
     ssl:
       enabled: true
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 5
+          initial-interval: 500
+          multiplier: 2.0
+          max-interval: 10000
 
 
   lifecycle:
