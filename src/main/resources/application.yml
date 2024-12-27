@@ -71,9 +71,10 @@ management:
       enabled: true
     resume:
       enabled: true
+  endpoints:
     web:
       exposure:
-        include: health
+        include: health, info
   info:
     env:
       enabled: true
