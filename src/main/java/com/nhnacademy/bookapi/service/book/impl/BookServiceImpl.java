@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
+import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
@@ -277,6 +278,12 @@ public class BookServiceImpl implements BookService {
             default:
                 throw new IllegalArgumentException("Invalid search condition: " + condition);
         }
+    }
+
+    public List<BookSearchResponseDTO> mapToDTOList(List<BookDocument> documents) {
+        return documents.stream()
+            .map(BookSearchResponseDTO::new) // 생성자를 호출하여 매핑
+            .collect(Collectors.toList());
     }
 
 }

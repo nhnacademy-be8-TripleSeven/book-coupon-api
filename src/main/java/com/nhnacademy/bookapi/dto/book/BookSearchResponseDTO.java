@@ -1,54 +1,36 @@
-package com.nhnacademy.bookapi.elasticsearch.document;
+package com.nhnacademy.bookapi.dto.book;
 
-
-
+import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
 
-@Setter
+@AllArgsConstructor
 @Getter
-@Document(indexName = "nhn24")
-public class BookDocument {
+@RequiredArgsConstructor
+public class BookSearchResponseDTO {
 
-    @Id
-    private String id;
-
+    private int id;
     private String title;
-    private String description;
     private String isbn13;
-
-    @Field(name = "publish_date")
+    private String description;
     private LocalDate publishDate;
-
-    @Field(name = "regular_price")
     private int regularPrice;
-
-    @Field(name = "sale_price")
     private int salePrice;
-
     private int stock;
     private int page;
-
     private int bestSellerRank;
-
     private int clickCount;
-
     private int searchCount;
-
     private int cartCount;
-
     private String coverUrl;
-
-    @Field(name = "publisher_name")
     private String publisherName;
-
     private String bookcreator;
-
     private List<String> categories;
 
+    public BookSearchResponseDTO(BookDocument bookDocument) {
+    }
 }
