@@ -184,16 +184,6 @@ public class CouponServiceImpl implements CouponService {
 
 
 
-
-
-
-
-
-
-
-
-
-
     // 쿠폰 사용 (사용자용)
     @Transactional
     public CouponUseResponseDTO useCoupon(Long userId, Long couponId) {
@@ -276,6 +266,18 @@ public class CouponServiceImpl implements CouponService {
                 .collect(Collectors.toList());
     }
 
+    // 사용자 사용 쿠폰 조회
+    @Transactional(readOnly = true)
+    public List<CouponDetailsDTO> getUsedCouponsByMemberId(Long userId) {
+        List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatus(userId, CouponStatus.USED);
+        if (coupons.isEmpty()) {
+            throw new CouponsNotFoundException("No Used coupons found for user ID: " + userId);
+        }
+        return coupons.stream()
+                .map(this::mapToCouponDetailsDTO)
+                .collect(Collectors.toList());
+    }
+
     // 사용자 미사용 쿠폰 조회
     @Transactional(readOnly = true)
     public List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long userId) {
@@ -288,17 +290,6 @@ public class CouponServiceImpl implements CouponService {
                 .collect(Collectors.toList());
     }
 
-    // 사용자 사용 쿠폰 조회
-    @Transactional(readOnly = true)
-    public List<CouponDetailsDTO> getUsedCouponsByMemberId(Long userId) {
-        List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatus(userId, CouponStatus.USED);
-        if (coupons.isEmpty()) {
-            throw new CouponsNotFoundException("No Used coupons found for user ID: " + userId);
-        }
-        return coupons.stream()
-                .map(this::mapToCouponDetailsDTO)
-                .collect(Collectors.toList());
-    }
 
     // 쿠폰 정책 아이디 기반 쿠폰 리스트 조회
     @Override
@@ -319,6 +310,46 @@ public class CouponServiceImpl implements CouponService {
                 .collect(Collectors.toList());
     }
 
+
+
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CouponDetailsDTO> getCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate) {
+        LocalDate fiveYearsAgo = LocalDate.now().minusYears(5);
+
+        // 쿠폰 조회 (발급일자 5년 이내)
+        List<Coupon> coupons = couponRepository.findByMemberIdAndCouponIssueDateAfterOrderByCouponIssueDateDesc(userId, fiveYearsAgo);
+
+        // 필터 적용
+        return coupons.stream()
+                .filter(coupon -> (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
+                        (startDate == null || !coupon.getCouponIssueDate().isBefore(startDate)) &&
+                        (endDate == null || !coupon.getCouponIssueDate().isAfter(endDate)))
+                .map(this::mapToCouponDetailsDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CouponDetailsDTO> getUsedCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate) {
+        LocalDate fiveYearsAgo = LocalDate.now().minusYears(5);
+
+        // 사용된 쿠폰 조회 (발급일자 5년 이내)
+        List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(
+                userId, CouponStatus.USED, fiveYearsAgo);
+
+        // 필터 적용
+        return coupons.stream()
+                .filter(coupon -> (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
+                        (startDate == null || !coupon.getCouponIssueDate().isBefore(startDate)) &&
+                        (endDate == null || !coupon.getCouponIssueDate().isAfter(endDate)))
+                .map(this::mapToCouponDetailsDTO)
+                .collect(Collectors.toList());
+    }
+
+
+
     // 쿠폰 상세 정보 DTO 변환
     private CouponDetailsDTO mapToCouponDetailsDTO(Coupon coupon) {
         String bookTitle = bookCouponRepository.findByCoupon(coupon)
@@ -330,6 +361,8 @@ public class CouponServiceImpl implements CouponService {
                 .map(CategoryCoupon::getCategory)
                 .map(Category::getName)
                 .orElse(null);
+
+        log.info("Coupon ID: {}, Book Title: {}, Category Name: {}", coupon.getId(), bookTitle, categoryName);
 
         return new CouponDetailsDTO(
                 coupon,
