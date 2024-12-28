@@ -60,7 +60,7 @@
     <property name="LOG_URL" value="https://api-logncrash.cloud.toast.com/v2/log" />
 
     <!-- 개발 환경 (dev) -->
-    <springProfile name="hs">
+    <springProfile name="dev">
         <!-- 콘솔 Appender -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>

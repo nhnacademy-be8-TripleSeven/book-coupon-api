@@ -1,11 +1,14 @@
 package com.nhnacademy.bookapi.controller.book;
 
+import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
+import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.book.impl.BookServiceImpl;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,12 +40,18 @@ public class BookSearchController {
 
 
     @GetMapping("/term/{term}")
-    public ResponseEntity<List<BookSearchResponseDTO>> bookTitleSearch(@PathVariable(name = "term") String term, Pageable pageable) {
+    public ResponseEntity<Page<BookDocument>> bookTitleSearch(@PathVariable(name = "term") String term, Pageable pageable) {
 
-        Page<BookDocument> documents = elasticSearchBookSearchRepository.findByTitleContaining(term, pageable);
+        Page<BookDocument> documents = elasticSearchBookSearchRepository.findByTitleContainingOrderByPublishDateDesc(term, pageable);
+        return ResponseEntity.ok(documents);
+    }
 
-        List<BookSearchResponseDTO> responseDTOs = bookServiceImpl.mapToDTOList(documents.getContent());
+    @GetMapping("/typeSearch/{type}")
+    public ResponseEntity<Page<BookDetailResponseDTO>> bookTypeSearch(@PathVariable(name = "type") String type, Pageable pageable) {
 
-        return ResponseEntity.ok(responseDTOs);
+        Page<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(Type.valueOf(type.toUpperCase()),
+            pageable);
+
+        return ResponseEntity.ok(bookTypeBooks);
     }
 }
