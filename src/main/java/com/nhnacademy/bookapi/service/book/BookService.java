@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.service.book;
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
+import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
@@ -27,7 +28,4 @@ public interface BookService {
 
     Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable);
 
-    Page<BookDocument> searchByTitleOrAuthor(String keyword, Pageable pageable);
-
-    Page<BookDocument> searchByCondition(String condition, String keyword, Pageable pageable);
 }

@@ -214,31 +214,7 @@ public class BookServiceImpl implements BookService {
     }
 
 
-    // 타이틀 또는 작가 이름으로 검색
-    public Page<BookDocument> searchByTitleOrAuthor(String keyword, Pageable pageable) {
-        return elasticSearchBookSearchRepository.findByTitleContaining(keyword, keyword, pageable);
-    }
 
-    // 조건별 검색
-    public Page<BookDocument> searchByCondition(String condition, String keyword, Pageable pageable) {
-        switch (condition) {
-            case "title":
-                return elasticSearchBookSearchRepository.findByTitleContaining(keyword, pageable);
-            case "author":
-                return elasticSearchBookSearchRepository.findByBookcreatorContaining(keyword, pageable);
-            case "publisher":
-                return elasticSearchBookSearchRepository.findByPublisherNameContaining(keyword, pageable);
-            case "isbn":
-                return elasticSearchBookSearchRepository.findByIsbn13(keyword, pageable);
-            default:
-                throw new IllegalArgumentException("Invalid search condition: " + condition);
-        }
-    }
 
-    public List<BookSearchResponseDTO> mapToDTOList(List<BookDocument> documents) {
-        return documents.stream()
-            .map(BookSearchResponseDTO::new) // 생성자를 호출하여 매핑
-            .collect(Collectors.toList());
-    }
 
 }
