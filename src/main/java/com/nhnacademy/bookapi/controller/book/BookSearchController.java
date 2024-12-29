@@ -42,7 +42,7 @@ public class BookSearchController {
     @GetMapping("/term/{term}")
     public ResponseEntity<Page<BookDocument>> bookTitleSearch(@PathVariable(name = "term") String term, Pageable pageable) {
 
-        Page<BookDocument> documents = elasticSearchBookSearchRepository.findByTitleContainingOrderByPublishDateDesc(term, pageable);
+        Page<BookDocument> documents = elasticSearchBookSearchRepository.findByTitleContaining(term, pageable);
         return ResponseEntity.ok(documents);
     }
 

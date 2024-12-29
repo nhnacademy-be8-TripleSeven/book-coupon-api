@@ -12,9 +12,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ElasticSearchBookSearchRepository extends ElasticsearchRepository<BookDocument, String>, CustomBookSearchRepository {
-    Page<BookDocument> findByTitleContaining(String title, Pageable pageable);
-
-
 
 
     Page<BookSearchResponseDTO> findByTitleContaining(String title, String bookCreator, Pageable pageable);
@@ -31,7 +28,7 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
     );
 
     // 출판일 기준 정렬
-    Page<BookDocument> findByTitleContainingOrderByPublishDateDesc(
+    Page<BookDocument> findByTitleContaining(
         String title,
         Pageable pageable
     );
