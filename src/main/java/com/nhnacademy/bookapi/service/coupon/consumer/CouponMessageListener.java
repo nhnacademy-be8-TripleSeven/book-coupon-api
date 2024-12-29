@@ -17,18 +17,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
-
+import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponMessageListener {
     private final CouponRepository couponRepository;
+    private final ConcurrentHashMap<String, Integer> retryCounts = new ConcurrentHashMap<>();
 
     @RabbitListener(queues = RabbitConfig.QUEUE_NAME)
     @Transactional
     public void handleCouponAssignRequest(CouponAssignRequestDTO request, Message message, Channel channel) {
         log.info("Received coupon assign request: {}", request);
 
+        String messageId = getMessageId(message);
         try {
             // 쿠폰 조회
             Coupon coupon = couponRepository.findById(request.getCouponId())
@@ -42,29 +44,60 @@ public class CouponMessageListener {
 
             // 쿠폰 정보 업데이트
             coupon.setCouponAssignData(request.getMemberId(), LocalDate.now(),
-                    LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()),CouponStatus.NOTUSED);
+                    LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.NOTUSED);
 
             couponRepository.saveAndFlush(coupon); // DB 저장
             log.info("Coupon successfully assigned: {}", coupon);
 
             // 성공적으로 처리된 경우 메시지 확인(Ack)
             channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+            retryCounts.remove(messageId);
+
         } catch (CouponNotFoundException | CouponAlreadyAssignedException e) {
             log.error("Business exception: {}", e.getMessage());
-            try {
-                // 처리 불가능한 메시지를 DLQ로 이동
-                channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
-            } catch (IOException ioException) {
-                log.error("Failed to reject the message: {}", ioException.getMessage(), ioException);
-            }
+            retryOrMoveToDlq(channel, message, messageId);
         } catch (Exception e) {
             log.error("Error processing message: {}", e.getMessage(), e);
-            try {
-                // 기타 에러 발생 시 재시도 처리
-                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true);
-            } catch (IOException ioException) {
-                log.error("Failed to nack the message: {}", ioException.getMessage(), ioException);
-            }
+            retryOrMoveToDlq(channel, message, messageId);
         }
     }
+
+    private void retryOrMoveToDlq(Channel channel, Message message, String messageId) {
+        try {
+            int retryCount = retryCounts.getOrDefault(messageId, 0);
+
+            if (retryCount >= 2) {
+                log.info("Max retries reached for message: {}. Moving to DLQ.", messageId);
+                moveToDlq(channel, message);
+                retryCounts.remove(messageId); // 성공적으로 처리 후 제거
+            } else {
+                retryCounts.put(messageId, retryCount + 1);
+                log.info("Retrying message: {}. Retry count: {}", messageId, retryCount + 1);
+                channel.basicNack(message.getMessageProperties().getDeliveryTag(), false, true); // 재처리 요청
+            }
+        } catch (IOException ioException) {
+            log.error("Failed to nack the message: {}", ioException.getMessage(), ioException);
+        }
+    }
+
+    private void moveToDlq(Channel channel, Message message) {
+        try {
+            String messageContent = new String(message.getBody()); // 메시지 본문을 문자열로 변환
+            log.info("Moving message to DLQ: Content={}, MessageId={}", messageContent, message.getMessageProperties().getMessageId());
+            channel.basicReject(message.getMessageProperties().getDeliveryTag(), false); // requeue=false
+        } catch (IOException ioException) {
+            log.error("Failed to move message to DLQ: {}", ioException.getMessage(), ioException);
+        }
+    }
+
+
+    private String getMessageId(Message message) {
+        String messageId = message.getMessageProperties().getMessageId();
+        if (messageId == null || messageId.isEmpty()) {
+            messageId = "msg-" + new String(message.getBody()).hashCode(); // 메시지 본문 기반 ID 생성
+            message.getMessageProperties().setMessageId(messageId);
+        }
+        return messageId;
+    }
+
 }
