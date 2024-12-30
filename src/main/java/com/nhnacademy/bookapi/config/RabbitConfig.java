@@ -95,7 +95,9 @@ public class RabbitConfig {
 
     @Bean
     public Queue dlq() {
-        return new Queue(DLQ_NAME, true);
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-message-ttl", 86400000); // TTL 설정: 메시지가 1일 후 삭제
+        return new Queue(DLQ_NAME, true, false, false, args);
     }
 
     @Bean

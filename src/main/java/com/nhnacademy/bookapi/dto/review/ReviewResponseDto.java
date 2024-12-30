@@ -6,13 +6,15 @@ import java.time.LocalDateTime;
 @Getter
 public class ReviewResponseDto {
 
+    private Long userId;
     private String text;
     private int rating;
     private LocalDateTime createdAt;
 
     public ReviewResponseDto() {}
 
-    public ReviewResponseDto(String text, int rating, LocalDateTime createdAt) {
+    public ReviewResponseDto(Long userId, String text, int rating, LocalDateTime createdAt) {
+        this.userId = userId;
         this.text = text;
         this.rating = rating;
         this.createdAt = createdAt;
