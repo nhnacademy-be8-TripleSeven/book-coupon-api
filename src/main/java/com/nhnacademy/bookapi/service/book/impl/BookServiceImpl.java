@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
+import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
@@ -258,25 +259,7 @@ public class BookServiceImpl implements BookService {
     }
 
 
-    // 타이틀 또는 작가 이름으로 검색
-    public Page<BookDocument> searchByTitleOrAuthor(String keyword, Pageable pageable) {
-        return elasticSearchBookSearchRepository.findByTitleContaining(keyword, keyword, pageable);
-    }
 
-    // 조건별 검색
-    public Page<BookDocument> searchByCondition(String condition, String keyword, Pageable pageable) {
-        switch (condition) {
-            case "title":
-                return elasticSearchBookSearchRepository.findByTitleContaining(keyword, pageable);
-            case "author":
-                return elasticSearchBookSearchRepository.findByBookcreatorContaining(keyword, pageable);
-            case "publisher":
-                return elasticSearchBookSearchRepository.findByPublisherNameContaining(keyword, pageable);
-            case "isbn":
-                return elasticSearchBookSearchRepository.findByIsbn13(keyword, pageable);
-            default:
-                throw new IllegalArgumentException("Invalid search condition: " + condition);
-        }
-    }
+
 
 }

@@ -1,5 +1,32 @@
-server:
-  port: 8086
+spring:
+
+  application:
+    name: book-coupon-api
+
+  datasource:
+    url: jdbc:mysql://133.186.241.167:3306/nhn_academy_37?serverTimezone=UTC&characterEncoding=UTF-8
+    username: nhn_academy_37
+    password: xo-5vMk2*gQpu*f1
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    show-sql: true
+  rabbitmq:
+    virtual-host: vh1_dev
+
+logstash:
+  host: 115.94.72.197
+  port: 50000 # Logstash TCP input 포트
+
+  autoconfigure:
+    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
+
+aladin:
+  api:
+    key: ttbrlgus45311101001
 
 eureka:
   client:
@@ -14,33 +41,8 @@ eureka:
 
 P12_PASSWORD: nhn24
 
-spring:
-  application:
-    name: book-coupon-api
-  jpa:
-    hibernate:
-      ddl-auto: update
-    database-platform: org.hibernate.dialect.MySQL8Dialect
-    show-sql: true
-
-  elasticsearch:
-    uris: http://115.94.72.197:9200
-    username: elastic
-    password: nhnacademy123!
-    repositories:
-      enabled: true
-
-  rabbitmq:
-    virtual-host: vh1_dev
-
-logstash:
-  host: 115.94.72.197
-  port: 50000 # Logstash TCP input 포트
-
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
-
-
+server:
+  port: 8086
 
 
 #??

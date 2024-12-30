@@ -3,6 +3,8 @@ package com.nhnacademy.bookapi.dto.book;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -32,13 +34,16 @@ public class BookDetailResponseDTO {
     @Setter
     private List<String> creator;
 
+    private LocalDate publishDate;
+
     public BookDetailResponseDTO(Long id, String title, String publisher, int regularPrice, int salePrice,
-        String coverUrl) {
+        String coverUrl, LocalDate publishDate) {
         this.id = id;
         this.title = title;
         this.publisher = publisher;
         this.regularPrice = regularPrice;
         this.salePrice = salePrice;
         this.coverUrl = coverUrl;
+        this.publishDate = publishDate;
     }
 }

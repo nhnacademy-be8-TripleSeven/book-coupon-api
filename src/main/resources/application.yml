@@ -8,6 +8,7 @@ spring:
     host: 133.186.241.167
     port: 5672
 
+
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
@@ -47,7 +48,7 @@ url: https://api-keymanager.nhncloudservice.com
 appKey: qTQNj7LyHhdAazH3
 keyId: f5e65a4f86194461bb3b6a01de675dcf
 
-
+P12_PASSWORD: nhn24
 
 management:
   health:
@@ -60,9 +61,10 @@ management:
       enabled: true
     resume:
       enabled: true
+  endpoints:
     web:
       exposure:
-        include: health
+        include: health, info
   info:
     env:
       enabled: true
