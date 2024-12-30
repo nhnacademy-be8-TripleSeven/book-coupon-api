@@ -7,7 +7,9 @@ import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 import com.nhnacademy.bookapi.entity.Book;
+import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Type;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -27,5 +29,7 @@ public interface BookService {
     Page<BookDetailResponseDTO> getMonthlyBestBooks();
 
     Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable);
+
+    Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable);
 
 }

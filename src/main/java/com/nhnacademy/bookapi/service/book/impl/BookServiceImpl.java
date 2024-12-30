@@ -258,8 +258,14 @@ public class BookServiceImpl implements BookService {
         return bookTypeItemByType;
     }
 
+    @Override
+    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
+        String keyword, Pageable pageable) {
+        Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
+            categories, keyword, pageable);
 
-
+        return byCategoryAndTitle;
+    }
 
 
 }
