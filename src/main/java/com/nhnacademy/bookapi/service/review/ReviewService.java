@@ -9,86 +9,31 @@ import com.nhnacademy.bookapi.exception.ReviewAlreadyExistException;
 import com.nhnacademy.bookapi.exception.ReviewNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
+import com.nhnacademy.bookapi.service.object.ObjectService;
 import org.aspectj.apache.bcel.generic.LineNumberGen;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.*;
 
-//
-//@Service
-//@Transactional
-//public class ReviewService {
-//
-//    private ReviewRepository reviewRepository;
-//    private BookRepository bookRepository;
-//
-//    public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository) {
-//        this.reviewRepository = reviewRepository;
-//        this.bookRepository = bookRepository;
-//    }
-//
-//    public boolean addReview(ReviewRequestDto reviewRequestDto) {
-//        Book book = getBook(reviewRequestDto.getBookId());
-//
-//        if (reviewRepository.findByBookAndUserId(book, reviewRequestDto.getUserId()).isPresent()) {
-//            throw new ReviewAlreadyExistException("Review already exists");
-//        }
-//
-//        Review review = new Review(
-//                reviewRequestDto.getText(),
-//                LocalDateTime.now(),
-//                reviewRequestDto.getRating(),
-//                book,
-//                reviewRequestDto.getUserId()
-//        );
-//
-//        reviewRepository.save(review);
-//        return true;
-//    }
-//
-//    // userId와 bookId를 통해 수정하려는 컬럼을 찾고 업데이트
-//    public boolean updateReview(ReviewRequestDto reviewRequestDto) {
-//        Book book = getBook(reviewRequestDto.getBookId());
-//        Review review = getReview(book, reviewRequestDto.getUserId());
-//        review.setText(reviewRequestDto.getText());
-//        review.setRating(reviewRequestDto.getRating());
-//        return true;
-//    }
-//
-//    //userId와 bookId를 통해 컬럼 삭제
-//    public boolean deleteReview(ReviewRequestDto reviewRequestDto) {
-//        Book book = getBook(reviewRequestDto.getBookId());
-//        Review review = getReview(book, reviewRequestDto.getUserId());
-//        reviewRepository.delete(review);
-//        return true;
-//    }
-//
-//    //한 유저가 쓴 모든 리뷰를 select
-//    public List<Review> getAllReviewsByUserId(Long userId) {
-//        return reviewRepository.findAllByUserId(userId);
-//    }
-//
-//    private Book getBook(Long bookId) {
-//        return bookRepository.findById(bookId)
-//                .orElseThrow(() -> new BookNotFoundException("Book not found"));
-//    }
-//
-//    private Review getReview(Book book, Long userId) {
-//        return reviewRepository.findByBookAndUserId(book, userId)
-//                .orElseThrow(() -> new ReviewNotFoundException("Review not found"));
-//    }
-//}
 @Service
 @Transactional
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
+
+//    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
+//    private final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
+//    private final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
+//    private final String username = "rlgus4531@naver.com";
+//    private final String password = "team3";
+//    private final String containerName = "triple-seven";
 
     public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository) {
         this.reviewRepository = reviewRepository;
@@ -135,7 +80,7 @@ public class ReviewService {
         List<Review> reviews = reviewRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
 
         for (Review review : reviews) {
-            result.add(new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt()));
+            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt()));
         }
 
         return result;
@@ -144,14 +89,25 @@ public class ReviewService {
     public ReviewResponseDto getReview(Long bookId, Long userId) {
         Book book = getBook(bookId);
         Review review = getReview(book, userId);
-        return new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt());
+        return new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt());
     }
-    // 도서에 달려있는 모든 리뷰 조회
+    // 도서에 달려있는 리뷰 페이징 처리 메소드
     public Page<ReviewResponseDto> getPagedReviewsByBookId(Long bookId, Pageable pageable) {
         Book book = getBook(bookId);
         Page<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book, pageable);
         return reviews.map(review ->
-                new ReviewResponseDto(review.getText(), review.getRating(), review.getCreatedAt()));
+                new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt()));
+    }
+
+    // 도서에 달려있는 모든 리뷰 조회
+    public List<ReviewResponseDto> getAllReviewsByBookId(Long bookId) {
+        Book book = getBook(bookId);
+        List<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book);
+        List<ReviewResponseDto> result = new ArrayList<>();
+        for (Review review : reviews) {
+            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt()));
+        }
+        return result;
     }
 
     private Book getBook(Long bookId) {
