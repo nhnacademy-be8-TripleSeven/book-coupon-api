@@ -84,6 +84,8 @@ logging:
     port: 50000 # Logstash TCP input 포트
 
 
+hibernate:
+  dialect: org.hibernate.dialect.MySQLDialect
 
 
 

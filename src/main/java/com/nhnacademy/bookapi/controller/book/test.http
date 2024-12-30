@@ -11,7 +11,7 @@ GET localhost:8080/books/type/bestseller?page=0&size=10
 
 
 ###
-GET localhost:8086/api/books/type/ItemEditorChoice?page=0&size=10
+GET localhost:8086/books/type/ItemEditorChoice?page=0&size=10
 
 ###
 GET localhost:8086/books/600
@@ -26,5 +26,10 @@ X-User: 15
   "rating": "5",
   "bookId": 1
 }
+
+###
+GET http://localhost:8086/books/categories/%EA%B5%AD%EB%82%B4%EB%8F%84%EC%84%9C/keyword/%ED%95%9C%EA%B0%95
+
+
 
 
