@@ -17,6 +17,8 @@
 
     <properties>
         <java.version>21</java.version>
+      <querydsl.version>5.1.0</querydsl.version>
+
       <spring-cloud.version>2024.0.0</spring-cloud.version>
     </properties>
   <dependencyManagement>
@@ -227,6 +229,21 @@
     </dependency>
 
 
+
+    <dependency>
+      <groupId>com.querydsl</groupId>
+      <artifactId>querydsl-jpa</artifactId>
+      <version>${querydsl.version}</version>
+      <classifier>jakarta</classifier>
+    </dependency>
+    <dependency>
+      <groupId>com.querydsl</groupId>
+      <artifactId>querydsl-apt</artifactId>
+      <version>${querydsl.version}</version>
+      <classifier>jakarta</classifier>
+      <scope>provided</scope>
+    </dependency>
+
   </dependencies>
 
 
@@ -252,6 +269,8 @@
                             <artifactId>lombok</artifactId>
                             <version>1.18.36</version>
                         </path>
+
+
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
