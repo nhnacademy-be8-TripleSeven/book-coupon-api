@@ -1,17 +1,12 @@
 package com.nhnacademy.bookapi.service.book;
 
-import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
-import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
-import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
-import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
+import com.nhnacademy.bookapi.dto.book.*;
 import com.nhnacademy.bookapi.entity.Book;
-import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Type;
-import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import java.util.List;
 
 public interface BookService {
 
@@ -32,4 +27,7 @@ public interface BookService {
 
     Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable);
 
+    List<CartItemDTO> getCartItemsByIds(List<Long> bookIds);
+
+    String getBookName(Long bookId);
 }

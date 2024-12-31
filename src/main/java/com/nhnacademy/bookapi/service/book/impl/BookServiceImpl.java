@@ -1,33 +1,25 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
-import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
-import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
-import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
-import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
-import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
-import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
+import com.nhnacademy.bookapi.dto.book.*;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
-import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.entity.*;
-import com.nhnacademy.bookapi.exception.BookCreatorNotFoundException;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
-
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Transactional
 @Service
@@ -138,6 +130,7 @@ public class BookServiceImpl implements BookService {
         }
         return bookCreatorDetails;
     }
+
     @Transactional(readOnly = true)
     @Override
     public SearchBookDetail searchBookDetailByBookId(Long id) {
@@ -184,6 +177,7 @@ public class BookServiceImpl implements BookService {
         }
         return detailImages;
     }
+
     private StringBuilder getBookTypes(List<BookType> bookTypes) {
         StringBuilder types = new StringBuilder();
         for (BookType bookType : bookTypes) {
@@ -260,11 +254,38 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
-        String keyword, Pageable pageable) {
+                                                              String keyword, Pageable pageable) {
         Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
-            categories, keyword, pageable);
+                categories, keyword, pageable);
 
         return byCategoryAndTitle;
+    }
+
+    @Override
+    public List<CartItemDTO> getCartItemsByIds(List<Long> bookIds) {
+        List<Book> books = bookRepository.findAllById(bookIds);
+        List<CartItemDTO> cartItemDTOS = new ArrayList<>();
+        for (Book book : books) {
+            cartItemDTOS.add(new CartItemDTO(
+                    book.getId(),
+                    book.getStock(),
+                    book.getSalePrice(),
+                    book.getRegularPrice()));
+        }
+        return cartItemDTOS;
+    }
+
+    @Override
+    public String getBookName(Long bookId) {
+        Optional<Book> bookOptional = bookRepository.findById(bookId);
+
+        if(bookOptional.isEmpty()){
+            throw new BookNotFoundException("book not found");
+        }
+
+        Book book = bookOptional.get();
+
+        return book.getTitle();
     }
 
 

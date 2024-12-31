@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.controller.book;
 
+import com.nhnacademy.bookapi.dto.book.CartItemDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -60,7 +63,6 @@ public class BookController {
         SearchBookDetail searchBookDetail = bookService.searchBookDetailByBookId(bookId);
         return ResponseEntity.ok(searchBookDetail);
     }
-
 
 
     // 미구현
@@ -151,5 +153,18 @@ public class BookController {
     @GetMapping("/books/booktype/{bookType}")
     public ResponseEntity<Void> getBooksByCategory(@PathVariable String bookType) {
         return ResponseEntity.ok().build();
+    }
+
+
+    @PostMapping("/books/cartItems")
+    public ResponseEntity<List<CartItemDTO>> getCartItems(@RequestBody List<Long> bookIds) {
+        List<CartItemDTO> cartItemDTOS = bookService.getCartItemsByIds(bookIds);
+        return ResponseEntity.ok(cartItemDTOS);
+    }
+
+    @GetMapping("/books/{bookId}/name")
+    public ResponseEntity<String> getBookName(@PathVariable Long bookId) {
+        String name = bookService.getBookName(bookId);
+        return ResponseEntity.ok(name);
     }
 }

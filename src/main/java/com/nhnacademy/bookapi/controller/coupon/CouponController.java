@@ -1,6 +1,8 @@
 package com.nhnacademy.bookapi.controller.coupon;
 
 import com.nhnacademy.bookapi.dto.coupon.*;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyResponseDTO;
 import com.nhnacademy.bookapi.service.coupon.CouponService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -90,18 +92,18 @@ public class CouponController {
     }
 
 
-    @Operation(summary = "쿠폰 생성 및 발급", description = "쿠폰을 생성한 후 대상 회원들에게 발급합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "쿠폰 생성 및 발급 성공"),
-            @ApiResponse(responseCode = "400", description = "유효하지 않은 요청 데이터"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
-    })
-    @PostMapping("/admin/coupons/create-and-assign")
-    public ResponseEntity<List<CouponAssignResponseDTO>> createAndAssignCoupons(
-            @RequestBody CouponCreationAndAssignRequestDTO request) {
-        List<CouponAssignResponseDTO> responses = couponService.createAndAssignCoupons(request);
-        return ResponseEntity.ok(responses);
-    }
+//    @Operation(summary = "쿠폰 생성 및 발급", description = "쿠폰을 생성한 후 대상 회원들에게 발급합니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "쿠폰 생성 및 발급 성공"),
+//            @ApiResponse(responseCode = "400", description = "유효하지 않은 요청 데이터"),
+//            @ApiResponse(responseCode = "500", description = "서버 오류")
+//    })
+//    @PostMapping("/admin/coupons/create-and-assign")
+//    public ResponseEntity<List<CouponAssignResponseDTO>> createAndAssignCoupons(
+//            @RequestBody CouponCreationAndAssignRequestDTO request) {
+//        List<CouponAssignResponseDTO> responses = couponService.createAndAssignCoupons(request);
+//        return ResponseEntity.ok(responses);
+//    }
 
 
 
@@ -206,6 +208,13 @@ public class CouponController {
     public ResponseEntity<CouponUseResponseDTO> useCoupon(
             @PathVariable Long couponId) {
         CouponUseResponseDTO response = couponService.useBaseCoupon(couponId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/coupons/{couponId}/coupon-polities")
+    public ResponseEntity<CouponPolicyOrderResponseDTO> getCouponPolicyByCouponId(
+            @PathVariable Long couponId) {
+        CouponPolicyOrderResponseDTO response = couponService.getCouponPolicyByCouponId(couponId);
         return ResponseEntity.ok(response);
     }
 

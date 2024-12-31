@@ -2,6 +2,7 @@
 package com.nhnacademy.bookapi.service.coupon;
 
 import com.nhnacademy.bookapi.dto.coupon.*;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +41,7 @@ public interface CouponService {
 
     List<CouponDetailsDTO> getUsedCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate);
 
-    List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request);
+//    List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request);
 
+    CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId);
 }
