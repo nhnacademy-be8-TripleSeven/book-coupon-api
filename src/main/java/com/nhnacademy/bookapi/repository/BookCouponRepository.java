@@ -10,4 +10,7 @@ import java.util.Optional;
 
 public interface BookCouponRepository extends JpaRepository<BookCoupon, Long> {
     Optional<BookCoupon> findByCoupon(Coupon coupon);
+
+//    @Query("SELECT bc FROM BookCoupon bc JOIN FETCH bc.book WHERE bc.coupon = :coupon")
+//    Optional<BookCoupon> findByCouponWithBook(Coupon coupon);
 }

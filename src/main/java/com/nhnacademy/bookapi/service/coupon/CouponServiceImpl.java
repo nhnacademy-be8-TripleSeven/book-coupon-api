@@ -142,13 +142,13 @@ public class CouponServiceImpl implements CouponService {
             log.info("Sent coupon assign request to RabbitMQ: {}", request);
             return new CouponAssignResponseDTO(request.getCouponId(), "Coupon assignment request sent successfully");
         } catch (AmqpConnectException e) {
-            log.error("RabbitMQ connection failed: {}", e.getMessage(), e);
+            log.info("RabbitMQ connection failed: {}", e.getMessage(), e);
             throw new CouponAssingAmqErrorException("RabbitMQ service unavailable: " + e.getMessage());
         } catch (AmqpTimeoutException e) {
-            log.error("RabbitMQ response timed out: {}", e.getMessage(), e);
+            log.info("RabbitMQ response timed out: {}", e.getMessage(), e);
             throw new CouponAssingAmqErrorException("RabbitMQ communication timeout: " + e.getMessage());
         } catch (Exception e) {
-            log.error("General RabbitMQ error: {}", e.getMessage(), e);
+            log.info("General RabbitMQ error: {}", e.getMessage(), e);
             throw new CouponAssingAmqErrorException("RabbitMQ communication error: " + e.getMessage());
         }
     }
@@ -370,15 +370,19 @@ public class CouponServiceImpl implements CouponService {
             rabbitTemplate.convertAndSend(
                     RabbitConfig.EXCHANGE_NAME,
                     RabbitConfig.ROUTING_KEY,
-                    assignRequest
+                    assignRequest,
+                    message -> {
+                        message.getMessageProperties().setMessageId(UUID.randomUUID().toString()); // 고유 메시지 ID 설정
+                        return message;
+                    }
             );
-            log.info("쿠폰 ID {}가 회원 ID {}에게 발급되었습니다.", coupon.getId(), memberId);
+            log.info("쿠폰 ID {}가 회원 ID {}에게 발급 신청되었습니다.", coupon.getId(), memberId);
             return new CouponAssignResponseDTO(coupon.getId(), "쿠폰 발급 성공");
         } catch (AmqpConnectException | AmqpTimeoutException e) {
-            log.error("쿠폰 발급 실패 - RabbitMQ 통신 오류: {}", e.getMessage(), e);
+            log.info("쿠폰 발급 실패 - RabbitMQ 통신 오류: {}", e.getMessage(), e);
             throw new CouponAssingAmqErrorException("RabbitMQ 통신 오류로 인해 쿠폰 발급 실패");
         } catch (Exception e) {
-            log.error("쿠폰 발급 실패 - 시스템 오류: {}", e.getMessage(), e);
+            log.info("쿠폰 발급 실패 - 시스템 오류: {}", e.getMessage(), e);
             throw new CouponAssingAmqErrorException("시스템 오류로 인해 쿠폰 발급 실패");
         }
     }
