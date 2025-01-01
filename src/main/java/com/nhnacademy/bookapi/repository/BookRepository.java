@@ -3,8 +3,8 @@ package com.nhnacademy.bookapi.repository;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
-import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Type;
+import com.nhnacademy.bookapi.repository.querydsl.Book.BookRepositoryCustom;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface BookRepository extends JpaRepository<Book, Long> {
+public interface BookRepository extends JpaRepository<Book, Long>, BookRepositoryCustom {
 
     @Query("select new com.nhnacademy.bookapi.dto.book.SearchBookDetail(b.title, b.description, b.publishDate, b.regularPrice, b.salePrice, b.isbn13, b.stock, b.page, i.url, b.publisher.name) from Book b inner join BookImage bi on bi.book.id = b.id inner join Image i on i.id = bi.image.id where b.id =:id")
     Optional<SearchBookDetail> searchBookById(@Param("id") Long id);
@@ -66,6 +66,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
         + "where (b.title LIKE %:keyword% or b.isbn13 = :keyword or b.publisher.name LIKE %:keyword%) "
         + "and c.name IN :categories")
     Page<BookDetailResponseDTO> findByCategoryAndTitle(@Param("categories") List<String> categories, @Param("keyword") String keyword, Pageable pageable);
+
 
 
 

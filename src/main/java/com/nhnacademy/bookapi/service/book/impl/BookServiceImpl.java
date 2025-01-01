@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
 import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
+import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
@@ -17,6 +18,7 @@ import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 
+import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +51,8 @@ public class BookServiceImpl implements BookService {
     private final BookCreatorService bookCreatorService;
     private final BookTagRepository bookTagRepository;
     private final BookTypeRepository bookTypeRepository;
+
+    private final EntityManager em;
 
     @Override
     public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
@@ -266,6 +270,8 @@ public class BookServiceImpl implements BookService {
 
         return byCategoryAndTitle;
     }
+
+
 
 
 }

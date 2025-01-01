@@ -27,6 +27,10 @@ public class BookTag {
         this.tag = tag;
     }
 
+    public static BookTag update(Book reference, Tag reference1) {
+        return new BookTag(reference, reference1);
+    }
+
     public void updateTag(Tag newTag) {
         this.tag = newTag;
     }
