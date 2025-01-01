@@ -27,31 +27,4 @@ public class BookUpdateDTO {
     private String coverImage;
     private String detailImage;
 
-    public BookUpdateDTO(long id, String title, String isbn, String categories, String bookTypes,
-        String bookCreators, String tags, LocalDate publishedDate,String description, int regularPrice
-    , int salePrice, String index, String coverImage, String detailImage) {
-        this.id = id;
-        this.title = title;
-        this.isbn = isbn;
-        this.categories = parser(categories);
-        this.bookTypes = parser(bookTypes);
-        this.authors = parser(bookCreators);
-        this.tags = parser(tags);
-        this.publishedDate = publishedDate;
-        this.description = description;
-        this.regularPrice = regularPrice;
-        this.salePrice = salePrice;
-        this.index = index;
-        this.coverImage = coverImage;
-        this.detailImage = detailImage;
-    }
-
-
-
-
-    private List<String> parser(String words){
-        String[] split = words.split(",");
-        return Arrays.stream(split.clone()).toList();
-    }
-
 }

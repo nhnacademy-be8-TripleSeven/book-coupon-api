@@ -28,8 +28,8 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
         "        \"should\": [ " +
         "          { \"match\": { \"title\": { \"query\": \"?0\", \"boost\": 4 } } }, " +
         "          { \"match\": { \"isbn13\": { \"query\": \"?0\", \"boost\": 1 } } }, " +
-        "          { \"match\": { \"bookCreators\": { \"query\": \"?0\", \"boost\": 3 } } }, " +
-        "          { \"match\": { \"publisherName\": { \"query\": \"?0\", \"boost\": 2 } } } " +
+        "          { \"match\": { \"bookcreators\": { \"query\": \"?0\", \"boost\": 3 } } }, " +
+        "          { \"match\": { \"publishername\": { \"query\": \"?0\", \"boost\": 2 } } } " +
         "        ] " +
         "      } " +
         "    }, " +

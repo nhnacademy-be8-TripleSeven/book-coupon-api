@@ -8,5 +8,5 @@ public interface BookRepositoryCustom {
 
     List<BookUpdateDTO> findBookByKeyword(String keyword);
 
-    BookUpdateDTO updateBook(BookUpdateDTO bookUpdateDTO);
+    void updateBook(BookUpdateDTO bookUpdateDTO);
 }
