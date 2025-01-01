@@ -7,6 +7,14 @@ spring:
     password: nhnacademy123!
     host: 133.186.241.167
     port: 5672
+    listener:
+      simple:
+        acknowledge-mode: MANUAL
+        prefetch: 10 # 한 번에 가져올 메시지 수를 제한
+        concurrency: 2 # 동시 실행 소비자 수 제한
+        max-concurrency: 5 # 최대 동시 실행 소비자 수
+        declare: false # 큐 재선언 비활성화
+
 
 
   lifecycle:
