@@ -106,6 +106,10 @@ public class CouponController {
 
 
 
+
+
+
+
     // 멤버 전용 api
     @Operation(summary = "사용자 쿠폰 사용", description = "사용자가 본인의 쿠폰을 사용합니다.")
     @ApiResponses({

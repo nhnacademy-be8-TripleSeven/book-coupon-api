@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.repository;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
+import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Type;
 import java.util.List;
 import java.util.Optional;
@@ -54,6 +55,8 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
 
     Optional<Book> findByIsbn13(String isbn13);
+
+    List<Book> findByTitleContaining(String name);
     // 국내도서 조회
 
 

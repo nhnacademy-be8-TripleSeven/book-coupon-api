@@ -25,4 +25,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
         SELECT ID FROM Subcategories
     """, nativeQuery = true)
     List<Long> findSubcategories(@Param("categoryId") Long categoryId);
+
+    List<Category> findByNameContaining(String name);
 }

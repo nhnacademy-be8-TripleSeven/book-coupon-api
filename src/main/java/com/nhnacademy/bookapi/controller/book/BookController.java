@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.controller.book;
 
+import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
@@ -10,6 +11,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -48,6 +51,13 @@ public class BookController {
     public ResponseEntity<Void> deleteBook(@PathVariable Long bookId) {
         bookService.delete(bookId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 쿠폰 대상 지정을 위한 도서 검색
+    @GetMapping("/admin/search/book")
+    public ResponseEntity<List<BookSearchDTO>> searchBooksForCoupon(@RequestParam("query") String query) {
+        List<BookSearchDTO> results = bookService.searchBooksByName(query);
+        return ResponseEntity.ok(results);
     }
 
     @Operation(summary = "책 상세 조회", description = "책 ID를 사용하여 책의 상세 정보를 조회합니다.")
