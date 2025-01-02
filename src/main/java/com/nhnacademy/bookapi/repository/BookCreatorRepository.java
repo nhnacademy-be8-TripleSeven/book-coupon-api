@@ -15,5 +15,4 @@ public interface BookCreatorRepository extends JpaRepository<BookCreator, Long> 
     @Query("select bc from BookCreator bc left JOIN BookCreatorMap bcm on bcm.creator.id = bc.id left JOIN Book b on b.id = bcm.book.id where b.id =:id")
     List<BookCreator> findCreatorByBookId(@Param("id") Long id);
 
-
 }
