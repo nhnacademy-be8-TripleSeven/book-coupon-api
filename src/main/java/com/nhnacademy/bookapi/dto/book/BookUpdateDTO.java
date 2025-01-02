@@ -27,4 +27,15 @@ public class BookUpdateDTO {
     private String coverImage;
     private String detailImage;
 
+
+    public BookUpdateDTO(long id, String title, String isbn, LocalDate publishedDate,
+        String description, int regularPrice, int salePrice) {
+        this.id = id;
+        this.title = title;
+        this.isbn = isbn;
+        this.publishedDate = publishedDate;
+        this.description = description;
+        this.regularPrice = regularPrice;
+        this.salePrice = salePrice;
+    }
 }

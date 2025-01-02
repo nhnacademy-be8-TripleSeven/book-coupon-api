@@ -52,6 +52,7 @@ public class BookSearchController {
         Page<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(Type.valueOf(type.toUpperCase()),
             pageable);
 
+
         return ResponseEntity.ok(bookTypeBooks);
     }
 

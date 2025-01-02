@@ -20,8 +20,6 @@ public interface BookService {
     Book createBook(Book book);
 
 
-    UpdateBookRequest update(UpdateBookRequest request);
-
     void delete(Long id);
 
     SearchBookDetail searchBookDetailByBookId(Long id);
