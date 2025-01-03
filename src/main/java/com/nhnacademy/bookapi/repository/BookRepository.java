@@ -67,7 +67,7 @@ public interface BookRepository extends JpaRepository<Book, Long>, BookRepositor
         + "and c.name IN :categories")
     Page<BookDetailResponseDTO> findByCategoryAndTitle(@Param("categories") List<String> categories, @Param("keyword") String keyword, Pageable pageable);
 
-
+    List<Book> findByTitleContaining(String title);
 
 
 

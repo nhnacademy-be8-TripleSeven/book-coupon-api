@@ -2,7 +2,6 @@ server:
   port: 8087
 
 spring:
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -11,6 +10,8 @@ spring:
       hibernate.format_sql: true
       hibernate.dialect: org.hibernate.dialect.MySQL8Dialect
     open-in-view: false
+  rabbitmq:
+    virtual-host: vh1_prod
 
 eureka:
   client:

@@ -1,59 +1,3 @@
-<!--<configuration>-->
-<!--    &lt;!&ndash; 공통 프로퍼티 &ndash;&gt;-->
-<!--    <property name="APP_KEY" value="nMWnKdBvAFvUW8XL" />-->
-<!--    <property name="LOG_URL" value="https://api-logncrash.cloud.toast.com/v2/log" />-->
-
-<!--    &lt;!&ndash; 개발 환경 (dev) &ndash;&gt;-->
-<!--    <springProfile name="dev">-->
-<!--        &lt;!&ndash; 콘솔 Appender &ndash;&gt;-->
-<!--        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">-->
-<!--            <encoder>-->
-<!--                <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
-<!--            </encoder>-->
-<!--        </appender>-->
-
-<!--        &lt;!&ndash; 루트 로거: 개발 환경에서는 콘솔 출력만 활성화 &ndash;&gt;-->
-<!--        <root level="INFO">-->
-<!--            <appender-ref ref="CONSOLE" />-->
-<!--        </root>-->
-<!--    </springProfile>-->
-
-<!--    &lt;!&ndash; 운영 환경  &ndash;&gt;-->
-<!--    <springProfile name="prod">-->
-<!--        &lt;!&ndash; 콘솔 Appender &ndash;&gt;-->
-<!--        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">-->
-<!--            <encoder>-->
-<!--                <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
-<!--            </encoder>-->
-<!--        </appender>-->
-
-<!--        &lt;!&ndash; NHN Log & Crash Appender &ndash;&gt;-->
-<!--        <appender name="NHN_LOG_CRASH_APPENDER" class="com.nhnacademy.bookapi.logback.LogCrashHttpAppender">-->
-<!--            <appKey>${APP_KEY}</appKey>-->
-<!--            <url>${LOG_URL}</url>-->
-<!--            <logSource>BookAPI-Test</logSource>-->
-<!--            <filter class="ch.qos.logback.classic.filter.ThresholdFilter">-->
-<!--                <level>WARN</level>-->
-<!--            </filter>-->
-<!--        </appender>-->
-
-<!--        &lt;!&ndash; Logstrash &ndash;&gt;-->
-<!--        <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">-->
-<!--            <destination>115.94.72.197:50000</destination>-->
-<!--            <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>-->
-<!--        </appender>-->
-
-
-<!--        &lt;!&ndash; 루트 로거: INFO 이상을 콘솔 및 NHN으로 출력 &ndash;&gt;-->
-<!--        <root level="INFO">-->
-<!--            <appender-ref ref="CONSOLE" />-->
-<!--            <appender-ref ref="LOGSTASH" />-->
-<!--            <appender-ref ref="NHN_LOG_CRASH_APPENDER" />-->
-<!--        </root>-->
-
-<!--    </springProfile>-->
-<!--</configuration>-->
-
 <configuration>
     <!-- 공통 프로퍼티 -->
     <property name="APP_KEY" value="nMWnKdBvAFvUW8XL" />
@@ -76,7 +20,7 @@
 
 
     <!-- 인스턴스1 환경 -->
-    <springProfile name="instance1">
+    <springProfile name="prod">
         <!-- 콘솔 Appender -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
@@ -110,7 +54,7 @@
 
 
     <!-- 인스턴스2 환경 -->
-    <springProfile name="instance2">
+    <springProfile name="prod">
         <!-- 콘솔 Appender -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
