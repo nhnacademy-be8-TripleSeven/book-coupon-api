@@ -150,6 +150,25 @@ public class BookIndexService {
         bookIndexRepository.deleteById(bookIndex.getId());
         return true;
     }
+
+    public String getBookIndexList(long bookId) {
+        return bookIndexRepository.findByBookId(bookId);
+    }
+
+    public BookIndex getBookIndex(long bookId) {
+        return bookIndexRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
+    }
+
+    public void createBookIndex(BookIndex bookIndex){
+        bookIndexRepository.save(bookIndex);
+    }
+
+    public void deleteBookIndex(long bookId) {
+        String byBookId = bookIndexRepository.findByBookId(bookId);
+        if(byBookId != null){
+            bookIndexRepository.deleteById(bookId);
+        }
+    }
 }
 
 

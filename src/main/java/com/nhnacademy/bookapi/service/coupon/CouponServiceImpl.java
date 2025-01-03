@@ -235,18 +235,18 @@ public class CouponServiceImpl implements CouponService {
         CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
                 .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a category"));
 
-        if (!isValidCategory(categoryCoupon.getCategory(), categoryId)) {
-            throw new InvalidCouponUsageException("Coupon cannot be used in this category");
-        }
+//        if (!isValidCategory(categoryCoupon.getCategory(), categoryId)) {
+//            throw new InvalidCouponUsageException("Coupon cannot be used in this category");
+//        }
 
         return useCoupon(userId, couponId);
     }
 
     // 유효한 카테고리인지 확인
-    private boolean isValidCategory(Category couponCategory, Long requestedCategoryId) {
-        List<Long> validCategories = categoryRepository.findSubcategories(couponCategory.getId());
-        return validCategories.contains(requestedCategoryId);
-    }
+//    private boolean isValidCategory(Category couponCategory, Long requestedCategoryId) {
+//        List<Long> validCategories = categoryRepository.findSubcategories(couponCategory.getId());
+//        return validCategories.contains(requestedCategoryId);
+//    }
 
     // 사용자 쿠폰 조회
     @Transactional(readOnly = true)

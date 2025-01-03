@@ -30,6 +30,7 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
         "          { \"match\": { \"isbn13\": { \"query\": \"?0\", \"boost\": 1 } } }, " +
         "          { \"match\": { \"bookcreators\": { \"query\": \"?0\", \"boost\": 3 } } }, " +
         "          { \"match\": { \"publishername\": { \"query\": \"?0\", \"boost\": 2 } } } " +
+        "          { \"match\": { \"categories\": { \"query\": \"?0\", \"boost\": 0 } } } " +
         "        ] " +
         "      } " +
         "    }, " +

@@ -1,28 +1,30 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
+import com.nhnacademy.bookapi.dto.book.BookDTO;
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
+import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
+import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
+import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
+
 import com.nhnacademy.bookapi.dto.book.*;
 import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
+
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
-import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.entity.*;
-import com.nhnacademy.bookapi.exception.BookCreatorNotFoundException;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 
 import jakarta.persistence.EntityManager;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,7 +101,7 @@ public class BookServiceImpl implements BookService {
 
 
     @Override
-    public void delete(Long id) {
+    public void deleteBook(Long id) {
         boolean exist = bookRepository.existsById(id);
         if (!exist) {
             throw new BookNotFoundException("book not found");
@@ -197,7 +199,6 @@ public class BookServiceImpl implements BookService {
         List<String> hierarchy = new ArrayList<>();
         while (category != null) {
             hierarchy.add(0, category.getName());
-            category = category.getParent();
         }
         return hierarchy;
     }
@@ -238,18 +239,46 @@ public class BookServiceImpl implements BookService {
     public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
                                                               String keyword, Pageable pageable) {
 
+
+        return bookRepository.findByCategoryAndTitle(
+            categories, keyword, pageable);
+
         Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
                 categories, keyword, pageable);
         return byCategoryAndTitle;
+
     }
 
-    public Page<BookUpdateDTO> getBookUpdateList(String keyword, Pageable pageable) {
-        Page<BookUpdateDTO> bookByKeyword = bookRepository.findBookByKeyword(keyword, pageable);
+    @Override
+    public boolean existsBookByIsbn(String isbn) {
+        return bookRepository.existsByIsbn13(isbn);
+    }
+
+    @Override
+    public BookDTO getBookById(Long id) {
+        return bookRepository.findBookById(id);
+    }
+
+
+    public Page<BookDTO> getBookUpdateList(String keyword, Pageable pageable) {
+        Page<BookDTO> bookByKeyword = bookRepository.findBookByKeyword(keyword, pageable);
         if(bookByKeyword == null) {
             throw new BookNotFoundException(keyword);
         }
         return bookByKeyword;
     }
+
+
+    public Page<BookDTO> getBookList(String keyword, Pageable pageable) {
+        return bookRepository.findBookByKeyword(keyword, pageable);
+    }
+
+    @Override
+    public Book getBook(Long id) {
+        return bookRepository.findById(id).get();
+    }
+
+
 
     @Transactional(readOnly = true)
     public List<BookSearchDTO> searchBooksByName(String query) {
@@ -258,6 +287,7 @@ public class BookServiceImpl implements BookService {
                 .map(book -> new BookSearchDTO(book.getId(), book.getTitle(), book.getIsbn13()))
                 .collect(Collectors.toList());
     }
+
 
 
 }

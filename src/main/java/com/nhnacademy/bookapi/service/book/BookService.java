@@ -1,9 +1,15 @@
 package com.nhnacademy.bookapi.service.book;
 
+
+import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
+import com.nhnacademy.bookapi.dto.book.BookDTO;
+import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
+import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
+
 import com.nhnacademy.bookapi.dto.book.*;
 import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
+
 import com.nhnacademy.bookapi.entity.Book;
-import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Type;
 import java.util.List;
 import org.springframework.data.domain.Page;
@@ -15,8 +21,11 @@ public interface BookService {
 
     Book createBook(Book book);
 
+    Page<BookDTO> getBookList(String keyword, Pageable pageable);
 
-    void delete(Long id);
+    Book getBook(Long id);
+
+    void deleteBook(Long id);
 
     SearchBookDetail searchBookDetailByBookId(Long id);
 
@@ -26,7 +35,13 @@ public interface BookService {
 
     Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable);
 
+
+    boolean existsBookByIsbn(String isbn);
+
+    BookDTO getBookById(Long id);
+
     List<BookSearchDTO> searchBooksByName(String name);
+
 
 }
 
