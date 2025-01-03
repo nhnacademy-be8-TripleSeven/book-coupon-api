@@ -420,7 +420,8 @@ public class CouponServiceImpl implements CouponService {
                         .map(CouponMemberDTO::getId)
                         .toList();
             case "등급별":
-                return memberFeignClient.getMembersByGrade(request.getGrade()).stream()
+                MemberGrade grade = convertGrade(request.getGrade()); // String to MemberGrade 변환
+                return memberFeignClient.getMembersByGrade(grade).stream()
                         .map(CouponMemberDTO::getId)
                         .toList();
             case "개인별":
@@ -430,7 +431,13 @@ public class CouponServiceImpl implements CouponService {
         }
     }
 
-
+    private MemberGrade convertGrade(String grade) {
+        try {
+            return MemberGrade.valueOf(grade.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRecipientTypeException("유효하지 않은 등급: " + grade);
+        }
+    }
 
     // 쿠폰 상세 정보 DTO 변환
     private CouponDetailsDTO mapToCouponDetailsDTO(Coupon coupon) {

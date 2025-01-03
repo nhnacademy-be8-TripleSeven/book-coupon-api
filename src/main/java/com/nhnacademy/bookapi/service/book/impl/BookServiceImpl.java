@@ -1,13 +1,8 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
-import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
-import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
+import com.nhnacademy.bookapi.dto.book.*;
 import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
-import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
-import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
-import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
@@ -241,10 +236,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
-        String keyword, Pageable pageable) {
+                                                              String keyword, Pageable pageable) {
 
         Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
-            categories, keyword, pageable);
+                categories, keyword, pageable);
         return byCategoryAndTitle;
     }
 
@@ -256,7 +251,13 @@ public class BookServiceImpl implements BookService {
         return bookByKeyword;
     }
 
-
+    @Transactional(readOnly = true)
+    public List<BookSearchDTO> searchBooksByName(String query) {
+        List<Book> books = bookRepository.findByTitleContaining(query);
+        return books.stream()
+                .map(book -> new BookSearchDTO(book.getId(), book.getTitle(), book.getIsbn13()))
+                .collect(Collectors.toList());
+    }
 
 
 }
