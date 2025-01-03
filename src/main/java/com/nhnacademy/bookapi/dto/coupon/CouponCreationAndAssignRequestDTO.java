@@ -1,6 +1,5 @@
 package com.nhnacademy.bookapi.dto.coupon;
 
-import com.nhnacademy.bookapi.entity.MemberGrade;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,4 +17,12 @@ public class CouponCreationAndAssignRequestDTO {
     private String grade;           // Member 등급
     private List<Long> memberIds;        // 발급 대상 회원 ID 리스트
     private String recipientType;        // 발급 대상 유형 (전체, 등급별, 개인별)
+
+    public CouponCreationAndAssignRequestDTO(String name, Long couponPolicyId, List<Long> memberIds, String recipientType) {
+        this.name = name;
+        this.couponPolicyId = couponPolicyId;
+        this.memberIds = memberIds;
+        this.recipientType = recipientType;
+    }
+
 }

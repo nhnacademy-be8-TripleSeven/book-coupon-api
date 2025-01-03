@@ -54,13 +54,6 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
-    // 쿠폰 대상 지정을 위한 도서 검색
-    @GetMapping("/admin/search/book")
-    public ResponseEntity<List<BookSearchDTO>> searchBooksForCoupon(@RequestParam("query") String query) {
-        List<BookSearchDTO> results = bookService.searchBooksByName(query);
-        return ResponseEntity.ok(results);
-    }
-
     @Operation(summary = "책 상세 조회", description = "책 ID를 사용하여 책의 상세 정보를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "책 조회 성공"),
