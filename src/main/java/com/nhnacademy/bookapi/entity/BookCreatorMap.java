@@ -8,7 +8,6 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 @NoArgsConstructor
 @Getter
@@ -33,5 +32,10 @@ public class BookCreatorMap {
     public void create(Book book, BookCreator creator) {
         this.book = book;
         this.creator = creator;
+    }
+
+    public static BookCreatorMap update(Book book, BookCreator creator) {
+
+        return new BookCreatorMap(book, creator);
     }
 }

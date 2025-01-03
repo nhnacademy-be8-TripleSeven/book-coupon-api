@@ -36,9 +36,10 @@ public class BookController {
             @ApiResponse(responseCode = "200", description = "책 수정 성공"),
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
+    //ToDo bookUpdate
     @PutMapping("/admin/books")
     public ResponseEntity<Void> updateBook(@RequestBody UpdateBookRequest request) {
-        bookService.update(request);
+
         return ResponseEntity.ok().build();
     }
 

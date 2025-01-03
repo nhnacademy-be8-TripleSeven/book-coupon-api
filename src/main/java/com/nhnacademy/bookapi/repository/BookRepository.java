@@ -3,8 +3,8 @@ package com.nhnacademy.bookapi.repository;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
-import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Type;
+import com.nhnacademy.bookapi.repository.querydsl.Book.BookRepositoryCustom;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -13,7 +13,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface BookRepository extends JpaRepository<Book, Long> {
+public interface BookRepository extends JpaRepository<Book, Long>, BookRepositoryCustom {
 
     @Query("select new com.nhnacademy.bookapi.dto.book.SearchBookDetail(b.title, b.description, b.publishDate, b.regularPrice, b.salePrice, b.isbn13, b.stock, b.page, i.url, b.publisher.name) from Book b inner join BookImage bi on bi.book.id = b.id inner join Image i on i.id = bi.image.id where b.id =:id")
     Optional<SearchBookDetail> searchBookById(@Param("id") Long id);
@@ -42,7 +42,7 @@ public interface BookRepository extends JpaRepository<Book, Long> {
     List<BookDetailResponseDTO> findBookTypeItemNewSpecial();
 
     //북 타입별 조회
-    @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
+    @Query("select distinct new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
         + "from Book b "
         + "join BookType bt on bt.book.id = b.id "
         + "join BookCoverImage bci on bci.book.id = b.id "
@@ -56,23 +56,22 @@ public interface BookRepository extends JpaRepository<Book, Long> {
 
     Optional<Book> findByIsbn13(String isbn13);
 
-    List<Book> findByTitleContaining(String name);
-    // 국내도서 조회
+    @Query("select distinct new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
+        + "from Book b "
+        + "join BookType bt on bt.book.id = b.id "
+        + "join BookCoverImage bci on bci.book.id = b.id "
+        + "join Image i on i.id = bci.image.id "
+        + "join BookCategory bc on bc.book.id = b.id "
+        + "join Category c on c.id = bc.category.id "
+        + "where (b.title LIKE %:keyword% or b.isbn13 = :keyword or b.publisher.name LIKE %:keyword%) "
+        + "and c.name IN :categories")
+    Page<BookDetailResponseDTO> findByCategoryAndTitle(@Param("categories") List<String> categories, @Param("keyword") String keyword, Pageable pageable);
+
+    List<Book> findByTitleContaining(String title);
 
 
 
 
-    // 외국도서 조회
-
-
-
-
-    // 신간 소개
-
-
-
-
-    // 베스트셀러
 
 }
 

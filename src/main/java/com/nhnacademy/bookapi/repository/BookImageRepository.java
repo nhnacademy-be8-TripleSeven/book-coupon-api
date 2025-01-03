@@ -16,4 +16,6 @@ public interface BookImageRepository extends JpaRepository<BookImage, Long> {
     @Query("select bi from BookImage bi join fetch bi.image where bi.book = :book")
     List<BookImage> findAllByBookWithImage(@Param("book") Book book);
 
+
+
 }

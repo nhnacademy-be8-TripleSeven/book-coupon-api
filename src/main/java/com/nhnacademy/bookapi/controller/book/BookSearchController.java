@@ -42,7 +42,7 @@ public class BookSearchController {
     @GetMapping("/term/{term}")
     public ResponseEntity<Page<BookDocument>> bookTitleSearch(@PathVariable(name = "term") String term, Pageable pageable) {
 
-        Page<BookDocument> documents = elasticSearchBookSearchRepository.findByTitleContaining(term, pageable);
+        Page<BookDocument> documents = elasticSearchBookSearchRepository.searchWithPopularityAndWeights(term, pageable);
         return ResponseEntity.ok(documents);
     }
 
@@ -52,6 +52,14 @@ public class BookSearchController {
         Page<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(Type.valueOf(type.toUpperCase()),
             pageable);
 
+
         return ResponseEntity.ok(bookTypeBooks);
+    }
+
+    @GetMapping("/categories/{categories}/keyword/{keyword}")
+    public ResponseEntity<Page<BookDetailResponseDTO>> bookCategorySearch(@PathVariable(name = "categories") List<String> categories, @PathVariable("keyword") String keyword, Pageable pageable) {
+        Page<BookDetailResponseDTO> categorySearchBooks = bookService.getCategorySearchBooks(
+            categories, keyword, pageable);
+        return ResponseEntity.ok(categorySearchBooks);
     }
 }

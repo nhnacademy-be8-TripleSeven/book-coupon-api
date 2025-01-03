@@ -37,6 +37,10 @@ public class BookIndex {
         this.book = book;
     }
 
+    public static BookIndex update(Book reference, String index) {
+        return new BookIndex(index, reference);
+    }
+
     public void create(String index, Book book) {
         this.indexes = index;
         this.book = book;

@@ -17,12 +17,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
-public class BookMainController {
+public class BookMainViewController {
 
     private final BookService bookService;
     private final BookCreatorService bookCreatorService;
@@ -64,7 +63,7 @@ public class BookMainController {
     })
     @GetMapping("/books/type/{type}")
     public ResponseEntity<List<BookDetailResponseDTO>> getBooksByType(@Valid @PathVariable String type){
-        Pageable pageable = PageRequest.of(0, 6);
+        Pageable pageable = PageRequest.of(0, 15);
         Page<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(
             Type.valueOf(type.toUpperCase()), pageable);
         List<BookDetailResponseDTO> content = bookTypeBooks.getContent();

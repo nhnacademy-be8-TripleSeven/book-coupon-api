@@ -13,6 +13,7 @@ import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 
+import jakarta.persistence.EntityManager;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +22,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,6 +47,8 @@ public class BookServiceImpl implements BookService {
     private final BookCreatorService bookCreatorService;
     private final BookTagRepository bookTagRepository;
     private final BookTypeRepository bookTypeRepository;
+
+    private final EntityManager em;
 
     @Override
     public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
@@ -91,31 +95,7 @@ public class BookServiceImpl implements BookService {
         return bookRepository.save(book);
     }
 
-    @Override
-    public UpdateBookRequest update(UpdateBookRequest request) {
 
-        Book book = bookRepository.findById(request.getBookId()).orElse(null);
-        if (book == null) {
-            throw new BookNotFoundException("Book not found");
-        }
-        String title = request.getTitle();
-
-        int price = request.getPrice();
-        LocalDate publishedDate = request.getPublishedDate();
-
-        book.update(title, publishedDate, price);
-
-        String bookIntroduction = request.getBookIntroduction();
-        BookIntroduce bookIntroduce = new BookIntroduce(bookIntroduction, book);
-        bookIntroduceRepository.save(bookIntroduce);
-
-        String categories = request.getCategory();
-
-        List<Category> categoryByBook = bookCategoryRepository.findCategoryByBook(book);
-
-
-        return request;
-    }
 
 
     @Override
@@ -254,6 +234,23 @@ public class BookServiceImpl implements BookService {
         return bookTypeItemByType;
     }
 
+    @Override
+    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
+                                                              String keyword, Pageable pageable) {
+
+        Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
+                categories, keyword, pageable);
+        return byCategoryAndTitle;
+    }
+
+    public Page<BookUpdateDTO> getBookUpdateList(String keyword, Pageable pageable) {
+        Page<BookUpdateDTO> bookByKeyword = bookRepository.findBookByKeyword(keyword, pageable);
+        if(bookByKeyword == null) {
+            throw new BookNotFoundException(keyword);
+        }
+        return bookByKeyword;
+    }
+
     @Transactional(readOnly = true)
     public List<BookSearchDTO> searchBooksByName(String query) {
         List<Book> books = bookRepository.findByTitleContaining(query);
@@ -261,7 +258,6 @@ public class BookServiceImpl implements BookService {
                 .map(book -> new BookSearchDTO(book.getId(), book.getTitle(), book.getIsbn13()))
                 .collect(Collectors.toList());
     }
-
 
 
 }

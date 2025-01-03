@@ -20,7 +20,7 @@
 
 
     <!-- 인스턴스1 환경 -->
-    <springProfile name="instance1">
+    <springProfile name="prod">
         <!-- 콘솔 Appender -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>
@@ -54,7 +54,7 @@
 
 
     <!-- 인스턴스2 환경 -->
-    <springProfile name="instance2">
+    <springProfile name="prod">
         <!-- 콘솔 Appender -->
         <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
             <encoder>

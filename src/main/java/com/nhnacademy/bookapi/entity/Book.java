@@ -92,11 +92,15 @@ public class Book {
         this.page = page;
     }
 
-    public void update(String title, LocalDate publishDate, int price){
+
+
+    public void update(String title, String isbn, LocalDate publishDate, int regularPrice, int salePrice, String description) {
         this.title = title;
+        this.isbn13 = isbn;
         this.publishDate = publishDate;
-        this.regularPrice = price;
-        this.salePrice = price;
+        this.regularPrice = regularPrice;
+        this.salePrice = salePrice;
+        this.description = description;
     }
 }
 
