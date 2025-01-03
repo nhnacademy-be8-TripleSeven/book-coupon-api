@@ -141,7 +141,7 @@ class CouponServiceImplTest {
     @Test
     void testCreateCategoryCoupon_Success() {
         // Given
-        Category category = new Category("Test Category", null);
+        Category category = new Category("Test Category", 0);
         category.setTestId(1L);
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
@@ -402,10 +402,10 @@ class CouponServiceImplTest {
     @Test
     void testUseCategoryCoupon_Success() {
         // Given
-        Category category = new Category("Test Category", null);
+        Category category = new Category("Test Category", 0);
         category.setTestId(1L);
 
-        category.create("Test Category",null);
+        category.create("Test Category",0);
 
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
@@ -422,7 +422,7 @@ class CouponServiceImplTest {
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
         when(categoryCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(categoryCoupon));
-        when(categoryRepository.findSubcategories(1L)).thenReturn(List.of(1L, 2L, 3L));
+//        when(categoryRepository.findSubcategories(1L)).thenReturn(List.of(1L, 2L, 3L));
 
         // When
         couponService.useCategoryCoupon(123L,1L, 1L);
@@ -434,7 +434,7 @@ class CouponServiceImplTest {
     @Test
     void testUseCategoryCoupon_InvalidCategory() {
         // Given
-        Category category = new Category("Test Category", null);
+        Category category = new Category("Test Category", 0);
         category.setTestId(1L);
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,
@@ -450,7 +450,7 @@ class CouponServiceImplTest {
 
         when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
         when(categoryCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(categoryCoupon));
-        when(categoryRepository.findSubcategories(1L)).thenReturn(List.of(2L, 3L));
+//        when(categoryRepository.findSubcategories(1L)).thenReturn(List.of(2L, 3L));
 
         // When & Then
         assertThrows(InvalidCouponUsageException.class, () -> couponService.useCategoryCoupon(1L, 1L, 4L));

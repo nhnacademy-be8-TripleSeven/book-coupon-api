@@ -16,6 +16,7 @@ import jakarta.persistence.Table;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -60,6 +61,18 @@ public class Book {
 
 
     public Book(String title, String description, LocalDate publishDate, int regularPrice,
+        int salePrice, String isbn13, int stock, int page) {
+        this.title = title;
+        this.description = description;
+        this.publishDate = publishDate;
+        this.regularPrice = regularPrice;
+        this.salePrice = salePrice;
+        this.isbn13 = isbn13;
+        this.stock = stock;
+        this.page = page;
+    }
+
+    public Book(String title, String description, LocalDate publishDate, int regularPrice,
         int salePrice, String isbn13, int stock, int page, Publisher publisher) {
         this.title = title;
         this.description = description;
@@ -69,6 +82,10 @@ public class Book {
         this.isbn13 = isbn13;
         this.stock = stock;
         this.page = page;
+        this.publisher = publisher;
+    }
+
+    public void createPublisher(Publisher publisher) {
         this.publisher = publisher;
     }
 

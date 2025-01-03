@@ -42,7 +42,9 @@ public class BookType {
         this.book = book;
     }
 
-    public static BookType update(Type types, int ranks, Book book) {
-       return new BookType(types, ranks, book);
+    public void update(Type types, int ranks, Book book) {
+        this.types = types;
+        this.ranks = ranks;
+        this.book = book;
     }
 }
