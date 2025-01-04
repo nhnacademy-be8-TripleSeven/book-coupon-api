@@ -8,6 +8,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -93,11 +97,12 @@ public class LikeController {
             @ApiResponse(responseCode = "404", description = "사용자의 좋아요 기록이 없음")
     })
     @GetMapping
-    public ResponseEntity<List<LikesResponseDto>> getAllLikesByUserId(@RequestHeader("X-User") Long userId) {
-        List<LikesResponseDto> likes = likeService.getAllLikesByUserId(userId);
-        if (likes.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(likes);
+    public ResponseEntity<List<LikesResponseDto>> getAllLikesByUserId(@RequestHeader("X-User") Long userId,
+                                                                      @RequestParam(defaultValue = "0") int page,
+                                                                      @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<LikesResponseDto> likesPage = likeService.getPagedLikesByUserId(userId, pageable);
+
+        return ResponseEntity.ok(likesPage.getContent());
     }
 }

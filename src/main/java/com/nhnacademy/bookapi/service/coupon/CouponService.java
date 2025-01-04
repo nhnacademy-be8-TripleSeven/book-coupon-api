@@ -20,17 +20,9 @@ public interface CouponService {
 
     void expireCoupons();
 
-//    CouponUseResponseDTO useCoupon(Long id);
-//
-//    CouponUseResponseDTO useBookCoupon(Long couponId, Long bookId);
-//
-//    CouponUseResponseDTO useCategoryCoupon(Long couponId, Long categoryId);
-//
-//    List<CouponDetailsDTO> getAllCouponsByMemberId(Long memberId);
-//
-//    List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId);
-
     CouponUseResponseDTO useCoupon(Long userId, Long couponId);
+
+    CouponUseResponseDTO useBaseCoupon(Long couponId);
 
     CouponUseResponseDTO useBookCoupon(Long userId, Long couponId, Long bookId);
 
@@ -44,11 +36,10 @@ public interface CouponService {
 
     List<CouponDetailsDTO> getCouponsByPolicyId(Long policyId);
 
-
     List<CouponDetailsDTO> getCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate);
 
     List<CouponDetailsDTO> getUsedCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate);
-//
-//    List<CouponDetailsDTO> getUnUsedCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate);
 
-    }
+    List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request);
+
+}
