@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.controller.book;
 import com.nhnacademy.bookapi.dto.book.BookApiDTO;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
+import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.service.book.BookApiSaveService;
 import com.nhnacademy.bookapi.service.book.BookMultiTableService;
@@ -10,11 +11,14 @@ import com.nhnacademy.bookapi.service.book.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import java.io.IOException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +35,8 @@ public class BookController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PostMapping("/admin/books/createBook")
-    public ResponseEntity<Void> createBook(@RequestBody BookCreatDTO bookCreatDTO) {
+    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart MultipartFile cover, @RequestPart MultipartFile detail)
+        throws IOException {
         bookMultiTableService.createBook(bookCreatDTO);
         return ResponseEntity.status(201).build();
     }
@@ -49,7 +54,8 @@ public class BookController {
     })
     //ToDo bookUpdate
     @PostMapping("/admin/books/updateBook")
-    public ResponseEntity<Void> updateBook(@RequestBody BookDTO bookUpdateDTO) {
+    public ResponseEntity<Void> updateBook(@RequestPart BookUpdateDTO bookUpdateDTO, @RequestPart MultipartFile cover,@RequestPart MultipartFile detail)
+        throws IOException {
         bookMultiTableService.updateBook(bookUpdateDTO);
         return ResponseEntity.ok().build();
     }
@@ -81,6 +87,12 @@ public class BookController {
     public ResponseEntity<BookDTO> getBook(@PathVariable Long id) {
         BookDTO adminBookById = bookMultiTableService.getAdminBookById(id);
         return ResponseEntity.ok(adminBookById);
+    }
+
+    @GetMapping("/admin/books/isbn/{isbn}")
+    public ResponseEntity<BookApiDTO> getBookByIsbn(@PathVariable String isbn) throws Exception {
+        BookApiDTO aladinBookByIsbn = bookApiSaveService.getAladinBookByIsbn(isbn);
+        return ResponseEntity.ok(aladinBookByIsbn);
     }
 
 

@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.service.book;
 
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
+import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book_type.BookTypeDTO;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
@@ -29,7 +30,12 @@ import com.nhnacademy.bookapi.service.book_type.BookTypeService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import com.nhnacademy.bookapi.service.image.ImageService;
+import com.nhnacademy.bookapi.service.object.ObjectService;
 import com.nhnacademy.bookapi.service.tag.TagService;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.Locale;
 import lombok.RequiredArgsConstructor;
@@ -37,10 +43,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @RequiredArgsConstructor
 @Service
 public class BookMultiTableService {
+
+    //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
+    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
+    private final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
+    private final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
+    private final String username = "rlgus4531@naver.com";
+    private final String password = "team3";
+    private final String containerName = "triple-seven";
 
     private final BookService bookService;
     private final ImageService imageService;
@@ -58,6 +73,7 @@ public class BookMultiTableService {
     private final BookPopularityRepository bookPopularityRepository;
     private final BookCategoryRepository bookCategoryRepository;
 
+    @Transactional(readOnly = true)
     public BookDTO getAdminBookById(Long id) {
         BookDTO bookById = bookService.getBookById(id);
         Long bookId = bookById.getId();
@@ -71,6 +87,7 @@ public class BookMultiTableService {
         return bookById;
     }
 
+    @Transactional(readOnly = true)
     public Page<BookDTO> getAdminBookSearch(String keyword, Pageable pageable) {
         Page<BookDTO> bookList = bookService.getBookList(keyword, pageable);
 
@@ -91,21 +108,28 @@ public class BookMultiTableService {
     }
 
     @Transactional
-    public void updateBook(BookDTO bookUpdateDTO) {
-        Book book = bookService.getBook(bookUpdateDTO.getId());
+    public void updateBook(BookUpdateDTO bookUpdateDTO) throws IOException {
+        //object storage에 저장
+        ObjectService objectService = new ObjectService(storageUrl);
+        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
 
+        Book book = bookService.getBook(bookUpdateDTO.getId());
         book.update(bookUpdateDTO.getTitle(),bookUpdateDTO.getIsbn(), bookUpdateDTO.getPublishedDate(),
             bookUpdateDTO.getRegularPrice(),bookUpdateDTO.getSalePrice(),bookUpdateDTO.getDescription());
 
-        List<String> bookCoverImages = bookUpdateDTO.getCoverImage();
-        for (String bookCoverImage : bookCoverImages) {
-            Image image = new Image(bookCoverImage);
+        List<MultipartFile> bookCoverImages = bookUpdateDTO.getCoverImage();
+        for (MultipartFile bookCoverImage : bookCoverImages) {
+            String path = uploadCoverImageToStorage(objectService, bookCoverImage,
+                bookUpdateDTO.getIsbn() + "cover.jpg");
+
+            Image image = new Image(path);
             BookCoverImage coverImage = new BookCoverImage(image, book);
             imageService.bookCoverSave(image, coverImage);
         }
-        List<String> detailImages = bookUpdateDTO.getDetailImage();
-        for (String detailImage : detailImages) {
-            Image image = new Image(detailImage);
+        List<MultipartFile> detailImages = bookUpdateDTO.getDetailImage();
+        for (MultipartFile detailImage : detailImages) {
+            String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "detail.jpg");
+            Image image = new Image(path);
             BookImage bookImage = new BookImage();
             imageService.bookDetailSave(image, bookImage);
         }
@@ -154,8 +178,13 @@ public class BookMultiTableService {
         }
     }
 
+    @Transactional
+    public void createBook(BookCreatDTO bookCreatDTO) throws IOException {
 
-    public void createBook(BookCreatDTO bookCreatDTO) {
+        //object storage에 저장
+        ObjectService objectService = new ObjectService(storageUrl);
+        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+
         boolean existed = bookService.existsBookByIsbn(bookCreatDTO.getIsbn());
         if(existed){
             throw new IllegalArgumentException("Book with ISBN " + bookCreatDTO.getIsbn() + " already exists.");
@@ -225,6 +254,24 @@ public class BookMultiTableService {
         BookPopularity bookPopularity = new BookPopularity(book, 0, 0, 0);
         bookPopularityRepository.save(bookPopularity);
 
+        List<MultipartFile> coverImage = bookCreatDTO.getCoverImage();
+        for (MultipartFile multipartFile : coverImage) {
+            String path = uploadCoverImageToStorage(objectService, multipartFile,
+                bookCreatDTO.getIsbn() + "cover.jpg");
+            Image image = new Image(path);
+            BookCoverImage bookCoverImage = new BookCoverImage(image, book);
+            imageService.bookCoverSave(image, bookCoverImage);
+        }
+        List<MultipartFile> detailImage = bookCreatDTO.getDetailImage();
+        for (MultipartFile multipartFile : detailImage) {
+            String path = uploadCoverImageToStorage(objectService, multipartFile,
+                bookCreatDTO.getIsbn() + "detail.jpg");
+            Image image = new Image(path);
+            BookImage bookImage = new BookImage(book, image);
+            imageService.bookDetailSave(image, bookImage);
+        }
+
+
     }
 
     @Transactional
@@ -250,5 +297,18 @@ public class BookMultiTableService {
         bookPopularityRepository.deleteByBookId(bookId);
 
         bookService.deleteBook(bookId);
+    }
+
+    //object storage에 이미지 업로드 메소드
+    public String uploadCoverImageToStorage(ObjectService objectService, MultipartFile imageFile, String objectName)
+        throws IOException {
+        InputStream inputStream = imageFile.getInputStream();
+        objectService.uploadObject(containerName, objectName, inputStream);
+        return storageUrl + "/" + containerName + "/" + objectName;
+    }
+
+
+    public MultipartFile loadImageTOStorage(ObjectService objectService, String objectName) {
+        return objectService.loadImageFromStorage(containerName, objectName);
     }
 }
