@@ -30,7 +30,7 @@ public class BookCreatorService {
     public List<BookCreatorDTO> bookCreatorList(long bookId) {
 
         List<BookCreatorDTO> creatorByBookId = bookCreatorRepository.findCreatorByBookId(bookId).stream().map(
-            bookCreator -> new BookCreatorDTO(bookCreator.getId(), bookCreator.getName(), bookCreator.getRole().getDescription())
+            bookCreator -> new BookCreatorDTO(bookCreator.getId(), bookCreator.getName(), bookCreator.getRole().name())
         ).toList();
 
 

@@ -253,6 +253,10 @@
       <classifier>jakarta</classifier>
       <scope>annotationProcessor</scope>
     </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-test</artifactId>
+    </dependency>
 
 
   </dependencies>

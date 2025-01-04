@@ -2,10 +2,12 @@ package com.nhnacademy.bookapi.service.object;
 
 
 import com.amazonaws.util.IOUtils;
+import java.net.HttpURLConnection;
 import lombok.Data;
 import lombok.NonNull;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
@@ -14,6 +16,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.*;
 import java.nio.file.Files;
 import java.util.Collections;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 public class ObjectService {
@@ -119,6 +122,27 @@ public class ObjectService {
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error during upload", e);
         }
+    }
+    public MultipartFile loadImageFromStorage(String containerName, String objectName) {
+        String url = this.getUrl(containerName, objectName);
+
+        RequestCallback callback = (request) -> {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("X-Auth-Token", this.tokenId);
+            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
+
+        };
+        ResponseExtractor<MultipartFile> extractor = (clientHttpResponse) -> {
+            byte[] bytes = StreamUtils.copyToByteArray(clientHttpResponse.getBody());
+            return new MockMultipartFile(
+                "file",                     // 필드 이름
+                objectName,                 // 파일 이름
+                "application/octet-stream", // MIME 타입 (필요에 따라 변경 가능)
+                new ByteArrayInputStream(bytes) // 파일 데이터
+            );
+        };
+
+        return this.restTemplate.execute(url, HttpMethod.GET, callback, extractor);
     }
 }
 

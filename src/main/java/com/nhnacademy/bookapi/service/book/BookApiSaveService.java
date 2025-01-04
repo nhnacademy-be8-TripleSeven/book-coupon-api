@@ -81,6 +81,9 @@ public class BookApiSaveService {
     private final BookIndexRepository bookIndexRepository;
 
     public BookApiDTO getAladinBookByIsbn(String isbn) throws Exception {
+        ObjectService objectService = new ObjectService(storageUrl);
+        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+
         JsonNode book = bookApiService.getBook(isbn).get(0);
 
         String isbn13 = book.path("isbn13").asText();
@@ -95,6 +98,8 @@ public class BookApiSaveService {
         if(pubDateStr != null || !pubDateStr.isEmpty()) {
             pubDate = LocalDate.parse(pubDateStr);
         }
+        String cover = book.path("cover").asText();
+        String path = uploadCoverImageToStorage(objectService, cover, "cover.jpg");
 
         BookApiDTO apiDTO = new BookApiDTO(
             book.path("title").asText(),
@@ -103,7 +108,7 @@ public class BookApiSaveService {
             book.path("description").asText(),
             book.path("priceStandard").asInt(),
             book.path("priceSales").asInt(),
-            List.of(book.path("cover").asText()),
+            List.of(cover),
             1000,
             0
         );
