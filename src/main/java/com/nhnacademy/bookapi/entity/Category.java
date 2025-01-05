@@ -16,24 +16,25 @@ public class Category {
 
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Category parent;
+    private int level;
 
 
-    public Category(String name, Category parent) {
+    public Category(String name, int level) {
         this.name = name;
-        this.parent = parent;
+        this.level = level;
     }
 
-    public void create(String name, Category parent) {
+    public void create(String name, int level) {
         this.name = name;
-        this.parent = parent;
+        this.level = level;
     }
 
-    public void update(String newName, Category newParent) {
+
+    public void update(String newName, int level) {
         this.name = newName;
-        this.parent = newParent;
+        this.level = level;
     }
+
 
     public void setTestId(Long id) {
         this.id = id;

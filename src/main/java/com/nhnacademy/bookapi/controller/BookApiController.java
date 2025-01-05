@@ -24,7 +24,6 @@ public class BookApiController {
     public ResponseEntity<String> aladinApi(@RequestParam String bookType, String searchTarget, int start, int max) throws Exception {
         bookApiSaveService.aladinApiSaveBook(bookType, searchTarget, start, max);
 
-
         return ResponseEntity.ok().body("성공");
     }
     //http://localhost:8080/aladinApi/EditorChoice?bookType=ItemEditorChoice&searchTarget=Book&start=1&max=100&categoryId=1

@@ -2,6 +2,8 @@ package com.nhnacademy.bookapi.service.book;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
+import com.nhnacademy.bookapi.dto.book.BookApiDTO;
+import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCategory;
 import com.nhnacademy.bookapi.entity.BookCoverImage;
@@ -41,6 +43,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.nhnacademy.bookapi.service.object.ObjectService;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -77,6 +80,47 @@ public class BookApiSaveService {
     
     private final BookIndexRepository bookIndexRepository;
 
+    public BookApiDTO getAladinBookByIsbn(String isbn) throws Exception {
+        ObjectService objectService = new ObjectService(storageUrl);
+        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+
+        JsonNode book = bookApiService.getBook(isbn).get(0);
+
+        String isbn13 = book.path("isbn13").asText();
+        boolean findIsbn = bookRepository.existsByIsbn13(isbn);
+
+
+        if(findIsbn){
+            return new BookApiDTO();
+        }
+        String pubDateStr = book.path("pubDate").asText();
+        LocalDate pubDate = null;
+        if(pubDateStr != null || !pubDateStr.isEmpty()) {
+            pubDate = LocalDate.parse(pubDateStr);
+        }
+        String cover = book.path("cover").asText();
+        String path = uploadCoverImageToStorage(objectService, cover, "cover.jpg");
+
+        BookApiDTO apiDTO = new BookApiDTO(
+            book.path("title").asText(),
+            book.path("isbn13").asText(),
+            pubDate,
+            book.path("description").asText(),
+            book.path("priceStandard").asInt(),
+            book.path("priceSales").asInt(),
+            List.of(cover),
+            1000,
+            0
+        );
+
+        apiDTO.createBookTypeParse(book.path("bestRank").asInt());
+        apiDTO.createAuthorParse(book.path("author").asText());
+        apiDTO.createCategoryParse(book.path("categoryName").asText());
+
+        return apiDTO;
+    }
+
+
     public void aladinApiSaveBook(String bookType, String searchTarget, int start, int max) throws Exception {
         JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
         //object storage에 저장
@@ -84,8 +128,9 @@ public class BookApiSaveService {
         objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
         //여기까지
 
-        for (JsonNode book : bookList) {
 
+        for (JsonNode book : bookList) {
+            int level = 1;
             String isbn = book.path("isbn13").asText();
             boolean findIsbn = bookRepository.existsByIsbn13(isbn);
 
@@ -101,8 +146,8 @@ public class BookApiSaveService {
             BookPopularity bookPopularity = new BookPopularity();
             BookImage bookImage = new BookImage();
             Image image;
-            BookType saveBookType = new BookType();
-            Publisher publisher = new Publisher();
+            BookType saveBookType = null;
+            Publisher publisher = null;
 
             JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
 
@@ -169,8 +214,10 @@ public class BookApiSaveService {
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
 
+
+
             authorParseSave(author, saveBook);
-            categoryParseSave(category, saveBook);
+            categoryParseSave(category, saveBook, level);
 
             //책인기도 초기화
             bookPopularity.create(saveBook);
@@ -188,8 +235,9 @@ public class BookApiSaveService {
         objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
         //여기까지
 
-        for (JsonNode book : bookList) {
 
+        for (JsonNode book : bookList) {
+            int level = 1;
             String isbn = book.path("isbn13").asText();
             boolean findIsbn = bookRepository.existsByIsbn13(isbn);
 
@@ -275,12 +323,14 @@ public class BookApiSaveService {
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
 
+
             authorParseSave(author, saveBook);
-            categoryParseSave(category, saveBook);
+            categoryParseSave(category, saveBook, level);
 
             //책인기도 초기화
             bookPopularity.create(saveBook);
             bookPopularRepository.save(bookPopularity);
+
 
         }
 
@@ -332,7 +382,7 @@ public class BookApiSaveService {
     }
 
 
-    public List<Category> categoryParseSave(String category, Book book) {
+    public List<Category> categoryParseSave(String category, Book book, int level) throws Exception {
         List<Category> categoryList = new ArrayList<>();
         String[] categories = category.split(">");
         Category parentCategory = null;
@@ -340,17 +390,20 @@ public class BookApiSaveService {
         for (String categoryName : categories) {
             categoryName = categoryName.trim();
 
+
             // 중복 확인 및 기존 카테고리 조회
-            Optional<Category> existingCategory = categoryRepository.findByNameAndParent(categoryName, parentCategory);
+            Category categoryByName = categoryRepository.findCategoryByName(categoryName);
             Category saveCategory;
 
-            if (existingCategory.isPresent()) {
-                saveCategory = existingCategory.get();
+            if (categoryByName != null) {
+                saveCategory = categoryByName;
+                level++;
             } else {
                 saveCategory = new Category();
-                saveCategory.create(categoryName, parentCategory);
+                saveCategory.create(categoryName, level);
                 saveCategory = categoryRepository.save(saveCategory);
                 categoryList.add(saveCategory);
+                level++;
             }
 
             // 도서와 카테고리 매핑 저장
@@ -358,8 +411,7 @@ public class BookApiSaveService {
             bookCategory.create(book,saveCategory);
             bookCategoryRepository.save(bookCategory);
 
-            // 부모 카테고리 갱신
-            parentCategory = saveCategory;
+
         }
         return categoryList;
     }

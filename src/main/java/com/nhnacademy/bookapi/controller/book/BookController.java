@@ -1,31 +1,58 @@
 package com.nhnacademy.bookapi.controller.book;
 
+
+import com.nhnacademy.bookapi.dto.book.BookApiDTO;
+import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
+import com.nhnacademy.bookapi.dto.book.BookDTO;
+
+import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
+
+import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
+
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
-import com.nhnacademy.bookapi.dto.book.UpdateBookRequest;
+import com.nhnacademy.bookapi.service.book.BookApiSaveService;
+import com.nhnacademy.bookapi.service.book.BookMultiTableService;
 import com.nhnacademy.bookapi.service.book.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import java.io.IOException;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 public class BookController {
 
     private final BookService bookService;
+    private final BookMultiTableService bookMultiTableService;
+    private final BookApiSaveService bookApiSaveService;
+
 
     @Operation(summary = "책 생성", description = "새로운 책을 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "책 생성 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    @PostMapping("/admin/books")
-    public ResponseEntity<Void> createBook(@RequestBody CreateBookRequestDTO request) {
-        bookService.createBook(request);
+    @PostMapping("/admin/books/createBook")
+    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart MultipartFile cover, @RequestPart MultipartFile detail)
+        throws IOException {
+        bookMultiTableService.createBook(bookCreatDTO);
         return ResponseEntity.status(201).build();
+    }
+
+    @GetMapping("/admin/books/keyword/{keyword}")
+    public ResponseEntity<Page<BookDTO>> adminBookList(@PathVariable(name = "keyword") String keyword, Pageable pageable) {
+        Page<BookDTO> bookList = bookMultiTableService.getAdminBookSearch(keyword, pageable);
+        return ResponseEntity.ok(bookList);
     }
 
     @Operation(summary = "책 수정", description = "기존 책의 정보를 수정합니다.")
@@ -33,9 +60,11 @@ public class BookController {
             @ApiResponse(responseCode = "200", description = "책 수정 성공"),
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
-    @PutMapping("/admin/books")
-    public ResponseEntity<Void> updateBook(@RequestBody UpdateBookRequest request) {
-        bookService.update(request);
+    //ToDo bookUpdate
+    @PostMapping("/admin/books/updateBook")
+    public ResponseEntity<Void> updateBook(@RequestPart BookUpdateDTO bookUpdateDTO, @RequestPart MultipartFile cover,@RequestPart MultipartFile detail)
+        throws IOException {
+        bookMultiTableService.updateBook(bookUpdateDTO);
         return ResponseEntity.ok().build();
     }
 
@@ -44,9 +73,9 @@ public class BookController {
             @ApiResponse(responseCode = "204", description = "책 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
-    @DeleteMapping("/admin/books/{bookId}")
+    @DeleteMapping("/admin/books/delete/{bookId}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long bookId) {
-        bookService.delete(bookId);
+        bookMultiTableService.deleteBook(bookId);
         return ResponseEntity.noContent().build();
     }
 
@@ -59,6 +88,19 @@ public class BookController {
     public ResponseEntity<SearchBookDetail> getBookDetail(@PathVariable Long bookId) {
         SearchBookDetail searchBookDetail = bookService.searchBookDetailByBookId(bookId);
         return ResponseEntity.ok(searchBookDetail);
+    }
+
+
+    @GetMapping("/admin/books/{id}")
+    public ResponseEntity<BookDTO> getBook(@PathVariable Long id) {
+        BookDTO adminBookById = bookMultiTableService.getAdminBookById(id);
+        return ResponseEntity.ok(adminBookById);
+    }
+
+    @GetMapping("/admin/books/isbn/{isbn}")
+    public ResponseEntity<BookApiDTO> getBookByIsbn(@PathVariable String isbn) throws Exception {
+        BookApiDTO aladinBookByIsbn = bookApiSaveService.getAladinBookByIsbn(isbn);
+        return ResponseEntity.ok(aladinBookByIsbn);
     }
 
 
@@ -151,5 +193,11 @@ public class BookController {
     @GetMapping("/books/booktype/{bookType}")
     public ResponseEntity<Void> getBooksByCategory(@PathVariable String bookType) {
         return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/books/aladin/isbn/{isbn}")
+    public ResponseEntity<BookApiDTO> getBooksByISBN(@PathVariable String isbn) throws Exception {
+        BookApiDTO aladinBookByIsbn = bookApiSaveService.getAladinBookByIsbn(isbn);
+        return ResponseEntity.ok(aladinBookByIsbn);
     }
 }
