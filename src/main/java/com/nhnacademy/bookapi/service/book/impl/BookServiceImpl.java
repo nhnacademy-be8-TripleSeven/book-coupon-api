@@ -22,6 +22,7 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -128,18 +129,18 @@ public class BookServiceImpl implements BookService {
                 book.getStock(), book.getPage(), imageUrl, book.getPublisher().getName());
         searchBookDetail.setBookCreators(getBookCreators(bookCreatorMaps));
 
-        List<BookCategory> bookCategories = bookCategoryRepository.findAllByBook(book);
-        List<List<String>> categoryHierarchies = new ArrayList<>();
-
-        if (!bookCategories.isEmpty()) {
-            for (BookCategory bookCategory : bookCategories) {
-                Category category = bookCategory.getCategory(); // 하나의 카테고리 객체
-                List<String> hierarchy = getCategoryHierarchy(category);
-                categoryHierarchies.add(hierarchy);
-            }
-            StringBuilder categories = getCategoryResult(categoryHierarchies.getLast());
-            searchBookDetail.setCategories(categories);
-        }
+//        List<BookCategory> bookCategories = bookCategoryRepository.findAllByBook(book);
+//        List<List<String>> categoryHierarchies = new ArrayList<>();
+//
+//        if (!bookCategories.isEmpty()) {
+//            for (BookCategory bookCategory : bookCategories) {
+//                Category category = bookCategory.getCategory(); // 하나의 카테고리 객체
+//                List<String> hierarchy = getCategoryHierarchy(category);
+//                categoryHierarchies.add(hierarchy);
+//            }
+//            StringBuilder categories = getCategoryResult(categoryHierarchies.getLast());
+//            searchBookDetail.setCategories(categories);
+//        }
 
         List<BookTag> bookTags = bookTagRepository.findAllByBookWithTags(book);
         searchBookDetail.setTags(getBookTags(bookTags));
@@ -238,15 +239,8 @@ public class BookServiceImpl implements BookService {
     @Override
     public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
                                                               String keyword, Pageable pageable) {
-
-
         return bookRepository.findByCategoryAndTitle(
-            categories, keyword, pageable);
-
-        Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
                 categories, keyword, pageable);
-        return byCategoryAndTitle;
-
     }
 
     @Override
