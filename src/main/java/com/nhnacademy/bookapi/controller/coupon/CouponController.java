@@ -141,7 +141,7 @@ public class CouponController {
     })
     @PostMapping("/api/coupons/use/{couponId}")
     public ResponseEntity<CouponUseResponseDTO> useCouponForUser(
-            @RequestHeader("X-User") Long userId,
+            @RequestHeader("X-USER") Long userId,
             @PathVariable Long couponId) {
         CouponUseResponseDTO response = couponService.useCoupon(userId, couponId);
         return ResponseEntity.ok(response);
@@ -154,7 +154,7 @@ public class CouponController {
     })
     @PostMapping("/api/coupons/use/{couponId}/book/{bookId}")
     public ResponseEntity<CouponUseResponseDTO> useBookCouponForUser(
-            @RequestHeader("X-User") Long userId,
+            @RequestHeader("X-USER") Long userId,
             @PathVariable Long couponId,
             @PathVariable Long bookId) {
         CouponUseResponseDTO response = couponService.useBookCoupon(userId, couponId, bookId);
@@ -182,7 +182,7 @@ public class CouponController {
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
     @GetMapping("/api/coupons")
-    public ResponseEntity<List<CouponDetailsDTO>> getCouponsForUser(@RequestHeader("X-User") Long userId,
+    public ResponseEntity<List<CouponDetailsDTO>> getCouponsForUser(@RequestHeader("X-USER") Long userId,
                                                                     @RequestParam(required = false) String keyword,
                                                                     @RequestParam(required = false) LocalDate startDate,
                                                                     @RequestParam(required = false) LocalDate endDate) {
@@ -197,7 +197,7 @@ public class CouponController {
     })
     @GetMapping("/api/coupons/used")
     public ResponseEntity<List<CouponDetailsDTO>> getUsedCouponsForUser(
-            @RequestHeader(value = "X-User") Long userId,
+            @RequestHeader(value = "X-USER") Long userId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate) {
@@ -214,7 +214,7 @@ public class CouponController {
     })
     @GetMapping("/api/coupons/unused")
     public ResponseEntity<List<CouponDetailsDTO>> getUnUsedCouponsForUser(
-            @RequestHeader(value = "X-User") Long userId,
+            @RequestHeader(value = "X-USER") Long userId,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) LocalDate startDate,
             @RequestParam(required = false) LocalDate endDate) {
@@ -266,20 +266,8 @@ public class CouponController {
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
     @GetMapping("/api/coupons/available")
-    public ResponseEntity<Void> getAvailableCoupons(@RequestHeader("X-User") Long userId) {
+    public ResponseEntity<Void> getAvailableCoupons(@RequestHeader("X-USER") Long userId) {
         return ResponseEntity.ok().build();
     }
-
-    // 생일 쿠폰 자동 생성
-    @Operation(summary = "생일 쿠폰 생성", description = "회원의 생일에 자동으로 쿠폰을 생성합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "생일 쿠폰 생성 성공"),
-            @ApiResponse(responseCode = "404", description = "회원 정보를 찾을 수 없음")
-    })
-    @PostMapping("/api/coupons/birthday")
-    public ResponseEntity<Void> generateBirthdayCoupon(@RequestHeader("X-User") Long userId) {
-        return ResponseEntity.ok().build();
-    }
-
 
 }

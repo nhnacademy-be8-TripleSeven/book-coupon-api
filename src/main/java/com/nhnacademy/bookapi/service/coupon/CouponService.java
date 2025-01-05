@@ -42,4 +42,5 @@ public interface CouponService {
 
     List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request);
 
+    void assignMonthlyBirthdayCoupons();
 }
