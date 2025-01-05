@@ -30,4 +30,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     List<Category> findByBookId(@Param("bookId") Long bookId);
 
     Category findCategoryByName(String name);
+
+    List<Category> findCategoryByLevel(int level);
 }

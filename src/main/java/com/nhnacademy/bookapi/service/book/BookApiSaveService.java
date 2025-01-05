@@ -127,10 +127,10 @@ public class BookApiSaveService {
         ObjectService objectService = new ObjectService(storageUrl);
         objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
         //여기까지
-        int level = -1;
+
 
         for (JsonNode book : bookList) {
-
+            int level = 1;
             String isbn = book.path("isbn13").asText();
             boolean findIsbn = bookRepository.existsByIsbn13(isbn);
 
@@ -215,7 +215,7 @@ public class BookApiSaveService {
             String category = book.path("categoryName").asText();
 
 
-            level++;
+
             authorParseSave(author, saveBook);
             categoryParseSave(category, saveBook, level);
 
@@ -234,10 +234,10 @@ public class BookApiSaveService {
         ObjectService objectService = new ObjectService(storageUrl);
         objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
         //여기까지
-        int level = -1;
+
 
         for (JsonNode book : bookList) {
-
+            int level = 1;
             String isbn = book.path("isbn13").asText();
             boolean findIsbn = bookRepository.existsByIsbn13(isbn);
 
@@ -323,13 +323,14 @@ public class BookApiSaveService {
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
 
-            level++;
+
             authorParseSave(author, saveBook);
             categoryParseSave(category, saveBook, level);
 
             //책인기도 초기화
             bookPopularity.create(saveBook);
             bookPopularRepository.save(bookPopularity);
+
 
         }
 
@@ -396,11 +397,13 @@ public class BookApiSaveService {
 
             if (categoryByName != null) {
                 saveCategory = categoryByName;
+                level++;
             } else {
                 saveCategory = new Category();
                 saveCategory.create(categoryName, level);
                 saveCategory = categoryRepository.save(saveCategory);
                 categoryList.add(saveCategory);
+                level++;
             }
 
             // 도서와 카테고리 매핑 저장
@@ -408,8 +411,7 @@ public class BookApiSaveService {
             bookCategory.create(book,saveCategory);
             bookCategoryRepository.save(bookCategory);
 
-            // 부모 카테고리 갱신
-            parentCategory = saveCategory;
+
         }
         return categoryList;
     }
