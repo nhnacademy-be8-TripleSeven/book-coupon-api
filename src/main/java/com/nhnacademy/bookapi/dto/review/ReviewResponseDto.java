@@ -10,13 +10,15 @@ public class ReviewResponseDto {
     private String text;
     private int rating;
     private LocalDateTime createdAt;
+    private String imageUrl;
 
     public ReviewResponseDto() {}
 
-    public ReviewResponseDto(Long userId, String text, int rating, LocalDateTime createdAt) {
+    public ReviewResponseDto(Long userId, String text, int rating, LocalDateTime createdAt, String imageUrl) {
         this.userId = userId;
         this.text = text;
         this.rating = rating;
         this.createdAt = createdAt;
+        this.imageUrl = imageUrl;
     }
 }
