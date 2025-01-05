@@ -52,7 +52,8 @@ public class ReviewService {
                 LocalDateTime.now(),
                 reviewRequestDto.getRating(),
                 book,
-                userId
+                userId,
+                reviewRequestDto.getImageUrl()
         );
 
         reviewRepository.save(review);
@@ -80,7 +81,7 @@ public class ReviewService {
         List<Review> reviews = reviewRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
 
         for (Review review : reviews) {
-            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt()));
+            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
         }
 
         return result;
@@ -89,14 +90,14 @@ public class ReviewService {
     public ReviewResponseDto getReview(Long bookId, Long userId) {
         Book book = getBook(bookId);
         Review review = getReview(book, userId);
-        return new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt());
+        return new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl());
     }
     // 도서에 달려있는 리뷰 페이징 처리 메소드
     public Page<ReviewResponseDto> getPagedReviewsByBookId(Long bookId, Pageable pageable) {
         Book book = getBook(bookId);
         Page<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book, pageable);
         return reviews.map(review ->
-                new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt()));
+                new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
     }
 
     // 도서에 달려있는 모든 리뷰 조회
@@ -105,7 +106,7 @@ public class ReviewService {
         List<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book);
         List<ReviewResponseDto> result = new ArrayList<>();
         for (Review review : reviews) {
-            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt()));
+            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
         }
         return result;
     }

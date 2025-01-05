@@ -19,4 +19,8 @@ public interface LikeRepository extends JpaRepository<Likes, Long> {
     Page<Likes> findAllByUserIdWithBook(Long userId, Pageable pageable);
 
     boolean existsByBookAndUserId(Book book, Long userId);
+
+    @Query("SELECT l FROM Likes l JOIN FETCH l.book b WHERE l.userId = :userId AND b.title LIKE %:keyword%")
+    Page<Likes> findAllByUserIdAndBookTitleContaining(Long userId, String keyword, Pageable pageable);
+
 }

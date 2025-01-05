@@ -10,11 +10,21 @@ public class ReviewRequestDto {
     @NotNull(message = "평점은 필수입니다.")
     private int rating;
     private Long bookId;
+    private String imageUrl;
 
-    public ReviewRequestDto(String text, int rating, Long bookId) {
+    public ReviewRequestDto(String text, int rating, Long bookId, String imageUrl) {
         this.text = text;
         this.rating = rating;
         this.bookId = bookId;
+        this.imageUrl = imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     public void setText(String text) {
