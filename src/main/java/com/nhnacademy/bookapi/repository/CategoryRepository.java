@@ -33,6 +33,9 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Category findCategoryByName(String name);
 
 
+    List<Category> findCategoryByLevel(int level);
+
+
     @Query("select c from Category c join BookCategory bc on bc.category.id = c.id where bc.book.id =: bookId")
     List<Category> findByBookId(Long bookId);
 

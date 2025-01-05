@@ -16,6 +16,14 @@ public interface CategoryService {
     Category getCategoryByName(String categoryName);
 
     void bookCategorySave(BookCategory bookCategory);
+
+    void saveCategory(CategoryDTO categoryDTO);
+
+    void categorySaveList(List<CategoryDTO> categoryDTOList);
+
+    List<CategoryDTO> getCategoryByLevel(int level);
+
+    void deleteCategoryById(Long categoryId);
 }
 
 import com.nhnacademy.bookapi.dto.category.CategorySearchDTO;
