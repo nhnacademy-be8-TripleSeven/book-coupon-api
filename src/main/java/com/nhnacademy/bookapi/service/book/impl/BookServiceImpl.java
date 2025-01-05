@@ -5,6 +5,11 @@ import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
+
+import com.nhnacademy.bookapi.dto.book.*;
+import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
+
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.entity.*;
@@ -232,10 +237,16 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
-        String keyword, Pageable pageable) {
+                                                              String keyword, Pageable pageable) {
+
 
         return bookRepository.findByCategoryAndTitle(
             categories, keyword, pageable);
+
+        Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
+                categories, keyword, pageable);
+        return byCategoryAndTitle;
+
     }
 
     @Override
@@ -257,6 +268,7 @@ public class BookServiceImpl implements BookService {
         return bookByKeyword;
     }
 
+
     public Page<BookDTO> getBookList(String keyword, Pageable pageable) {
         return bookRepository.findBookByKeyword(keyword, pageable);
     }
@@ -266,6 +278,15 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findById(id).get();
     }
 
+
+
+    @Transactional(readOnly = true)
+    public List<BookSearchDTO> searchBooksByName(String query) {
+        List<Book> books = bookRepository.findByTitleContaining(query);
+        return books.stream()
+                .map(book -> new BookSearchDTO(book.getId(), book.getTitle(), book.getIsbn13()))
+                .collect(Collectors.toList());
+    }
 
 
 

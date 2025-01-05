@@ -14,6 +14,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 //    Optional<Category> findByNameAndParent(String name, Category parent);
 
     // 특정 카테고리의 하위 카테고리 조회
+
 //    @Query(value = """
 //        WITH RECURSIVE Subcategories (ID, PARENT_ID) AS (
 //            SELECT ID, PARENT_ID FROM CATEGORY WHERE ID = :categoryId
@@ -31,5 +32,13 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     Category findCategoryByName(String name);
 
+
     List<Category> findCategoryByLevel(int level);
+
+
+    @Query("select c from Category c join BookCategory bc on bc.category.id = c.id where bc.book.id =: bookId")
+    List<Category> findByBookId(Long bookId);
+
+    List<Category> findByNameContaining(String name);
+
 }

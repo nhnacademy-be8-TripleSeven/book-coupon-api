@@ -16,7 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 @EnableDiscoveryClient
-//@EnableFeignClients
+@EnableFeignClients
 public class BookapiApplication {
     private static final Logger logger = LoggerFactory.getLogger(BookapiApplication.class);
 

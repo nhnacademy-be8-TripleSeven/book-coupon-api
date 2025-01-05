@@ -9,9 +9,12 @@ import com.nhnacademy.bookapi.exception.LikeAlreadyExistException;
 import com.nhnacademy.bookapi.exception.LikeNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.LikeRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,7 +82,7 @@ public class LikeService {
         if (likeRepository.existsByBookAndUserId(book, userId)) {
             throw new LikeAlreadyExistException("The User is already liked");
         }
-        Likes like = new Likes(book, userId);
+        Likes like = new Likes(book, userId, LocalDateTime.now());
         likeRepository.save(like);
     }
 
@@ -95,16 +98,13 @@ public class LikeService {
         likeRepository.delete(like);
     }
 
-    // 유저 아이디를 사용해 좋아요를 누른 모든 도서 조회
-    public List<LikesResponseDto> getAllLikesByUserId(Long userId) {
-        List<LikesResponseDto> result = new ArrayList<>();
+    public Page<LikesResponseDto> getPagedLikesByUserId(Long userId, Pageable pageable) {
+        Page<Likes> likesPage = likeRepository.findAllByUserIdWithBook(userId, pageable);
 
-        List<Likes> list = likeRepository.findAllByUserIdWithBook(userId);
 
-        for (Likes like : list) {
-            result.add(new LikesResponseDto(like.getBook().getId()));
-        }
-        return result;
+        return likesPage.map(like ->
+                new LikesResponseDto(like.getBook().getId(), like.getBook().getTitle(), like.getCreatedAt())
+        );
     }
 
     private Book getBook(Long bookId) {
