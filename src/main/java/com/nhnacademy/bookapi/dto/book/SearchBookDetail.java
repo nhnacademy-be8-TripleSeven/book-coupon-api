@@ -28,7 +28,7 @@ public class SearchBookDetail {
     //private List<Image> bookImages;
     private List<String> detailImages;
     private List<BookCreatorDetail> bookCreators;
-    //private StringBuilder categories;
+    private StringBuilder categories;
     private StringBuilder tags;
     private StringBuilder bookTypes;
 
