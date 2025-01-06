@@ -41,17 +41,19 @@ public class ImageService {
     @Transactional
     public void deleteBookCoverImageAndBookDeleteImage(long bookId) {
         Image imageIdByBookId = bookImageRepository.findImageByBookId(bookId);
-        if (imageIdByBookId != null) {
-            bookImageRepository.deleteById(bookId);
-        }
+
 
         Image imageByBookId = bookCoverImageRepository.findImageByBookId(bookId);
-        if (imageByBookId != null) {
-            bookCoverImageRepository.deleteById(bookId);
+
+        if(imageIdByBookId != null) {
+            bookImageRepository.deleteByBookId(bookId);
+            imageRepository.deleteById(imageIdByBookId.getId());
+        }
+        if(imageByBookId != null) {
+            bookCoverImageRepository.deleteByBookId(bookId);
+            imageRepository.deleteById(imageByBookId.getId());
         }
 
 
-        imageRepository.deleteById(imageIdByBookId.getId());
-        imageRepository.deleteById(imageByBookId.getId());
     }
 }

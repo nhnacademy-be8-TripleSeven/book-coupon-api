@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -236,16 +237,10 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
-                                                              String keyword, Pageable pageable) {
-
+    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable) {
 
         return bookRepository.findByCategoryAndTitle(
             categories, keyword, pageable);
-
-        Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
-                categories, keyword, pageable);
-        return byCategoryAndTitle;
 
     }
 

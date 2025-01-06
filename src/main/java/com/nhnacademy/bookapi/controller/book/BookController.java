@@ -43,7 +43,7 @@ public class BookController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PostMapping("/admin/books/createBook")
-    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart MultipartFile cover, @RequestPart MultipartFile detail)
+    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO)
         throws IOException {
         bookMultiTableService.createBook(bookCreatDTO);
         return ResponseEntity.status(201).build();
@@ -62,7 +62,7 @@ public class BookController {
     })
     //ToDo bookUpdate
     @PostMapping("/admin/books/updateBook")
-    public ResponseEntity<Void> updateBook(@RequestPart BookUpdateDTO bookUpdateDTO, @RequestPart MultipartFile cover,@RequestPart MultipartFile detail)
+    public ResponseEntity<Void> updateBook(@RequestPart BookUpdateDTO bookUpdateDTO)
         throws IOException {
         bookMultiTableService.updateBook(bookUpdateDTO);
         return ResponseEntity.ok().build();
@@ -73,8 +73,8 @@ public class BookController {
             @ApiResponse(responseCode = "204", description = "책 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
-    @DeleteMapping("/admin/books/delete/{bookId}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long bookId) {
+    @DeleteMapping("/admin/books/delete")
+    public ResponseEntity<Void> deleteBook(@RequestParam("bookId") Long bookId) {
         bookMultiTableService.deleteBook(bookId);
         return ResponseEntity.noContent().build();
     }

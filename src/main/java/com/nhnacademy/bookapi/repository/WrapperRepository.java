@@ -16,4 +16,6 @@ public interface WrapperRepository extends JpaRepository<Wrapper, Long> {
     @Modifying
     @Query("delete from Wrapper w where w.book.id =:bookId")
     void deleteByBookId(Long bookId);
+
+    boolean existsByBookId(Long bookId);
 }

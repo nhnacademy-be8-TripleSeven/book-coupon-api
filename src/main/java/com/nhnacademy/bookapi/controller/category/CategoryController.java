@@ -22,8 +22,8 @@ public class CategoryController {
 
 
     @PostMapping("/admin/books/categoryCreate")
-    public ResponseEntity<Void> saveCategory(@RequestBody List<CategoryDTO> categoryDTO){
-        categoryService.categorySaveList(categoryDTO);
+    public ResponseEntity<Void> saveCategory(@RequestBody CategoryDTO categoryDTO){
+        categoryService.saveCategory(categoryDTO);
         return ResponseEntity.ok().build();
     }
 
@@ -34,7 +34,7 @@ public class CategoryController {
         return ResponseEntity.ok().body(categoryByLevel);
     }
 
-    @DeleteMapping("/admin/books/categoryDelete")
+    @PostMapping("/admin/books/categoryDelete")
     public ResponseEntity<Void> deleteCategory(@RequestParam long id){
         categoryService.deleteCategoryById(id);
         return ResponseEntity.ok().build();

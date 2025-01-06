@@ -156,7 +156,7 @@ public class BookIndexService {
     }
 
     public BookIndex getBookIndex(long bookId) {
-        return bookIndexRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
+        return bookIndexRepository.findById(bookId).orElse(null);
     }
 
     public void createBookIndex(BookIndex bookIndex){
@@ -164,10 +164,8 @@ public class BookIndexService {
     }
 
     public void deleteBookIndex(long bookId) {
-        String byBookId = bookIndexRepository.findByBookId(bookId);
-        if(byBookId != null){
-            bookIndexRepository.deleteById(bookId);
-        }
+        bookIndexRepository.deleteById(bookId);
+
     }
 }
 

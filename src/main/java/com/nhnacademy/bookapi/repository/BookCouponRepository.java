@@ -22,4 +22,5 @@ public interface BookCouponRepository extends JpaRepository<BookCoupon, Long> {
 //    @Query("SELECT bc FROM BookCoupon bc JOIN FETCH bc.book WHERE bc.coupon = :coupon")
 //    Optional<BookCoupon> findByCouponWithBook(Coupon coupon);
 
+    boolean existsByBookId(Long bookId);
 }
