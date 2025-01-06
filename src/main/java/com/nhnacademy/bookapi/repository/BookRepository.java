@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.repository;
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
+import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Type;
@@ -68,6 +69,8 @@ public interface BookRepository extends JpaRepository<Book, Long>, BookRepositor
     Page<BookDetailResponseDTO> findByCategoryAndTitle(@Param("categories") List<String> categories, @Param("keyword") String keyword, Pageable pageable);
 
     List<Book> findByTitleContaining(String title);
+
+
 
 
 

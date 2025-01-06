@@ -44,4 +44,5 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
         "}")
     Page<BookDocument> searchWithPopularityAndWeights(String keyword, Pageable pageable);
 
+
 }

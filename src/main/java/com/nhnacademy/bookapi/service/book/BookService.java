@@ -7,7 +7,6 @@ import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 
 import com.nhnacademy.bookapi.dto.book.*;
-import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Type;

@@ -7,8 +7,6 @@ import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 
 import com.nhnacademy.bookapi.dto.book.*;
-import com.nhnacademy.bookapi.dto.book_index.BookIndexResponseDto;
-import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
@@ -24,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -248,15 +245,14 @@ public class BookServiceImpl implements BookService {
         return bookTypeItemByType;
     }
 
-    @Override
+//    @Override
+//    public Page<BookDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable) {
+//        return bookRepository.findByCategoryAndTitle(
+//            categories, keyword, pageable);
+//    }
+
+
     public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable) {
-
-        return bookRepository.findByCategoryAndTitle(
-            categories, keyword, pageable);
-
-
-    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
-                                                              String keyword, Pageable pageable) {
         return bookRepository.findByCategoryAndTitle(
                 categories, keyword, pageable);
     }
@@ -285,7 +281,7 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findBookByKeyword(keyword, pageable);
     }
 
-    @Override
+
     public Book getBook(Long id) {
         return bookRepository.findById(id).get();
     }
