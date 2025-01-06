@@ -19,6 +19,7 @@ import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Image;
 import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
+import com.nhnacademy.bookapi.entity.Tag;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCouponRepository;
 import com.nhnacademy.bookapi.repository.BookPopularityRepository;
@@ -36,8 +37,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -107,7 +110,7 @@ public class BookMultiTableService {
         return bookList;
     }
 
-    @Transactional
+
     public void updateBook(BookUpdateDTO bookUpdateDTO) throws IOException {
         //object storage에 저장
         ObjectService objectService = new ObjectService(storageUrl);
@@ -117,7 +120,7 @@ public class BookMultiTableService {
         book.update(bookUpdateDTO.getTitle(),bookUpdateDTO.getIsbn(), bookUpdateDTO.getPublishedDate(),
             bookUpdateDTO.getRegularPrice(),bookUpdateDTO.getSalePrice(),bookUpdateDTO.getDescription());
 
-        List<MultipartFile> bookCoverImages = bookUpdateDTO.getCoverImage();
+        List<MultipartFile> bookCoverImages = Optional.ofNullable(bookUpdateDTO.getCoverImage()).orElse(Collections.emptyList());
         for (MultipartFile bookCoverImage : bookCoverImages) {
             String path = uploadCoverImageToStorage(objectService, bookCoverImage,
                 bookUpdateDTO.getIsbn() + "cover.jpg");
@@ -126,7 +129,7 @@ public class BookMultiTableService {
             BookCoverImage coverImage = new BookCoverImage(image, book);
             imageService.bookCoverSave(image, coverImage);
         }
-        List<MultipartFile> detailImages = bookUpdateDTO.getDetailImage();
+        List<MultipartFile> detailImages = Optional.ofNullable(bookUpdateDTO.getDetailImage()).orElse(Collections.emptyList());
         for (MultipartFile detailImage : detailImages) {
             String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "detail.jpg");
             Image image = new Image(path);
@@ -161,9 +164,15 @@ public class BookMultiTableService {
             BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
             bookCreatorService.saveBookCreator(bookCreator, bookCreatorMap);
         }
-
-        BookIndex bookIndex = bookIndexService.getBookIndex(bookUpdateDTO.getId());
-        bookIndex.updateIndexText(bookUpdateDTO.getIndex());
+        if(bookUpdateDTO.getIndex().isEmpty()) {
+            BookIndex bookIndex = bookIndexService.getBookIndex(bookUpdateDTO.getId());
+            if (bookIndex != null) {
+                bookIndex.updateIndexText(bookUpdateDTO.getIndex());
+            } else {
+                bookIndex = new BookIndex(bookUpdateDTO.getIndex(), book);
+                bookIndexService.createBookIndex(bookIndex);
+            }
+        }
 
         List<BookType> bookTypeByBookId = bookTypeService.getBookTypeByBookId(
             bookUpdateDTO.getId());
@@ -254,48 +263,66 @@ public class BookMultiTableService {
         BookPopularity bookPopularity = new BookPopularity(book, 0, 0, 0);
         bookPopularityRepository.save(bookPopularity);
 
-        List<MultipartFile> coverImage = bookCreatDTO.getCoverImage();
-        for (MultipartFile multipartFile : coverImage) {
-            String path = uploadCoverImageToStorage(objectService, multipartFile,
-                bookCreatDTO.getIsbn() + "cover.jpg");
-            Image image = new Image(path);
-            BookCoverImage bookCoverImage = new BookCoverImage(image, book);
-            imageService.bookCoverSave(image, bookCoverImage);
+        List<MultipartFile> coverImages = Optional.ofNullable(bookCreatDTO.getCoverImage())
+            .orElse(Collections.emptyList());
+        if(!coverImages.isEmpty()) {
+            for (MultipartFile multipartFile : coverImages) {
+                String path = uploadCoverImageToStorage(objectService, multipartFile,
+                    bookCreatDTO.getIsbn() + "cover.jpg");
+                Image image = new Image(path);
+                BookCoverImage bookCoverImage = new BookCoverImage(image, book);
+                imageService.bookCoverSave(image, bookCoverImage);
+            }
         }
-        List<MultipartFile> detailImage = bookCreatDTO.getDetailImage();
-        for (MultipartFile multipartFile : detailImage) {
-            String path = uploadCoverImageToStorage(objectService, multipartFile,
-                bookCreatDTO.getIsbn() + "detail.jpg");
-            Image image = new Image(path);
-            BookImage bookImage = new BookImage(book, image);
-            imageService.bookDetailSave(image, bookImage);
+        List<MultipartFile> detailImage = Optional.ofNullable(bookCreatDTO.getDetailImage())
+            .orElse(Collections.emptyList());
+        if(!detailImage.isEmpty()) {
+            for (MultipartFile multipartFile : detailImage) {
+                String path = uploadCoverImageToStorage(objectService, multipartFile,
+                    bookCreatDTO.getIsbn() + "detail.jpg");
+                Image image = new Image(path);
+                BookImage bookImage = new BookImage(book, image);
+                imageService.bookDetailSave(image, bookImage);
+            }
         }
+
 
 
     }
 
     @Transactional
     public void deleteBook(long bookId) {
+        // Book Type 삭제
         bookTypeService.deleteBookType(bookId);
 
-        bookIndexService.deleteBookIndex(bookId);
+        // Book Index 삭제
+        bookIndexService.deleteIndex(bookId);
 
+        // Book Creator 삭제
         bookCreatorService.deleteBookCreatorMap(bookId);
 
+        // Book Category 삭제
         bookCategoryRepository.deleteAllByBookId(bookId);
 
+        // Book Cover Image 삭제
         imageService.deleteBookCoverImageAndBookDeleteImage(bookId);
 
+        // Tags 삭제
         tagService.deleteBookTag(bookId);
 
+        // 리뷰 삭제
         reviewRepository.deleteByBookId(bookId);
 
+        // Book Coupon 삭제
         bookCouponRepository.deleteByBookId(bookId);
 
+        // Wrapper 삭제
         wrapperRepository.deleteByBookId(bookId);
 
+        // Book Popularity 삭제
         bookPopularityRepository.deleteByBookId(bookId);
 
+        // Book 삭제
         bookService.deleteBook(bookId);
     }
 

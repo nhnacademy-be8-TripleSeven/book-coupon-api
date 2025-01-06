@@ -23,4 +23,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Modifying
     @Query("delete from Review r where r.book.id =:id")
     void deleteByBookId(Long id);
+
+    boolean existsByBookId(Long id);
 }

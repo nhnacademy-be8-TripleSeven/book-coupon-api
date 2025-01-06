@@ -110,7 +110,8 @@ public class BookApiSaveService {
             book.path("priceSales").asInt(),
             List.of(cover),
             1000,
-            0
+            0,
+            book.path("publisher").asText()
         );
 
         apiDTO.createBookTypeParse(book.path("bestRank").asInt());
