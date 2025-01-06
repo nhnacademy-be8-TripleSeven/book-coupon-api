@@ -112,14 +112,10 @@ public class CouponController {
         return ResponseEntity.ok(responses);
     }
 
-    // 쿠폰 대상 지정을 위한 도서 검색
-    @GetMapping("/admin/coupons/book-search")
-    public ResponseEntity<List<BookSearchDTO>> searchBooksForCoupon(@RequestParam("query") String query) {
-        List<BookSearchDTO> results = bookService.searchBooksByName(query);
-        return ResponseEntity.ok(results);
-    }
+
 
 //    // 쿠폰 대상 지정을 위한 카테고리 검색
+
 //    @GetMapping("/admin/coupons/category-search")
 //    public ResponseEntity<List<CategorySearchDTO>> searchCategoriesForCoupon(@RequestParam("query") String query) {
 //        List<CategorySearchDTO> results = categoryService.searchCategoriesByName(query);

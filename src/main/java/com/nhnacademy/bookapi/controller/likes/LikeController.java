@@ -75,7 +75,7 @@ public class LikeController {
             @ApiResponse(responseCode = "400", description = "이미 좋아요가 존재함")
     })
     @PostMapping("/{bookId}")
-    public ResponseEntity<Void> addLike(@RequestHeader("X-User") Long userId, @PathVariable Long bookId) {
+    public ResponseEntity<Void> addLike(@RequestHeader("X-USER") Long userId, @PathVariable Long bookId) {
         likeService.addLike(userId, bookId);
         return ResponseEntity.status(201).build();
     }
@@ -86,22 +86,46 @@ public class LikeController {
             @ApiResponse(responseCode = "404", description = "좋아요 또는 도서를 찾을 수 없음")
     })
     @DeleteMapping("/{bookId}")
-    public ResponseEntity<Void> deleteLike(@RequestHeader("X-User") Long userId, @PathVariable Long bookId) {
+    public ResponseEntity<Void> deleteLike(@RequestHeader("X-USER") Long userId, @PathVariable Long bookId) {
          likeService.deleteLike(userId, bookId);
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/{bookId}/status")
+    public ResponseEntity<Boolean> checkLikeStatus(@RequestHeader("X-USER") Long userId, @PathVariable Long bookId) {
+        boolean isLiked = likeService.isLiked(userId, bookId);
+        return ResponseEntity.ok(isLiked);
+    }
+    
     @Operation(summary = "유저의 모든 좋아요 조회", description = "사용자가 좋아요를 누른 모든 도서를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "404", description = "사용자의 좋아요 기록이 없음")
     })
     @GetMapping
-    public ResponseEntity<List<LikesResponseDto>> getAllLikesByUserId(@RequestHeader("X-User") Long userId,
+    public ResponseEntity<List<LikesResponseDto>> getAllLikesByUserId(@RequestHeader("X-USER") Long userId,
                                                                       @RequestParam(defaultValue = "0") int page,
                                                                       @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
         Page<LikesResponseDto> likesPage = likeService.getPagedLikesByUserId(userId, pageable);
+
+        return ResponseEntity.ok(likesPage.getContent());
+    }
+
+    @Operation(summary = "유저의 좋아요 내역 조회 (도서 제목 검색 가능)", description = "사용자가 좋아요를 누른 도서를 조회합니다. 도서 제목으로 검색 가능합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "좋아요 기록이 없음")
+    })
+    @GetMapping("/search")
+    public ResponseEntity<List<LikesResponseDto>> searchLikesByUserAndKeyword(
+            @RequestHeader("X-USER") Long userId,
+            @RequestParam(defaultValue = "") String keyword,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        Page<LikesResponseDto> likesPage = likeService.getPagedLikesByUserIdAndKeyword(userId, keyword, pageable);
+
 
         return ResponseEntity.ok(likesPage.getContent());
     }

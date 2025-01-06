@@ -35,8 +35,6 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findCategoryByLevel(int level);
 
-    
-
     List<Category> findByNameContaining(String name);
 
 }

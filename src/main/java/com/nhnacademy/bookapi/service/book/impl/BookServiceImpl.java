@@ -22,6 +22,7 @@ import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -129,18 +130,21 @@ public class BookServiceImpl implements BookService {
                 book.getStock(), book.getPage(), imageUrl, book.getPublisher().getName());
         searchBookDetail.setBookCreators(getBookCreators(bookCreatorMaps));
 
+// 카테고리 계층 구조 생성
         List<BookCategory> bookCategories = bookCategoryRepository.findAllByBook(book);
-        List<List<String>> categoryHierarchies = new ArrayList<>();
-
+        StringBuilder categoriesBuilder = new StringBuilder();
         if (!bookCategories.isEmpty()) {
             for (BookCategory bookCategory : bookCategories) {
-                Category category = bookCategory.getCategory(); // 하나의 카테고리 객체
-                List<String> hierarchy = getCategoryHierarchy(category);
-                categoryHierarchies.add(hierarchy);
+                Category category = bookCategory.getCategory();
+                List<String> hierarchy = getCategoryHierarchy(category); // 계층 구조 생성
+                categoriesBuilder.append(hierarchy).append(">");
             }
-            StringBuilder categories = getCategoryResult(categoryHierarchies.getLast());
-            searchBookDetail.setCategories(categories);
+            // 마지막 쉼표 제거
+            if (!categoriesBuilder.isEmpty()) {
+                categoriesBuilder.deleteCharAt(categoriesBuilder.length() - 1);
+            }
         }
+        searchBookDetail.setCategories(categoriesBuilder);
 
         List<BookTag> bookTags = bookTagRepository.findAllByBookWithTags(book);
         searchBookDetail.setTags(getBookTags(bookTags));
@@ -199,9 +203,17 @@ public class BookServiceImpl implements BookService {
     private List<String> getCategoryHierarchy(Category category) {
         List<String> hierarchy = new ArrayList<>();
         while (category != null) {
-            hierarchy.add(0, category.getName());
+            hierarchy.add(0, category.getName()); // 부모를 리스트 맨 앞에 추가
+            category = findParentCategory(category); // 부모 카테고리 탐색
         }
         return hierarchy;
+    }
+
+    // 부모 카테고리를 찾는 메소드 (필요 시 구현)
+    private Category findParentCategory(Category category) {
+        // 부모 카테고리를 가져오는 로직 구현
+        // 예: categoryRepository.findParentById(category.getId())
+        return null; // 구현 필요
     }
 
 
@@ -242,6 +254,11 @@ public class BookServiceImpl implements BookService {
         return bookRepository.findByCategoryAndTitle(
             categories, keyword, pageable);
 
+
+    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
+                                                              String keyword, Pageable pageable) {
+        return bookRepository.findByCategoryAndTitle(
+                categories, keyword, pageable);
     }
 
     @Override
