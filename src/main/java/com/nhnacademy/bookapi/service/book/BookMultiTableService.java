@@ -164,13 +164,13 @@ public class BookMultiTableService {
             BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
             bookCreatorService.saveBookCreator(bookCreator, bookCreatorMap);
         }
-        if(bookUpdateDTO.getIndex().isEmpty()) {
+        if(!bookUpdateDTO.getIndex().isEmpty()) {
             BookIndex bookIndex = bookIndexService.getBookIndex(bookUpdateDTO.getId());
-            if (bookIndex != null) {
-                bookIndex.updateIndexText(bookUpdateDTO.getIndex());
-            } else {
+            if(bookIndex == null) {
                 bookIndex = new BookIndex(bookUpdateDTO.getIndex(), book);
                 bookIndexService.createBookIndex(bookIndex);
+            }else {
+                bookIndex.updateIndexText(bookUpdateDTO.getIndex());
             }
         }
 
@@ -263,7 +263,7 @@ public class BookMultiTableService {
         BookPopularity bookPopularity = new BookPopularity(book, 0, 0, 0);
         bookPopularityRepository.save(bookPopularity);
 
-        List<MultipartFile> coverImages = Optional.ofNullable(bookCreatDTO.getCoverImage())
+        List<MultipartFile> coverImages = Optional.ofNullable(bookCreatDTO.getCoverImages())
             .orElse(Collections.emptyList());
         if(!coverImages.isEmpty()) {
             for (MultipartFile multipartFile : coverImages) {
@@ -274,7 +274,7 @@ public class BookMultiTableService {
                 imageService.bookCoverSave(image, bookCoverImage);
             }
         }
-        List<MultipartFile> detailImage = Optional.ofNullable(bookCreatDTO.getDetailImage())
+        List<MultipartFile> detailImage = Optional.ofNullable(bookCreatDTO.getDetailImages())
             .orElse(Collections.emptyList());
         if(!detailImage.isEmpty()) {
             for (MultipartFile multipartFile : detailImage) {

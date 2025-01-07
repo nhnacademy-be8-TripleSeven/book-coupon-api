@@ -16,7 +16,7 @@ import org.springframework.data.domain.Pageable;
 
 public interface BookService {
 
-    CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest);
+
 
     Book createBook(Book book);
 
@@ -41,6 +41,8 @@ public interface BookService {
 
     List<BookSearchDTO> searchBooksByName(String name);
 
+
+    Page<BookDetailResponseDTO> searchBookByCategoryId(Long categoryId, Pageable pageable);
 
 }
 

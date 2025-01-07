@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
@@ -25,7 +26,9 @@ public class BookUpdateDTO {
     private int regularPrice;
     private int salePrice;
     private String index;
+    @Setter
     private List<MultipartFile> coverImage;
+    @Setter
     private List<MultipartFile> detailImage;
     private int stock;
     private int page;
