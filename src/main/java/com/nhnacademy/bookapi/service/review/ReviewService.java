@@ -22,44 +22,39 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-@Transactional
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
-
-//    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
-//    private final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
-//    private final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
-//    private final String username = "rlgus4531@naver.com";
-//    private final String password = "team3";
-//    private final String containerName = "triple-seven";
 
     public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository) {
         this.reviewRepository = reviewRepository;
         this.bookRepository = bookRepository;
     }
 
-    public boolean addReview(Long userId, ReviewRequestDto reviewRequestDto) {
+    @Transactional
+    public boolean addReview(Long userId, ReviewRequestDto reviewRequestDto, String imageUrl) {
         Book book = getBook(reviewRequestDto.getBookId());
 
+        // 이미 리뷰가 있는지 확인
         if (reviewRepository.existsByBookAndUserId(book, userId)) {
-            throw new ReviewAlreadyExistException("You are already reviewed on this book");
+            throw new ReviewAlreadyExistException("이미 이 책에 리뷰를 작성했습니다.");
         }
 
+        // 리뷰 생성 및 저장
         Review review = new Review(
                 reviewRequestDto.getText(),
                 LocalDateTime.now(),
                 reviewRequestDto.getRating(),
                 book,
                 userId,
-                reviewRequestDto.getImageUrl()
+                imageUrl
         );
-
         reviewRepository.save(review);
         return true;
     }
 
+    @Transactional
     public boolean updateReview(Long userId, ReviewRequestDto reviewRequestDto) {
         Book book = getBook(reviewRequestDto.getBookId());
         Review review = getReview(book, userId);
@@ -69,12 +64,15 @@ public class ReviewService {
         return true;
     }
 
+    @Transactional
     public boolean deleteReview(Long userId, Long bookId) {
         Book book = getBook(bookId);
         Review review = getReview(book, userId);
         reviewRepository.delete(review);
         return true;
     }
+
+    @Transactional
     // 유저가 쓴 모든 리뷰 조회
     public List<ReviewResponseDto> getAllReviewsByUserId(Long userId) {
         List<ReviewResponseDto> result = new ArrayList<>();
@@ -86,12 +84,16 @@ public class ReviewService {
 
         return result;
     }
+
+    @Transactional
     // 도서에 달려있는 개인 리뷰 조회
     public ReviewResponseDto getReview(Long bookId, Long userId) {
         Book book = getBook(bookId);
         Review review = getReview(book, userId);
         return new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl());
     }
+
+    @Transactional
     // 도서에 달려있는 리뷰 페이징 처리 메소드
     public Page<ReviewResponseDto> getPagedReviewsByBookId(Long bookId, Pageable pageable) {
         Book book = getBook(bookId);
@@ -100,6 +102,7 @@ public class ReviewService {
                 new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
     }
 
+    @Transactional
     // 도서에 달려있는 모든 리뷰 조회
     public List<ReviewResponseDto> getAllReviewsByBookId(Long bookId) {
         Book book = getBook(bookId);
