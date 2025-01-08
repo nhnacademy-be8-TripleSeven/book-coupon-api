@@ -4,6 +4,7 @@ package com.nhnacademy.bookapi.service.coupon;
 import com.nhnacademy.bookapi.client.MemberFeignClient;
 import com.nhnacademy.bookapi.config.RabbitConfig;
 import com.nhnacademy.bookapi.dto.coupon.*;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
 import com.nhnacademy.bookapi.dto.member.CouponMemberDTO;
 import com.nhnacademy.bookapi.dto.member.MemberDto;
 import com.nhnacademy.bookapi.entity.*;
@@ -22,10 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -347,7 +345,30 @@ public class CouponServiceImpl implements CouponService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId) {
+        Optional<Coupon> optionalCoupon = couponRepository.findById(couponId);
+        if (optionalCoupon.isEmpty()) {
+            throw new CouponNotFoundException("No coupons found for ID: " + couponId);
+        }
 
+        Coupon coupon = optionalCoupon.get();
+        Optional<CouponPolicy> optionalCouponPolicy = couponPolicyRepository.findById(coupon.getCouponPolicy().getId());
+
+        if (optionalCouponPolicy.isEmpty()) {
+            throw new CouponPolicyNotFoundException("No coupons found for policy with ID: " + coupon.getCouponPolicy().getId());
+        }
+
+        CouponPolicy couponPolicy = optionalCouponPolicy.get();
+
+        return new CouponPolicyOrderResponseDTO(
+                couponPolicy.getCouponMinAmount(),
+                couponPolicy.getCouponMaxAmount(),
+                couponPolicy.getCouponDiscountRate(),
+                couponPolicy.getCouponDiscountAmount(),
+                coupon.getCouponStatus());
+    }
 
 
     @Override

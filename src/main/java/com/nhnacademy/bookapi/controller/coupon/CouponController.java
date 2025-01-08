@@ -3,6 +3,8 @@ package com.nhnacademy.bookapi.controller.coupon;
 import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
 import com.nhnacademy.bookapi.dto.category.CategorySearchDTO;
 import com.nhnacademy.bookapi.dto.coupon.*;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyResponseDTO;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import com.nhnacademy.bookapi.service.coupon.CouponService;
@@ -229,6 +231,13 @@ public class CouponController {
     public ResponseEntity<CouponUseResponseDTO> useCoupon(
             @PathVariable Long couponId) {
         CouponUseResponseDTO response = couponService.useBaseCoupon(couponId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/coupons/{couponId}/coupon-polities")
+    public ResponseEntity<CouponPolicyOrderResponseDTO> getCouponPolicyByCouponId(
+            @PathVariable Long couponId) {
+        CouponPolicyOrderResponseDTO response = couponService.getCouponPolicyByCouponId(couponId);
         return ResponseEntity.ok(response);
     }
 

@@ -9,6 +9,7 @@ import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 
 import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
+import com.nhnacademy.bookapi.dto.book.CartItemDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
@@ -211,4 +212,16 @@ public class BookController {
     }
 
 
+
+    @PostMapping("/books/cartItems")
+    public ResponseEntity<List<CartItemDTO>> getCartItems(@RequestBody List<Long> bookIds) {
+        List<CartItemDTO> cartItemDTOS = bookService.getCartItemsByIds(bookIds);
+        return ResponseEntity.ok(cartItemDTOS);
+    }
+
+    @GetMapping("/books/{bookId}/name")
+    public ResponseEntity<String> getBookName(@PathVariable Long bookId) {
+        String name = bookService.getBookName(bookId);
+        return ResponseEntity.ok(name);
+    }
 }
