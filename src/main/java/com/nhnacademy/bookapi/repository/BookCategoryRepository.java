@@ -7,6 +7,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -20,4 +21,10 @@ public interface BookCategoryRepository extends JpaRepository<BookCategory, Long
 
     @Modifying
     void deleteAllByBookId(Long bookId);
+
+    /**
+     * 특정 책(Book)과 연관된 모든 카테고리를 반환합니다.
+     */
+    @Query("SELECT bc.category FROM BookCategory bc WHERE bc.book.id = :bookId")
+    List<Category> findCategoriesByBookId(@Param("bookId") Long bookId);
 }

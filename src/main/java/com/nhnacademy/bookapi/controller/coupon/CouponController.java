@@ -3,11 +3,13 @@ package com.nhnacademy.bookapi.controller.coupon;
 import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
 import com.nhnacademy.bookapi.dto.category.CategorySearchDTO;
 import com.nhnacademy.bookapi.dto.coupon.*;
+
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyResponseDTO;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import com.nhnacademy.bookapi.service.coupon.CouponService;
+import com.nhnacademy.bookapi.service.couponpolicy.CouponPolicyService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -29,6 +31,7 @@ public class CouponController {
 
     private final CategoryService categoryService;
 
+    private final CouponPolicyService couponPolicyService;
     // **관리자 전용 API** //
 
     @Operation(summary = "쿠폰 생성", description = "새로운 쿠폰을 생성합니다.")
@@ -114,15 +117,19 @@ public class CouponController {
         return ResponseEntity.ok(responses);
     }
 
+    // 쿠폰 대상 지정을 위한 도서 검색
+    @GetMapping("/admin/coupons/book-search")
+    public ResponseEntity<List<BookSearchDTO>> searchBooksForCoupon(@RequestParam("query") String query) {
+        List<BookSearchDTO> results = bookService.searchBooksByName(query);
+        return ResponseEntity.ok(results);
+    }
 
-
-//    // 쿠폰 대상 지정을 위한 카테고리 검색
-
-//    @GetMapping("/admin/coupons/category-search")
-//    public ResponseEntity<List<CategorySearchDTO>> searchCategoriesForCoupon(@RequestParam("query") String query) {
-//        List<CategorySearchDTO> results = categoryService.searchCategoriesByName(query);
-//        return ResponseEntity.ok(results);
-//    }
+    // 쿠폰 대상 지정을 위한 카테고리 검색
+    @GetMapping("/admin/coupons/category-search")
+    public ResponseEntity<List<CategorySearchDTO>> searchCategoriesForCoupon(@RequestParam("query") String query) {
+        List<CategorySearchDTO> results = categoryService.searchCategoriesByName(query);
+        return ResponseEntity.ok(results);
+    }
 
 
 
@@ -159,17 +166,17 @@ public class CouponController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "사용자 카테고리 쿠폰 사용", description = "사용자가 특정 카테고리에 본인의 쿠폰을 사용합니다.")
+    @Operation(summary = "사용자 카테고리 쿠폰 사용", description = "사용자가 특정 도서에 본인의 카테고리 쿠폰을 사용합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "카테고리 쿠폰 사용 성공"),
             @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰")
     })
-    @PostMapping("/api/coupons/use/{couponId}/category/{categoryId}")
+    @PostMapping("/api/coupons/use/{couponId}/category/{bookId}")
     public ResponseEntity<CouponUseResponseDTO> useCategoryCouponForUser(
-            @RequestHeader("X-User") Long userId,
+            @RequestHeader("X-USER") Long userId,
             @PathVariable Long couponId,
-            @PathVariable Long categoryId) {
-        CouponUseResponseDTO response = couponService.useCategoryCoupon(userId, couponId, categoryId);
+            @PathVariable Long bookId) {
+        CouponUseResponseDTO response = couponService.useCategoryCoupon(userId, couponId, bookId);
         return ResponseEntity.ok(response);
     }
 
@@ -222,7 +229,7 @@ public class CouponController {
     }
 
 
-    @Operation(summary = "쿠폰 사용", description = "쿠폰을 사용합니다.")
+    @Operation(summary = "쿠폰 사용", description = "인증없이 쿠폰을 사용합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "쿠폰 사용 성공"),
             @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰")
@@ -259,7 +266,16 @@ public class CouponController {
     }
 
 
-
+    @Operation(summary = "쿠폰 정책 이름 검색", description = "입력한 이름을 포함하는 쿠폰 정책을 검색합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "쿠폰 정책 검색 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 이름의 쿠폰 정책을 찾을 수 없음")
+    })
+    @GetMapping("/coupon-policies/search")
+    public ResponseEntity<List<CouponPolicyResponseDTO>> searchCouponPoliciesByNameTest(@RequestParam String query) {
+        List<CouponPolicyResponseDTO> response = couponPolicyService.searchCouponPoliciesByName(query);
+        return ResponseEntity.ok(response);
+    }
 
 
 
