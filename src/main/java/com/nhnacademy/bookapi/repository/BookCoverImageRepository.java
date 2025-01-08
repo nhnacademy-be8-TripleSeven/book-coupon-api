@@ -17,6 +17,7 @@ public interface BookCoverImageRepository extends JpaRepository<BookCoverImage, 
             "where bci.book = :book")
     BookCoverImage findByBook(@Param("book") Book book);
 
+
     @Query("select i from Image i join BookCoverImage bci on bci.image.id = i.id where bci.book.id = :bookId")
     List<Image> findImageByBookId(@Param("bookId") Long bookId);
 

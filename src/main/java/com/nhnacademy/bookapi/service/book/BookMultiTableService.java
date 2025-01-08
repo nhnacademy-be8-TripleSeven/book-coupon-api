@@ -306,7 +306,6 @@ public class BookMultiTableService {
         // Book Cover Image 삭제
         imageService.deleteBookCoverImageAndBookDetailImage(bookId);
 
-
         // Tags 삭제
         tagService.deleteBookTag(bookId);
 

@@ -5,27 +5,27 @@ import lombok.Getter;
 @Getter
 public class TagResponseDto {
 
-    private Long id;
-    private String name;
+    private Long tagId;
+    private String tagName;
 
-    public TagResponseDto(Long id, String name) {
-        this.id = id;
-        this.name = name;
+    public TagResponseDto(Long tagId, String tagName) {
+        this.tagId = tagId;
+        this.tagName = tagName;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setId(Long tagId) {
+        this.tagId = tagId;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setName(String tagName) {
+        this.tagName = tagName;
     }
 
     public Long getId() {
-        return id;
+        return tagId;
     }
 
     public String getName() {
-        return name;
+        return tagName;
     }
 }

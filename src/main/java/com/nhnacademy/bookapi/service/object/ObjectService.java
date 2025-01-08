@@ -144,5 +144,16 @@ public class ObjectService {
 
         return this.restTemplate.execute(url, HttpMethod.GET, callback, extractor);
     }
+
+    public void deleteObject(String containerName, String objectName) {
+
+        String url = this.getUrl(containerName, objectName);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("X-Auth-Token", this.tokenId);
+        HttpEntity<String> requestHttpEntity = new HttpEntity<>(null, headers);
+
+        this.restTemplate.exchange(url, HttpMethod.DELETE, requestHttpEntity, String.class);
+    }
 }
 

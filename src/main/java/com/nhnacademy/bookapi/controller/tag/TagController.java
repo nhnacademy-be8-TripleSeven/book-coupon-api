@@ -8,10 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.data.domain.Sort;
 
 @RestController
 @RequiredArgsConstructor
@@ -57,7 +59,7 @@ public class TagController {
             @ApiResponse(responseCode = "200", description = "태그 조회 성공"),
             @ApiResponse(responseCode = "404", description = "태그를 찾을 수 없음")
     })
-    @GetMapping("/tags/id/{tagId}")
+    @GetMapping("/admin/tags/id/{tagId}")
     public ResponseEntity<TagResponseDto> getTagById(@PathVariable Long tagId) {
         TagResponseDto tagResponse = tagService.getTagById(tagId);
         return ResponseEntity.ok(tagResponse);
@@ -69,7 +71,7 @@ public class TagController {
             @ApiResponse(responseCode = "404", description = "태그를 찾을 수 없음")
     })
 
-    @GetMapping("/tags/name/{name}")
+    @GetMapping("/admin/tags/name/{name}")
     public ResponseEntity<TagResponseDto> getTagByName(@PathVariable String name) {
         TagResponseDto tagResponse = tagService.getTagByName(name);
         return ResponseEntity.ok(tagResponse);
@@ -80,12 +82,16 @@ public class TagController {
             @ApiResponse(responseCode = "200", description = "모든 태그 조회 성공"),
             @ApiResponse(responseCode = "404", description = "태그를 찾을 수 없음")
     })
-    @GetMapping("/tags")
-    public ResponseEntity<List<TagResponseDto>> getAllTags() {
-        List<TagResponseDto> tags = tagService.getAllTags();
-        if (tags.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    @GetMapping("/admin/tags")
+    public ResponseEntity<Page<TagResponseDto>> getAllTags(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "24") int size,
+            @RequestParam(defaultValue = "name") String sortField,
+            @RequestParam(defaultValue = "asc") String sortDirection) {
+
+        Sort sort = Sort.by(Sort.Direction.fromString(sortDirection), sortField);
+        Pageable pageable = PageRequest.of(page, size, sort);
+        Page<TagResponseDto> tags = tagService.getAllTags(pageable);
         return ResponseEntity.ok(tags);
     }
 }

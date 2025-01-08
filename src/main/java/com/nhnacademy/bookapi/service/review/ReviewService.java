@@ -73,6 +73,21 @@ public class ReviewService {
     }
 
     @Transactional
+    public void deleteAllReviewsWithBook(Long bookId) {
+        reviewRepository.deleteByBookId(bookId);
+        ObjectService objectService = new ObjectService("https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e");
+        try {
+            objectService.generateAuthToken("https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens",
+                    "c20e3b10d61749a2a52346ed0261d79e",
+                    "rlgus4531@naver.com",
+                    "team3");
+        } catch (RuntimeException e) {
+            throw new RuntimeException("토큰 발급에 실패했습니다: " + e.getMessage());
+        }
+
+    }
+
+    @Transactional
     // 유저가 쓴 모든 리뷰 조회
     public List<ReviewResponseDto> getAllReviewsByUserId(Long userId) {
         List<ReviewResponseDto> result = new ArrayList<>();
