@@ -38,27 +38,24 @@ public class ImageService {
         return imageRepository.findBookImageByBookId(bookId);
     }
 
-
+    @Transactional
     public void deleteBookCoverImageAndBookDetailImage(long bookId) {
         List<Image> imageIdByBookId = bookImageRepository.findImageByBookId(bookId);
 
 
         List<Image> imageByBookId = bookCoverImageRepository.findImageByBookId(bookId);
 
-        System.out.println(imageIdByBookId.toString());
 
-        if(imageIdByBookId != null) {
-            bookImageRepository.deleteByBookId(bookId);
-            for (Image image : imageIdByBookId) {
-                imageRepository.deleteById(image.getId());
-            }
-
+        // 2. BookImage 삭제
+        if (imageIdByBookId != null && !imageIdByBookId.isEmpty()) {
+            bookImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리
+            imageRepository.deleteAll(imageIdByBookId); // 삭제할 Image 리스트
         }
-        if(imageByBookId != null) {
-            bookCoverImageRepository.deleteByBookId(bookId);
-            for (Image image : imageByBookId) {
-                imageRepository.deleteById(image.getId());
-            }
+
+        // 3. BookCoverImage 삭제
+        if (imageByBookId != null && !imageByBookId.isEmpty()) {
+            bookCoverImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리
+            imageRepository.deleteAll(imageByBookId); // 삭제할 Image 리스트
         }
     }
 

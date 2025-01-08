@@ -289,7 +289,7 @@ public class BookMultiTableService {
 
 
     }
-
+    @Transactional
     public void deleteBook(long bookId) {
         // Book Type 삭제
         bookTypeService.deleteBookType(bookId);

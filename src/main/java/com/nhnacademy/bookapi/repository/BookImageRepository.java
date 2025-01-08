@@ -4,6 +4,7 @@ import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookImage;
 import com.nhnacademy.bookapi.entity.Image;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -20,6 +21,7 @@ public interface BookImageRepository extends JpaRepository<BookImage, Long> {
     @Query("select i from Image i join BookImage bi on bi.image.id = i.id where bi.book.id =:bookId")
     List<Image> findImageByBookId(Long bookId);
 
+    @Modifying
     @Query("DELETE from BookImage bi where bi.book.id = :bookId")
     void deleteByBookId(Long bookId);
 
