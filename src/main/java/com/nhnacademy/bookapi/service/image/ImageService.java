@@ -88,18 +88,6 @@ public class ImageService {
         return objectService;
 
 
-        // 2. BookImage 삭제
-        if (imageIdByBookId != null && !imageIdByBookId.isEmpty()) {
-            bookImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리
-            imageRepository.deleteAll(imageIdByBookId); // 삭제할 Image 리스트
-        }
-
-        // 3. BookCoverImage 삭제
-        if (imageByBookId != null && !imageByBookId.isEmpty()) {
-            bookCoverImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리
-            imageRepository.deleteAll(imageByBookId); // 삭제할 Image 리스트
-        }
-
     }
 
 }
