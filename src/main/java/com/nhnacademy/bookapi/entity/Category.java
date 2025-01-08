@@ -20,10 +20,19 @@ public class Category {
 
     private int level;
 
+    @ManyToOne
+    private Category parent;
+
+    public Category(String name, int level, Category parent) {
+        this.name = name;
+        this.level = level;
+        this.parent = parent;
+    }
 
     public Category(String name, int level) {
         this.name = name;
         this.level = level;
+        this.parent = null;
     }
 
     public void create(String name, int level) {

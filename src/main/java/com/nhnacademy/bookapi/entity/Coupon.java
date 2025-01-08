@@ -20,7 +20,7 @@ public class Coupon {
     @Column(nullable = false)
     private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "coupon_policy_id", nullable = false)
     private CouponPolicy couponPolicy;
 

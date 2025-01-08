@@ -4,6 +4,7 @@ package com.nhnacademy.bookapi.service.coupon;
 import com.nhnacademy.bookapi.client.MemberFeignClient;
 import com.nhnacademy.bookapi.config.RabbitConfig;
 import com.nhnacademy.bookapi.dto.coupon.*;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
 import com.nhnacademy.bookapi.dto.member.CouponMemberDTO;
 import com.nhnacademy.bookapi.dto.member.MemberDto;
 import com.nhnacademy.bookapi.entity.*;
@@ -22,10 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -37,6 +35,7 @@ public class CouponServiceImpl implements CouponService {
     private final BookRepository bookRepository;
     private final CategoryRepository categoryRepository;
     private final BookCouponRepository bookCouponRepository;
+    private final BookCategoryRepository bookCategoryRepository;
     private final CategoryCouponRepository categoryCouponRepository;
 
     private final RabbitTemplate rabbitTemplate;
@@ -226,9 +225,11 @@ public class CouponServiceImpl implements CouponService {
         return useCoupon(userId, couponId);
     }
 
-    // 카테고리 쿠폰 사용 (사용자용)
+
+    // 쿠폰 사용 (카테고리)
     @Transactional
-    public CouponUseResponseDTO useCategoryCoupon(Long userId, Long couponId, Long categoryId) {
+    public CouponUseResponseDTO useCategoryCoupon(Long userId, Long couponId, Long bookId) {
+        // 쿠폰 및 관련 데이터 검증
         Coupon coupon = couponRepository.findById(couponId)
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
 
@@ -239,18 +240,29 @@ public class CouponServiceImpl implements CouponService {
         CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
                 .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a category"));
 
-//        if (!isValidCategory(categoryCoupon.getCategory(), categoryId)) {
-//            throw new InvalidCouponUsageException("Coupon cannot be used in this category");
-//        }
+        // 도서의 카테고리 목록 조회
+        List<Category> bookCategories = bookCategoryRepository.findCategoriesByBookId(bookId);
 
+        // 쿠폰 카테고리와 도서 카테고리의 유효성 검사
+        if (!isCategoryCouponValid(categoryCoupon.getCategory(), bookCategories)) {
+            throw new InvalidCouponUsageException("Coupon cannot be used for this book");
+        }
+
+        // 쿠폰 사용 처리
         return useCoupon(userId, couponId);
     }
 
-    // 유효한 카테고리인지 확인
-//    private boolean isValidCategory(Category couponCategory, Long requestedCategoryId) {
-//        List<Long> validCategories = categoryRepository.findSubcategories(couponCategory.getId());
-//        return validCategories.contains(requestedCategoryId);
-//    }
+    private boolean isCategoryCouponValid(Category couponCategory, List<Category> bookCategories) {
+        // 쿠폰 카테고리가 책 카테고리 계층에 포함되는지 확인
+        if (bookCategories.contains(couponCategory)) {
+            return true; // 유효한 카테고리 쿠폰
+        }
+        return false; // 유효하지 않은 쿠폰
+    }
+
+
+
+
 
     // 사용자 쿠폰 조회
     @Transactional(readOnly = true)
@@ -347,7 +359,134 @@ public class CouponServiceImpl implements CouponService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId) {
+        Optional<Coupon> optionalCoupon = couponRepository.findById(couponId);
+        if (optionalCoupon.isEmpty()) {
+            throw new CouponNotFoundException("No coupons found for ID: " + couponId);
+        }
 
+        Coupon coupon = optionalCoupon.get();
+        Optional<CouponPolicy> optionalCouponPolicy = couponPolicyRepository.findById(coupon.getCouponPolicy().getId());
+
+        if (optionalCouponPolicy.isEmpty()) {
+            throw new CouponPolicyNotFoundException("No coupons found for policy with ID: " + coupon.getCouponPolicy().getId());
+        }
+
+        CouponPolicy couponPolicy = optionalCouponPolicy.get();
+
+        return new CouponPolicyOrderResponseDTO(
+                couponPolicy.getCouponMinAmount(),
+                couponPolicy.getCouponMaxAmount(),
+                couponPolicy.getCouponDiscountRate(),
+                couponPolicy.getCouponDiscountAmount(),
+                coupon.getCouponStatus());
+    }
+
+
+
+
+
+
+//    @Override
+//    @Transactional
+//    public List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request) {
+//        // 1. 쿠폰 정책 조회
+//        CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
+//                .orElseThrow(() -> new CouponPolicyNotFoundException("쿠폰 정책을 찾을 수 없습니다."));
+//
+//        log.info("Retrieved coupon policy: {}", policy);
+//
+//        // 2. 발급 대상 조회
+//        List<Long> memberIds = getMemberIdsByRecipientType(request);
+//        if (memberIds.isEmpty()) {
+//            throw new InvalidRecipientTypeException("발급 대상 회원이 없습니다.");
+//        }
+//
+//        log.info("Target members for coupon assignment: {}", memberIds);
+//
+//        // 3. 쿠폰 생성 및 발급
+//        Coupon coupon = createCouponBasedOnTarget(request, policy);
+//
+//        log.info("Created coupon: {}", coupon);
+//
+//        return assignCouponsToMembers(coupon, memberIds);
+//    }
+//
+//    private List<Long> getMemberIdsByRecipientType(CouponCreationAndAssignRequestDTO request) {
+//        List<Long> memberIds = new ArrayList<>();
+//        int page = 0, size = 100;
+//        Page<MemberDto> memberPage;
+//
+//        switch (request.getRecipientType()) {
+//            case "전체":
+//                do {
+//                    memberPage = memberFeignClient.getMembers(null, null, page, size, null, "ASC");
+//                    memberIds.addAll(memberPage.getContent().stream().map(MemberDto::getId).toList());
+//                    page++;
+//                } while (memberPage.hasNext());
+//                break;
+//
+//            case "등급별":
+//                MemberGrade grade = convertGrade(request.getGrade());
+//                do {
+//                    memberPage = memberFeignClient.getMembers(null, grade, page, size, null, "ASC");
+//                    memberIds.addAll(memberPage.getContent().stream().map(MemberDto::getId).toList());
+//                    page++;
+//                } while (memberPage.hasNext());
+//                break;
+//
+//            case "개인별":
+//                memberIds.addAll(request.getMemberIds());
+//                break;
+//
+//            default:
+//                throw new InvalidRecipientTypeException("유효하지 않은 대상 유형: " + request.getRecipientType());
+//        }
+//        return memberIds;
+//    }
+//
+//    private Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy) {
+//        // 1. 쿠폰 객체 생성
+//        Coupon coupon = new Coupon(request.getName(), policy);
+//        Coupon savedCoupon = couponRepository.save(coupon);
+//
+//        // 2. 쿠폰 타입별 추가 처리
+//        if (request.getCategoryId() != null) {
+//            createCategoryCoupon(request.getCategoryId(), savedCoupon);
+//        } else if (request.getBookId() != null) {
+//            createBookCoupon(request.getBookId(), savedCoupon);
+//        }
+//
+//        // 3. 일반 쿠폰 처리 (추가 로직 없음)
+//        return savedCoupon;
+//    }
+//
+//    private List<CouponAssignResponseDTO> assignCouponsToMembers(Coupon coupon, List<Long> memberIds) {
+//        List<CouponAssignRequestDTO> requests = memberIds.stream()
+//                .map(memberId -> new CouponAssignRequestDTO(coupon.getId(), memberId))
+//                .toList();
+//
+//        try {
+//            rabbitTemplate.convertAndSend(
+//                    RabbitConfig.EXCHANGE_NAME,
+//                    RabbitConfig.ROUTING_KEY,
+//                    requests,
+//                    message -> {
+//                        message.getMessageProperties().setMessageId(UUID.randomUUID().toString());
+//                        return message;
+//                    }
+//            );
+//            log.info("Successfully sent coupon assignment requests for {} members.", memberIds.size());
+//            return requests.stream()
+//                    .map(request -> new CouponAssignResponseDTO(request.getCouponId(), "쿠폰 발급 요청 성공"))
+//                    .toList();
+//        } catch (Exception e) {
+//            log.error("Failed to send coupon assignment requests: {}", e.getMessage(), e);
+//            throw new CouponAssingAmqErrorException("RabbitMQ 통신 오류로 쿠폰 발급 실패");
+//        }
+//    }
 
 
     @Override
@@ -367,12 +506,30 @@ public class CouponServiceImpl implements CouponService {
 
         log.info("Target members for coupon assignment: {}", memberIds);
 
-        // 3. 쿠폰 생성 및 발급
-        Coupon coupon = createCouponBasedOnTarget(request, policy);
+        // 3. 회원별 쿠폰 생성
+        List<Coupon> coupons = new ArrayList<>();
+        for (Long memberId : memberIds) {
+            Coupon coupon = createCouponBasedOnTarget(request, policy); // 회원별 쿠폰 생성
+            coupons.add(coupon);
+        }
 
-        log.info("Created coupon: {}", coupon);
+        // 4. 회원별 쿠폰 발급 요청 전송
+        return assignCouponsToMembers(coupons, memberIds);
+    }
 
-        return assignCouponsToMembers(coupon, memberIds);
+
+    private Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy) {
+        Coupon coupon = new Coupon(request.getName(), policy);
+
+        Coupon savedCoupon = couponRepository.save(coupon);
+
+        if (request.getCategoryId() != null) {
+            createCategoryCoupon(request.getCategoryId(), savedCoupon);
+        } else if (request.getBookId() != null) {
+            createBookCoupon(request.getBookId(), savedCoupon);
+        }
+
+        return savedCoupon;
     }
 
     private List<Long> getMemberIdsByRecipientType(CouponCreationAndAssignRequestDTO request) {
@@ -408,21 +565,63 @@ public class CouponServiceImpl implements CouponService {
         return memberIds;
     }
 
-    private Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy) {
-        // 1. 쿠폰 객체 생성
-        Coupon coupon = new Coupon(request.getName(), policy);
-        Coupon savedCoupon = couponRepository.save(coupon);
+//    private CouponAssignResponseDTO assignCouponToMember(Coupon coupon, Long memberId) {
+//        CouponAssignRequestDTO assignRequest = new CouponAssignRequestDTO(coupon.getId(), memberId);
+//
+//        try {
+//            rabbitTemplate.convertAndSend(
+//                    RabbitConfig.EXCHANGE_NAME,
+//                    RabbitConfig.ROUTING_KEY,
+//                    assignRequest,
+//                    message -> {
+//                        message.getMessageProperties().setMessageId(UUID.randomUUID().toString());
+//                        return message;
+//                    }
+//            );
+//            log.info("쿠폰 ID {}가 회원 ID {}에게 발급 신청되었습니다.", coupon.getId(), memberId);
+//            return new CouponAssignResponseDTO(coupon.getId(), "쿠폰 발급 성공");
+//        } catch (Exception e) {
+//            log.error("Failed to send coupon assignment request: {}", e.getMessage(), e);
+//            throw new CouponAssingAmqErrorException("쿠폰 발급 요청 실패");
+//        }
+//    }
 
-        // 2. 쿠폰 타입별 추가 처리
-        if (request.getCategoryId() != null) {
-            createCategoryCoupon(request.getCategoryId(), savedCoupon);
-        } else if (request.getBookId() != null) {
-            createBookCoupon(request.getBookId(), savedCoupon);
+    private List<CouponAssignResponseDTO> assignCouponsToMembers(List<Coupon> coupons, List<Long> memberIds) {
+        List<CouponAssignResponseDTO> responses = new ArrayList<>();
+
+        // 쿠폰과 회원 ID의 1:1 매핑
+        if (coupons.size() != memberIds.size()) {
+            throw new IllegalStateException("Coupons and Member IDs count do not match.");
         }
 
-        // 3. 일반 쿠폰 처리 (추가 로직 없음)
-        return savedCoupon;
+        for (int i = 0; i < memberIds.size(); i++) {
+            Long memberId = memberIds.get(i);
+            Coupon coupon = coupons.get(i);
+
+            try {
+                CouponAssignRequestDTO assignRequest = new CouponAssignRequestDTO(coupon.getId(), memberId);
+
+                // RabbitMQ로 개별 메시지 전송
+                rabbitTemplate.convertAndSend(
+                        RabbitConfig.EXCHANGE_NAME,
+                        RabbitConfig.ROUTING_KEY,
+                        assignRequest,
+                        message -> {
+                            message.getMessageProperties().setMessageId(UUID.randomUUID().toString());
+                            return message;
+                        }
+                );
+                log.info("쿠폰 ID {}가 회원 ID {}에게 발급 신청되었습니다.", coupon.getId(), memberId);
+                responses.add(new CouponAssignResponseDTO(coupon.getId(), "쿠폰 발급 요청 성공"));
+            } catch (Exception e) {
+                log.error("Failed to send coupon assignment request for member ID {}: {}", memberId, e.getMessage(), e);
+                responses.add(new CouponAssignResponseDTO(coupon.getId(), "쿠폰 발급 요청 실패: " + e.getMessage()));
+            }
+        }
+
+        return responses;
     }
+
 
     private void createCategoryCoupon(Long categoryId, Coupon savedCoupon) {
         Category category = categoryRepository.findById(categoryId)
@@ -438,31 +637,6 @@ public class CouponServiceImpl implements CouponService {
         bookCouponRepository.save(bookCoupon);
     }
 
-    private List<CouponAssignResponseDTO> assignCouponsToMembers(Coupon coupon, List<Long> memberIds) {
-        List<CouponAssignRequestDTO> requests = memberIds.stream()
-                .map(memberId -> new CouponAssignRequestDTO(coupon.getId(), memberId))
-                .toList();
-
-        try {
-            rabbitTemplate.convertAndSend(
-                    RabbitConfig.EXCHANGE_NAME,
-                    RabbitConfig.ROUTING_KEY,
-                    requests,
-                    message -> {
-                        message.getMessageProperties().setMessageId(UUID.randomUUID().toString());
-                        return message;
-                    }
-            );
-            log.info("Successfully sent coupon assignment requests for {} members.", memberIds.size());
-            return requests.stream()
-                    .map(request -> new CouponAssignResponseDTO(request.getCouponId(), "쿠폰 발급 요청 성공"))
-                    .toList();
-        } catch (Exception e) {
-            log.error("Failed to send coupon assignment requests: {}", e.getMessage(), e);
-            throw new CouponAssingAmqErrorException("RabbitMQ 통신 오류로 쿠폰 발급 실패");
-        }
-    }
-
     private MemberGrade convertGrade(String grade) {
         try {
             return MemberGrade.valueOf(grade.toUpperCase());
@@ -474,102 +648,10 @@ public class CouponServiceImpl implements CouponService {
 
 
 
-//    @Override
-//    @Transactional
-//    public List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request) {
-//        // 1. 쿠폰 정책 조회
-//        CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
-//                .orElseThrow(() -> new CouponPolicyNotFoundException("쿠폰 정책을 찾을 수 없습니다."));
-//
-//        // 2. 발급 대상 조회
-//        List<Long> memberIds = getMemberIdsByRecipientType(request);
-//
-//        // 3. 쿠폰 생성 및 발급
-//        List<CouponAssignResponseDTO> responses = new ArrayList<>();
-//        for (Long memberId : memberIds) {
-//            Coupon coupon = createCouponBasedOnTarget(request, policy);
-//            responses.add(assignCouponToMember(coupon, memberId));
-//        }
-//        return responses;
-//    }
-//
-//
-//    // memberId를 List<Long>으로 사용하여 한번에 처리
-//    private CouponAssignResponseDTO assignCouponToMember(Coupon coupon, Long memberId) {
-//        CouponAssignRequestDTO assignRequest = new CouponAssignRequestDTO(coupon.getId(), memberId);
-//
-//        try {
-//            rabbitTemplate.convertAndSend(
-//                    RabbitConfig.EXCHANGE_NAME,
-//                    RabbitConfig.ROUTING_KEY,
-//                    assignRequest,
-//                    message -> {
-//                        message.getMessageProperties().setMessageId(UUID.randomUUID().toString()); // 고유 메시지 ID 설정
-//                        return message;
-//                    }
-//            );
-//            log.info("쿠폰 ID {}가 회원 ID {}에게 발급 신청되었습니다.", coupon.getId(), memberId);
-//            return new CouponAssignResponseDTO(coupon.getId(), "쿠폰 발급 성공");
-//        } catch (AmqpConnectException | AmqpTimeoutException e) {
-//            log.info("쿠폰 발급 실패 - RabbitMQ 통신 오류: {}", e.getMessage(), e);
-//            throw new CouponAssingAmqErrorException("RabbitMQ 통신 오류로 인해 쿠폰 발급 실패");
-//        } catch (Exception e) {
-//            log.info("쿠폰 발급 실패 - 시스템 오류: {}", e.getMessage(), e);
-//            throw new CouponAssingAmqErrorException("시스템 오류로 인해 쿠폰 발급 실패");
-//        }
-//    }
-//
-//    public Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy) {
-//        // 1. 쿠폰 객체 생성
-//        Coupon coupon = new Coupon(request.getName(), policy);
-//        Coupon savedCoupon = couponRepository.save(coupon);
-//
-//        // 2. 쿠폰 타입별 추가 처리
-//        if (request.getCategoryId() != null) {
-//            // 카테고리 쿠폰 생성
-//            Category category = categoryRepository.findById(request.getCategoryId())
-//                    .orElseThrow(() -> new CategoryNotFoundException("카테고리를 찾을 수 없습니다."));
-//            CategoryCoupon categoryCoupon = new CategoryCoupon(category, savedCoupon);
-//            categoryCouponRepository.save(categoryCoupon);
-//
-//        } else if (request.getBookId() != null) {
-//            // 도서 쿠폰 생성
-//            Book book = bookRepository.findById(request.getBookId())
-//                    .orElseThrow(() -> new BookNotFoundException("도서를 찾을 수 없습니다."));
-//            BookCoupon bookCoupon = new BookCoupon(book, savedCoupon);
-//            bookCouponRepository.save(bookCoupon);
-//        }
-//
-//        // 3. 일반 쿠폰은 추가 처리 없음
-//        return savedCoupon;
-//    }
-//
-//
-//    private List<Long> getMemberIdsByRecipientType(CouponCreationAndAssignRequestDTO request) {
-//        switch (request.getRecipientType()) {
-//            case "전체":
-//                return memberFeignClient.getAllMembers().stream()
-//                        .map(CouponMemberDTO::getId)
-//                        .toList();
-//            case "등급별":
-//                MemberGrade grade = convertGrade(request.getGrade()); // String to MemberGrade 변환
-//                return memberFeignClient.getMembersByGrade(grade).stream()
-//                        .map(CouponMemberDTO::getId)
-//                        .toList();
-//            case "개인별":
-//                return request.getMemberIds();
-//            default:
-//                throw new InvalidRecipientTypeException("유효하지 않은 대상 유형: " + request.getRecipientType());
-//        }
-//    }
-//
-//    private MemberGrade convertGrade(String grade) {
-//        try {
-//            return MemberGrade.valueOf(grade.toUpperCase());
-//        } catch (IllegalArgumentException e) {
-//            throw new InvalidRecipientTypeException("유효하지 않은 등급: " + grade);
-//        }
-//    }
+
+
+
+
 
     @Override
     @Transactional

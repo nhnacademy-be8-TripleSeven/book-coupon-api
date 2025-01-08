@@ -14,7 +14,7 @@ import org.springframework.data.elasticsearch.annotations.Field;
 
 @Setter
 @Getter
-@Document(indexName = "nhn24" )
+@Document(indexName = "nhn24_new" )
 public class BookDocument {
 
     @Id

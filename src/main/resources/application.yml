@@ -16,7 +16,6 @@ spring:
         declare: false # 큐 재선언 비활성화
 
 
-
   lifecycle:
     timeout-per-shutdown-phase: 30s
 
