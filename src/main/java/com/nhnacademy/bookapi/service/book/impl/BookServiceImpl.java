@@ -1,6 +1,14 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
 import com.nhnacademy.bookapi.dto.book.*;
+import com.nhnacademy.bookapi.dto.book.BookDTO;
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
+import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
+import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
+import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
+
+import com.nhnacademy.bookapi.dto.book.*;
+
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
@@ -9,6 +17,13 @@ import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
+
+import jakarta.persistence.EntityManager;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +56,8 @@ public class BookServiceImpl implements BookService {
     private final BookCreatorService bookCreatorService;
     private final BookTagRepository bookTagRepository;
     private final BookTypeRepository bookTypeRepository;
+
+    private final EntityManager em;
 
     @Override
     public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
@@ -88,34 +105,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public UpdateBookRequest update(UpdateBookRequest request) {
-
-        Book book = bookRepository.findById(request.getBookId()).orElse(null);
-        if (book == null) {
-            throw new BookNotFoundException("Book not found");
-        }
-        String title = request.getTitle();
-
-        int price = request.getPrice();
-        LocalDate publishedDate = request.getPublishedDate();
-
-        book.update(title, publishedDate, price);
-
-        String bookIntroduction = request.getBookIntroduction();
-        BookIntroduce bookIntroduce = new BookIntroduce(bookIntroduction, book);
-        bookIntroduceRepository.save(bookIntroduce);
-
-        String categories = request.getCategory();
-
-        List<Category> categoryByBook = bookCategoryRepository.findCategoryByBook(book);
-
-
-        return request;
-    }
-
-
-    @Override
-    public void delete(Long id) {
+    public void deleteBook(Long id) {
         boolean exist = bookRepository.existsById(id);
         if (!exist) {
             throw new BookNotFoundException("book not found");
@@ -143,18 +133,21 @@ public class BookServiceImpl implements BookService {
                 book.getStock(), book.getPage(), imageUrl, book.getPublisher().getName());
         searchBookDetail.setBookCreators(getBookCreators(bookCreatorMaps));
 
+// 카테고리 계층 구조 생성
         List<BookCategory> bookCategories = bookCategoryRepository.findAllByBook(book);
-        List<List<String>> categoryHierarchies = new ArrayList<>();
-
+        StringBuilder categoriesBuilder = new StringBuilder();
         if (!bookCategories.isEmpty()) {
             for (BookCategory bookCategory : bookCategories) {
-                Category category = bookCategory.getCategory(); // 하나의 카테고리 객체
-                List<String> hierarchy = getCategoryHierarchy(category);
-                categoryHierarchies.add(hierarchy);
+                Category category = bookCategory.getCategory();
+                List<String> hierarchy = getCategoryHierarchy(category); // 계층 구조 생성
+                categoriesBuilder.append(hierarchy).append(">");
             }
-            StringBuilder categories = getCategoryResult(categoryHierarchies.getLast());
-            searchBookDetail.setCategories(categories);
+            // 마지막 쉼표 제거
+            if (!categoriesBuilder.isEmpty()) {
+                categoriesBuilder.deleteCharAt(categoriesBuilder.length() - 1);
+            }
         }
+        searchBookDetail.setCategories(categoriesBuilder);
 
         List<BookTag> bookTags = bookTagRepository.findAllByBookWithTags(book);
         searchBookDetail.setTags(getBookTags(bookTags));
@@ -214,10 +207,17 @@ public class BookServiceImpl implements BookService {
     private List<String> getCategoryHierarchy(Category category) {
         List<String> hierarchy = new ArrayList<>();
         while (category != null) {
-            hierarchy.add(0, category.getName());
-            category = category.getParent();
+            hierarchy.add(0, category.getName()); // 부모를 리스트 맨 앞에 추가
+            category = findParentCategory(category); // 부모 카테고리 탐색
         }
         return hierarchy;
+    }
+
+    // 부모 카테고리를 찾는 메소드 (필요 시 구현)
+    private Category findParentCategory(Category category) {
+        // 부모 카테고리를 가져오는 로직 구현
+        // 예: categoryRepository.findParentById(category.getId())
+        return null; // 구현 필요
     }
 
 
@@ -252,13 +252,54 @@ public class BookServiceImpl implements BookService {
         return bookTypeItemByType;
     }
 
-    @Override
-    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories,
-                                                              String keyword, Pageable pageable) {
-        Page<BookDetailResponseDTO> byCategoryAndTitle = bookRepository.findByCategoryAndTitle(
-                categories, keyword, pageable);
+//    @Override
+//    public Page<BookDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable) {
+//        return bookRepository.findByCategoryAndTitle(
+//            categories, keyword, pageable);
+//    }
 
-        return byCategoryAndTitle;
+    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable) {
+        return bookRepository.findByCategoryAndTitle(
+                categories, keyword, pageable);
+    }
+
+    @Override
+    public boolean existsBookByIsbn(String isbn) {
+        return bookRepository.existsByIsbn13(isbn);
+    }
+
+    @Override
+    public BookDTO getBookById(Long id) {
+        return bookRepository.findBookById(id);
+    }
+
+
+    public Page<BookDTO> getBookUpdateList(String keyword, Pageable pageable) {
+        Page<BookDTO> bookByKeyword = bookRepository.findBookByKeyword(keyword, pageable);
+        if(bookByKeyword == null) {
+            throw new BookNotFoundException(keyword);
+        }
+        return bookByKeyword;
+    }
+
+
+    public Page<BookDTO> getBookList(String keyword, Pageable pageable) {
+        return bookRepository.findBookByKeyword(keyword, pageable);
+    }
+
+
+    public Book getBook(Long id) {
+        return bookRepository.findById(id).get();
+    }
+
+
+
+    @Transactional(readOnly = true)
+    public List<BookSearchDTO> searchBooksByName(String query) {
+        List<Book> books = bookRepository.findByTitleContaining(query);
+        return books.stream()
+                .map(book -> new BookSearchDTO(book.getId(), book.getTitle(), book.getIsbn13()))
+                .collect(Collectors.toList());
     }
 
     @Override

@@ -31,5 +31,125 @@ X-User: 15
 GET http://localhost:8086/books/categories/%EA%B5%AD%EB%82%B4%EB%8F%84%EC%84%9C/keyword/%ED%95%9C%EA%B0%95
 
 
+###
+GET http://localhost:8086/admin/books/keyword/%ED%95%9C%EA%B0%95
+
+###
+POST localhost:8086/admin/books/createBook
+Content-Type: application/json
+
+{
+  "id": 1,
+  "title": "The Great Book",
+  "isbn": "123-456-789",
+  "categories": [
+    {
+      "id": 1,
+      "name": "Fiction"
+    },
+    {
+      "id": 2,
+      "name": "Adventure"
+    }
+  ],
+  "bookTypes": [
+    {
+      "type": "FOREIGN",
+      "ranks": 1
+    },
+    {
+      "type": "EBOOK",
+      "ranks": 2
+    }
+  ],
+  "authors": [
+    {
+      "id": 101,
+      "name": "John Doe",
+      "role": "AUTHOR"
+    },
+    {
+      "id": 102,
+      "name": "Jane Smith",
+      "role": "AUTHOR"
+    }
+  ],
+  "publishedDate": "2023-12-31",
+  "description": "An amazing book about adventures and discoveries.",
+  "regularPrice": 20000,
+  "salePrice": 15000,
+  "page": 350,
+  "stock": 100,
+  "index": "1. Introduction\n2. Chapter One\n3. Chapter Two\n...",
+  "coverImage": [
+    "https://example.com/images/cover1.jpg"
+  ],
+  "detailImage": [
+    "https://example.com/images/detail1.jpg"
+
+  ],
+  "publisherName": "Best Publisher Co."
+}
+
+###
+POST localhost:8086/admin/books/updateBook
+Content-Type: application/json
+
+{
+  "id": 4,
+  "title": "Effective Java",
+  "isbn": "9780134685991",
+  "categories": [
+    {
+      "id": 99,
+      "name": "Programming",
+      "parents": null
+    },
+    {
+      "id": 100,
+      "name": "Java",
+      "parents": 99
+    }
+  ],
+  "bookTypes": [
+    {
+      "id" : 11,
+      "ranks": 1,
+      "type": "EBOOK"
+    },
+    {
+      "id" : 11,
+      "ranks": 2,
+      "type": "FOREIGN"
+    }
+  ],
+  "authors": [
+    {
+      "id" : 11,
+      "name": "Joshua Bloch",
+      "role": "AUTHOR"
+    }
+  ],
+  "tags": ["Java", "Best Practices", "Programming"],
+  "publishedDate": "2018-12-27",
+  "description": "A must-read for Java programmers.",
+  "regularPrice": 40000,
+  "salePrice": 32000,
+  "index": "Chapter 1: Introduction, Chapter 2: Classes and Interfaces...",
+  "coverImage": [
+    "https://example.com/images/cover1.jpg"
+  ],
+  "detailImage": [
+    "https://example.com/images/detail1.jpg"
+  ],
+  "stock": 1000,
+  "page": 300
+}
 
 
+###
+DELETE http://localhost:8086/admin/books/delete/2
+
+
+###
+GET localhost:8086/books/aladin/isbn/9791193262122

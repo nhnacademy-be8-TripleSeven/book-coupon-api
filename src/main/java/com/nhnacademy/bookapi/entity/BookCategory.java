@@ -31,8 +31,7 @@ public class BookCategory {
         this.category = category;
     }
 
-    public void update(Book book, Category category) {
-        this.book = book;
-        this.category = category;
+    public static BookCategory update(Book book, Category category) {
+        return new BookCategory(book, category);
     }
 }

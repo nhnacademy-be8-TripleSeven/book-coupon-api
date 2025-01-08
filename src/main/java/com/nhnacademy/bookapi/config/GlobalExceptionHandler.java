@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.config;
 
 import com.nhnacademy.bookapi.dto.error.ErrorResponse;
 import com.nhnacademy.bookapi.exception.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.support.converter.MessageConversionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +12,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -23,6 +25,8 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 request.getDescription(false).replace("uri=", "")
         );
+        ex.printStackTrace();
+        log.info("check for admin page-{}", ex.getCause());
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

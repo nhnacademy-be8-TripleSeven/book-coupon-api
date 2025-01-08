@@ -41,7 +41,9 @@ public interface CouponService {
 
     List<CouponDetailsDTO> getUsedCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate);
 
-//    List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request);
+    List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request);
+
+    void assignMonthlyBirthdayCoupons();
 
     CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId);
 }

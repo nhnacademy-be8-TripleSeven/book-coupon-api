@@ -107,6 +107,12 @@ public class LikeService {
         );
     }
 
+    public Page<LikesResponseDto> getPagedLikesByUserIdAndKeyword(Long userId, String keyword, Pageable pageable) {
+        Page<Likes> likesPage = likeRepository.findAllByUserIdAndBookTitleContaining(userId, keyword, pageable);
+
+        return likesPage.map(likes -> new LikesResponseDto(likes.getBook().getId(), likes.getBook().getTitle(), likes.getCreatedAt()));
+    }
+
     private Book getBook(Long bookId) {
         return bookRepository.findById(bookId)
                 .orElseThrow(() -> new BookNotFoundException("Book not found"));

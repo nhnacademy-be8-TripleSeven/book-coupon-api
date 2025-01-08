@@ -150,6 +150,23 @@ public class BookIndexService {
         bookIndexRepository.deleteById(bookIndex.getId());
         return true;
     }
+
+    public String getBookIndexList(long bookId) {
+        return bookIndexRepository.findByBookId(bookId);
+    }
+
+    public BookIndex getBookIndex(long bookId) {
+        return bookIndexRepository.findById(bookId).orElse(null);
+    }
+
+    public void createBookIndex(BookIndex bookIndex){
+        bookIndexRepository.save(bookIndex);
+    }
+
+    public void deleteBookIndex(long bookId) {
+        bookIndexRepository.deleteById(bookId);
+
+    }
 }
 
 

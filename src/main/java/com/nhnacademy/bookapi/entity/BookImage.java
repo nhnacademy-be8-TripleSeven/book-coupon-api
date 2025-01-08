@@ -20,4 +20,9 @@ public class BookImage {
     @Setter
     @ManyToOne(fetch = FetchType.LAZY)
     private Image image;
+
+    public BookImage(Book book, Image image) {
+        this.book = book;
+        this.image = image;
+    }
 }

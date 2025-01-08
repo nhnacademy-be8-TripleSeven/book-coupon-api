@@ -31,12 +31,15 @@ public class Review {
     @Column(nullable = false)
     private Long userId;
 
-    public Review(String text, LocalDateTime createdAt, int rating, Book book, Long userId) {
+    private String imageUrl;
+
+    public Review(String text, LocalDateTime createdAt, int rating, Book book, Long userId, String imageUrl) {
         this.text = text;
         this.createdAt = createdAt;
         this.rating = rating;
         this.book = book;
         this.userId = userId;
+        this.imageUrl = imageUrl;
     }
 
     public void updateText(String text) {

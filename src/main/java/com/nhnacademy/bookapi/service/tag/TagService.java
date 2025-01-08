@@ -1,10 +1,12 @@
 package com.nhnacademy.bookapi.service.tag;
 
+import com.nhnacademy.bookapi.dto.book_tag.BookTagResponseDTO;
 import com.nhnacademy.bookapi.dto.tag.TagRequestDto;
 import com.nhnacademy.bookapi.dto.tag.TagResponseDto;
 import com.nhnacademy.bookapi.entity.Tag;
 import com.nhnacademy.bookapi.exception.TagAlreadyExistException;
 import com.nhnacademy.bookapi.exception.TagNotFoundException;
+import com.nhnacademy.bookapi.repository.BookTagRepository;
 import com.nhnacademy.bookapi.repository.TagRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,6 +21,7 @@ import java.util.Optional;
 public class TagService {
 
     private TagRepository tagRepository;
+    private BookTagRepository bookTagRepository;
 
     public TagService(TagRepository tagRepository) {
         this.tagRepository = tagRepository;
@@ -76,4 +79,21 @@ public class TagService {
         }
         return result;
     }
+
+    public List<String> getTagName(long bookId){
+        return tagRepository.findTagNameByBookId(bookId);
+    }
+
+    public List<Tag> getTags(long bookId){
+        return tagRepository.findByBookId(bookId);
+    }
+
+    public void deleteBookTag(long bookId){
+//        if(bookTagRepository.existsByBookId(bookId)) {
+//            bookTagRepository.deleteBookTagByBookId(bookId);
+//        }
+
+    }
+
+    
 }
