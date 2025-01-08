@@ -42,62 +42,14 @@ import java.util.Optional;
 public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
-    private final BookCreatorRepository bookCreatorRepository;
-    private final BookIndexRepository bookIndexRepository;
-    private final BookIntroduceRepository bookIntroduceRepository;
-    private final CategoryRepository categoryRepository;
-    private final BookCategoryRepository bookCategoryRepository;
-    private final BookImageRepository bookImageRepository;
-    private final ImageRepository imageRepository;
-    private final BookCreatorMapRepository bookCreatorMapRepository;
-    private final PublisherRepository publisherRepository;
     private final BookCoverImageRepository bookCoverImageRepository;
-    private final ElasticSearchBookSearchRepository elasticSearchBookSearchRepository;
-    private final BookCreatorService bookCreatorService;
+    private final BookCreatorMapRepository bookCreatorMapRepository;
+    private final BookCategoryRepository bookCategoryRepository;
     private final BookTagRepository bookTagRepository;
+    private final BookIndexRepository bookIndexRepository;
     private final BookTypeRepository bookTypeRepository;
-
-    private final EntityManager em;
-
-    @Override
-    public CreateBookRequestDTO createBook(CreateBookRequestDTO createBookRequest) {
-        Book book = new Book();
-        book.create(createBookRequest.getTitle(), createBookRequest.getDescription(), createBookRequest.getPublicationDate(), createBookRequest.getRegularPrice()
-                , createBookRequest.getSalePrice(), createBookRequest.getIsbn(), createBookRequest.getStock(), createBookRequest.getPages(), null);
-        book = bookRepository.save(book);
-        //이미지 저장
-        String imageUrl = createBookRequest.getImageUrl();
-
-        Image image = new Image(imageUrl);
-        image = imageRepository.save(image);
-        BookCoverImage bookCoverImage = new BookCoverImage(image, book);
-        bookCoverImageRepository.save(bookCoverImage);
-
-        //출판사저장
-        String publisher = createBookRequest.getPublisher();
-
-
-        Publisher existsPublisher = publisherRepository.findByName(publisher);
-
-        if (existsPublisher == null) {
-            Publisher newPub = new Publisher(createBookRequest.getPublisher());
-            book.publisherUpdate(newPub);
-        } else {
-            book.publisherUpdate(existsPublisher);
-        }
-        // 작가저장
-        String author = createBookRequest.getAuthor();
-
-        BookCreator bookCreator = new BookCreator(author, Role.AUTHOR);
-
-        bookCreatorRepository.save(bookCreator);
-
-        BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
-
-        bookCreatorMapRepository.save(bookCreatorMap);
-
-        return createBookRequest;
-    }
+    private final BookImageRepository bookImageRepository;
+    private final BookCreatorService bookCreatorService;
 
     @Override
     public Book createBook(Book book) {
@@ -289,7 +241,7 @@ public class BookServiceImpl implements BookService {
 
 
     public Book getBook(Long id) {
-        return bookRepository.findById(id).get();
+        return bookRepository.findById(id).orElse(null);
     }
 
 
@@ -298,8 +250,12 @@ public class BookServiceImpl implements BookService {
     public List<BookSearchDTO> searchBooksByName(String query) {
         List<Book> books = bookRepository.findByTitleContaining(query);
         return books.stream()
-                .map(book -> new BookSearchDTO(book.getId(), book.getTitle(), book.getIsbn13()))
-                .collect(Collectors.toList());
+                .map(book -> new BookSearchDTO(book.getId(), book.getTitle(), book.getIsbn13())).toList();
+    }
+
+    @Override
+    public Page<BookDetailResponseDTO> searchBookByCategoryId(Long categoryId, Pageable pageable) {
+        return bookRepository.findByCategoryId(categoryId, pageable);
     }
 
     @Override
@@ -328,6 +284,5 @@ public class BookServiceImpl implements BookService {
 
         return book.getTitle();
     }
-
 
 }

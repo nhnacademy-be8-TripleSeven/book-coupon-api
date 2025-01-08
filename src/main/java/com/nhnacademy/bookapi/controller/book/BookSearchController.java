@@ -80,4 +80,9 @@ public class BookSearchController {
             categories, keyword, pageable);
         return ResponseEntity.ok(categorySearchBooks);
     }
+
+    @GetMapping("/categorySearch")
+    public ResponseEntity<Page<BookDetailResponseDTO>> getBookByCategoryId(@RequestParam long id, Pageable pageable) {
+        return ResponseEntity.ok(bookService.searchBookByCategoryId(id, pageable));
+    }
 }

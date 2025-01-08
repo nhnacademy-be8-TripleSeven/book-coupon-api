@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.controller.review;
 import com.nhnacademy.bookapi.dto.review.ReviewRequestDto;
 import com.nhnacademy.bookapi.dto.review.ReviewResponseDto;
 import com.nhnacademy.bookapi.entity.Review;
+import com.nhnacademy.bookapi.service.object.ObjectService;
 import com.nhnacademy.bookapi.service.review.ReviewService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,9 +12,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 @RestController
@@ -28,10 +33,38 @@ public class ReviewController {
             @ApiResponse(responseCode = "404", description = "도서를 찾을 수 없음"),
             @ApiResponse(responseCode = "400", description = "이미 리뷰가 존재함")
     })
-    @PostMapping("/api/reviews")
-    public ResponseEntity<Void> addReview(@RequestHeader("X-User") Long userId, @Valid @RequestBody ReviewRequestDto reviewRequestDto) {
-        reviewService.addReview(userId, reviewRequestDto);
+    @PostMapping(value = "/api/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> addReview(
+            @RequestHeader("X-USER") Long userId,
+            @RequestPart("reviewRequestDto") ReviewRequestDto reviewRequestDto,
+            @RequestPart(value = "file", required = false) MultipartFile file) {
+
+        ObjectService objectService = getObjectService();
+        String imageUrl = null;
+        if (file != null && !file.isEmpty()) {
+            try (InputStream inputStream = file.getInputStream()) {
+                objectService.uploadObject("triple-seven", file.getOriginalFilename(), inputStream);
+                imageUrl = objectService.getStorageUrl() + "/triple-seven/" + file.getOriginalFilename();
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
+            }
+        }
+        reviewService.addReview(userId, reviewRequestDto, imageUrl);
+
         return ResponseEntity.status(201).build();
+    }
+
+    private static ObjectService getObjectService() {
+        ObjectService objectService = new ObjectService("https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e");
+        try {
+            objectService.generateAuthToken("https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens",
+                    "c20e3b10d61749a2a52346ed0261d79e",
+                    "rlgus4531@naver.com",
+                    "team3");
+        } catch (RuntimeException e) {
+            throw new RuntimeException("토큰 발급에 실패했습니다: " + e.getMessage());
+        }
+        return objectService;
     }
 
     @Operation(summary = "리뷰 수정", description = "특정 도서에 작성된 리뷰를 수정합니다.")

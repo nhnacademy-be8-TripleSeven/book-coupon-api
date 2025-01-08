@@ -32,6 +32,7 @@ import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 
+import com.nhnacademy.bookapi.service.image.ImageService;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -79,10 +80,11 @@ public class BookApiSaveService {
     //여기까지
     
     private final BookIndexRepository bookIndexRepository;
+    private final ImageService imageService;
 
     public BookApiDTO getAladinBookByIsbn(String isbn) throws Exception {
-        ObjectService objectService = new ObjectService(storageUrl);
-        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+//        ObjectService objectService = new ObjectService(storageUrl);
+//        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
 
         JsonNode book = bookApiService.getBook(isbn).get(0);
 
@@ -99,7 +101,6 @@ public class BookApiSaveService {
             pubDate = LocalDate.parse(pubDateStr);
         }
         String cover = book.path("cover").asText();
-        String path = uploadCoverImageToStorage(objectService, cover, "cover.jpg");
 
         BookApiDTO apiDTO = new BookApiDTO(
             book.path("title").asText(),
@@ -170,9 +171,9 @@ public class BookApiSaveService {
             }
 
             String coverUrl = book.path("cover").asText();
-            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
+            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "_cover.jpg");
 
-            image= new Image(book.path("cover").asText());
+            image= new Image(uploadedImageUrl);
             imageRepository.save(image);
 
             //bookcoverimage mapping

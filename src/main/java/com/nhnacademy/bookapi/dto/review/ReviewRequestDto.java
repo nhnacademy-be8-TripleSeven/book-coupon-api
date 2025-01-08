@@ -2,7 +2,10 @@ package com.nhnacademy.bookapi.dto.review;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import org.springframework.web.multipart.MultipartFile;
 
+@Getter
 public class ReviewRequestDto {
 
     @NotBlank(message = "리뷰 내용은 비어있을 수 없습니다.")
@@ -10,21 +13,12 @@ public class ReviewRequestDto {
     @NotNull(message = "평점은 필수입니다.")
     private int rating;
     private Long bookId;
-    private String imageUrl;
+    //private MultipartFile image;
 
-    public ReviewRequestDto(String text, int rating, Long bookId, String imageUrl) {
+    public ReviewRequestDto(String text, int rating, Long bookId) {
         this.text = text;
         this.rating = rating;
         this.bookId = bookId;
-        this.imageUrl = imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;
     }
 
     public void setText(String text) {
@@ -39,15 +33,4 @@ public class ReviewRequestDto {
         this.bookId = bookId;
     }
 
-    public String getText() {
-        return text;
-    }
-
-    public int getRating() {
-        return rating;
-    }
-
-    public Long getBookId() {
-        return bookId;
-    }
 }

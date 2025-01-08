@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.repository;
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
+import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
 import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
@@ -70,7 +71,15 @@ public interface BookRepository extends JpaRepository<Book, Long>, BookRepositor
 
     List<Book> findByTitleContaining(String title);
 
-
+    @Query("select distinct new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
+        + "from Book b "
+        + "join BookType bt on bt.book.id = b.id "
+        + "join BookCoverImage bci on bci.book.id = b.id "
+        + "join Image i on i.id = bci.image.id "
+        + "join BookCategory bc on bc.book.id = b.id "
+        + "join Category c on c.id = bc.category.id "
+        + "where c.id = :id")
+    Page<BookDetailResponseDTO> findByCategoryId(Long id, Pageable pageable);
 
 
 
