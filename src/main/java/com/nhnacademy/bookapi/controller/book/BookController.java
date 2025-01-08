@@ -5,9 +5,11 @@ import com.nhnacademy.bookapi.dto.book.BookApiDTO;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 
+import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 
 import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
+import com.nhnacademy.bookapi.dto.book.CartItemDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
@@ -43,8 +45,10 @@ public class BookController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PostMapping("/admin/books/createBook")
-    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO)
+    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart("coverImages") List<MultipartFile> coverImages, @RequestPart("detailImages") List<MultipartFile> detailImages)
         throws IOException {
+        bookCreatDTO.setCoverImages(coverImages);
+        bookCreatDTO.setDetailImages(detailImages);
         bookMultiTableService.createBook(bookCreatDTO);
         return ResponseEntity.status(201).build();
     }
@@ -62,8 +66,14 @@ public class BookController {
     })
     //ToDo bookUpdate
     @PostMapping("/admin/books/updateBook")
-    public ResponseEntity<Void> updateBook(@RequestPart BookUpdateDTO bookUpdateDTO)
+    public ResponseEntity<Void> updateBook(
+        @RequestPart("bookUpdateDTO") BookUpdateDTO bookUpdateDTO,
+        @RequestPart("coverImage") List<MultipartFile> coverImages,
+        @RequestPart("detailImage") List<MultipartFile> detailImages
+    )
         throws IOException {
+        bookUpdateDTO.setCoverImage(coverImages);
+        bookUpdateDTO.setDetailImage(detailImages);
         bookMultiTableService.updateBook(bookUpdateDTO);
         return ResponseEntity.ok().build();
     }
@@ -199,5 +209,19 @@ public class BookController {
     public ResponseEntity<BookApiDTO> getBooksByISBN(@PathVariable String isbn) throws Exception {
         BookApiDTO aladinBookByIsbn = bookApiSaveService.getAladinBookByIsbn(isbn);
         return ResponseEntity.ok(aladinBookByIsbn);
+    }
+
+
+
+    @PostMapping("/books/cartItems")
+    public ResponseEntity<List<CartItemDTO>> getCartItems(@RequestBody List<Long> bookIds) {
+        List<CartItemDTO> cartItemDTOS = bookService.getCartItemsByIds(bookIds);
+        return ResponseEntity.ok(cartItemDTOS);
+    }
+
+    @GetMapping("/books/{bookId}/name")
+    public ResponseEntity<String> getBookName(@PathVariable Long bookId) {
+        String name = bookService.getBookName(bookId);
+        return ResponseEntity.ok(name);
     }
 }
