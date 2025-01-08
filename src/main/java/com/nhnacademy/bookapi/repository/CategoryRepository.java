@@ -25,6 +25,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findByNameContaining(String name);
 
-
+    @Query("select c from Category c where c.level = :level")
+    List<Category> findByLevel(int level);
 
 }

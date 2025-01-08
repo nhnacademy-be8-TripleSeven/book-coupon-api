@@ -9,6 +9,7 @@ import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.CategoryRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -63,7 +64,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void saveCategory(CategoryDTO categoryDTO) {
-        categoryRepository.save(new Category(categoryDTO.getName(), categoryDTO.getLevel()));
+        Category category = categoryRepository.findById(categoryDTO.getParentCategoryId()).orElse(null);
+        Category saveCategory = new Category(categoryDTO.getName(), categoryDTO.getLevel(), category);
+        categoryRepository.save(saveCategory);
     }
 
     public void categorySaveList(List<CategoryDTO> categoryDTOList) {
@@ -75,7 +78,14 @@ public class CategoryServiceImpl implements CategoryService {
     public Page<CategoryDTO> getCategoryByLevel(int level, Pageable pageable) {
         Page<Category> categoryByLevel = categoryRepository.findCategoryByLevel(level, pageable);
         List<CategoryDTO> list = categoryByLevel.getContent().stream().map(
-                category -> new CategoryDTO(category.getId(), category.getName(), category.getLevel()))
+                category -> new CategoryDTO(
+                    category.getId(),
+                    category.getName(),
+                    category.getLevel(),
+                    new CategoryDTO(
+                        category.getParent().getId(),
+                        category.getParent().getName(),
+                        category.getParent().getLevel())))
             .toList();
         return new PageImpl<>(list, pageable, categoryByLevel.getTotalElements());
     }
@@ -97,6 +107,62 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryDTO> getAllCategories() {
-        return categoryRepository.findAll().stream().map(category -> new CategoryDTO(category.getId(),category.getName(),category.getLevel())).toList();
+        List<Category> categoryAll = categoryRepository.findAll();
+        List<CategoryDTO> list = new ArrayList<>();
+        for (Category category : categoryAll) {
+            if(category.getParent() != null) {
+                CategoryDTO categoryDTO = new CategoryDTO(
+                    category.getId(),
+                    category.getName(),
+                    category.getLevel(),
+                    new CategoryDTO(
+                        category.getParent().getId(),
+                        category.getParent().getName(),
+                        category.getParent().getLevel(),
+                        null
+                    ));
+                list.add(categoryDTO);
+            }else {
+                CategoryDTO categoryDTO = new CategoryDTO(
+                    category.getId(),
+                    category.getName(),
+                    category.getLevel(),
+                    null
+                );
+                list.add(categoryDTO);
+            }
+        }
+        return list;
+
+    }
+
+    @Override
+    public List<CategoryDTO> getCategoryByLevel(int level) {
+        List<Category> byLevel = categoryRepository.findByLevel(level);
+        List<CategoryDTO> list = new ArrayList<>();
+        for (Category category : byLevel) {
+            if(category.getParent() != null) {
+                CategoryDTO categoryDTO = new CategoryDTO(
+                    category.getId(),
+                    category.getName(),
+                    category.getLevel(),
+                    new CategoryDTO(
+                        category.getParent().getId(),
+                        category.getParent().getName(),
+                        category.getParent().getLevel(),
+                        null
+                    ));
+                list.add(categoryDTO);
+            }else {
+                CategoryDTO categoryDTO = new CategoryDTO(
+                    category.getId(),
+                    category.getName(),
+                    category.getLevel(),
+                    null
+                );
+                list.add(categoryDTO);
+            }
+        }
+        return list;
     }
 }

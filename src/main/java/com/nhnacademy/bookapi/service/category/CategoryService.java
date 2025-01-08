@@ -33,6 +33,8 @@ public interface CategoryService {
 
     List<CategoryDTO> getAllCategories();
 
+    List<CategoryDTO> getCategoryByLevel(int level);
+
 }
 
 

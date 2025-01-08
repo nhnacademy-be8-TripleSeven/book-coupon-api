@@ -46,5 +46,10 @@ public class CategoryController {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 
+    @GetMapping("/admin/books/categories")
+    public ResponseEntity<List<CategoryDTO>> getCategoryByLevel(@RequestParam int level){
+        return ResponseEntity.ok(categoryService.getCategoryByLevel(level));
+    }
+
 
 }

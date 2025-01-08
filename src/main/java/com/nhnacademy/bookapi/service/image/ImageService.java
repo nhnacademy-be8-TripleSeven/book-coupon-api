@@ -38,22 +38,28 @@ public class ImageService {
         return imageRepository.findBookImageByBookId(bookId);
     }
 
-    @Transactional
-    public void deleteBookCoverImageAndBookDeleteImage(long bookId) {
-        Image imageIdByBookId = bookImageRepository.findImageByBookId(bookId);
+
+    public void deleteBookCoverImageAndBookDetailImage(long bookId) {
+        List<Image> imageIdByBookId = bookImageRepository.findImageByBookId(bookId);
 
 
-        Image imageByBookId = bookCoverImageRepository.findImageByBookId(bookId);
+        List<Image> imageByBookId = bookCoverImageRepository.findImageByBookId(bookId);
+
+        System.out.println(imageIdByBookId.toString());
 
         if(imageIdByBookId != null) {
             bookImageRepository.deleteByBookId(bookId);
-            imageRepository.deleteById(imageIdByBookId.getId());
+            for (Image image : imageIdByBookId) {
+                imageRepository.deleteById(image.getId());
+            }
+
         }
         if(imageByBookId != null) {
             bookCoverImageRepository.deleteByBookId(bookId);
-            imageRepository.deleteById(imageByBookId.getId());
+            for (Image image : imageByBookId) {
+                imageRepository.deleteById(image.getId());
+            }
         }
-
-
     }
+
 }

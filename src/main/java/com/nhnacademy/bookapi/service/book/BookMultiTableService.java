@@ -110,7 +110,7 @@ public class BookMultiTableService {
         return bookList;
     }
 
-
+    @Transactional
     public void updateBook(BookUpdateDTO bookUpdateDTO) throws IOException {
         //object storage에 저장
         ObjectService objectService = new ObjectService(storageUrl);
@@ -144,7 +144,7 @@ public class BookMultiTableService {
             if(categoryById != null) {
                 categoryById.update(categoryDTO.getName(), categoryById.getLevel());
             }else {
-                categoryById = new Category(categoryDTO.getName(), categoryDTO.getLevel());
+                categoryById = new Category(categoryDTO.getName(), categoryDTO.getLevel(), categoryById);
                 BookCategory bookCategory = new BookCategory(book, categoryById);
                 categoryService.categorySave(categoryById, bookCategory);
             }
@@ -251,7 +251,7 @@ public class BookMultiTableService {
                 BookCategory bookCategory = new BookCategory(book, categoryByName);
                 categoryService.bookCategorySave(bookCategory);
             }else{
-                category = new Category(categorys.getName(), categorys.getLevel());
+                category = new Category(categorys.getName(), categorys.getLevel(), category);
                 BookCategory bookCategory = new BookCategory(book, category);
                 categoryService.categorySave(category, bookCategory);
             }
@@ -290,7 +290,6 @@ public class BookMultiTableService {
 
     }
 
-    @Transactional
     public void deleteBook(long bookId) {
         // Book Type 삭제
         bookTypeService.deleteBookType(bookId);
@@ -305,7 +304,8 @@ public class BookMultiTableService {
         bookCategoryRepository.deleteAllByBookId(bookId);
 
         // Book Cover Image 삭제
-        imageService.deleteBookCoverImageAndBookDeleteImage(bookId);
+        imageService.deleteBookCoverImageAndBookDetailImage(bookId);
+
 
         // Tags 삭제
         tagService.deleteBookTag(bookId);

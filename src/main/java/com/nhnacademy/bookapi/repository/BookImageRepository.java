@@ -18,7 +18,7 @@ public interface BookImageRepository extends JpaRepository<BookImage, Long> {
     List<BookImage> findAllByBookWithImage(@Param("book") Book book);
 
     @Query("select i from Image i join BookImage bi on bi.image.id = i.id where bi.book.id =:bookId")
-    Image findImageByBookId(Long bookId);
+    List<Image> findImageByBookId(Long bookId);
 
     @Query("DELETE from BookImage bi where bi.book.id = :bookId")
     void deleteByBookId(Long bookId);
