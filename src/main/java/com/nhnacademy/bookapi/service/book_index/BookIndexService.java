@@ -140,14 +140,15 @@ public class BookIndexService {
      */
     public boolean deleteIndex(Long bookId) {
         // 삭제 대상 목차 존재 여부 확인 및 예외 처리
-        Book book = bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException("Book not found with ID: " + bookId));
+        Book book = bookRepository.findById(bookId).orElse(null);
 
-        BookIndex bookIndex = bookIndexRepository.findByBook(book)
-                .orElseThrow(() -> new BookIndexNotFoundException("Book index not found for this book."));
+        BookIndex bookIndex = bookIndexRepository.findByBook(book).orElse(null);
 
         // 삭제
-        bookIndexRepository.deleteById(bookIndex.getId());
+        if (bookIndex != null) {
+            bookIndexRepository.deleteById(bookIndex.getId());
+        }
+
         return true;
     }
 

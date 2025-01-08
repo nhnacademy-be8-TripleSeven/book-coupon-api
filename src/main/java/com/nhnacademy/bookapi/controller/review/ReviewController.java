@@ -43,8 +43,9 @@ public class ReviewController {
         String imageUrl = null;
         if (file != null && !file.isEmpty()) {
             try (InputStream inputStream = file.getInputStream()) {
-                objectService.uploadObject("triple-seven", file.getOriginalFilename(), inputStream);
-                imageUrl = objectService.getStorageUrl() + "/triple-seven/" + file.getOriginalFilename();
+                String objectName = "review"+"_"+userId+"_"+reviewRequestDto.getBookId();
+                objectService.uploadObject("triple-seven", objectName, inputStream);
+                imageUrl = objectService.getStorageUrl() + "/triple-seven/" + objectName;
             } catch (IOException e) {
                 throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
             }
