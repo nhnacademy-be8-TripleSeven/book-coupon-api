@@ -93,6 +93,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categories.stream()
                 .map(category -> new CategorySearchDTO(category.getId(), category.getName()))
                 .collect(Collectors.toList());
+    }
 
     @Override
     public List<CategoryDTO> getAllCategories() {
