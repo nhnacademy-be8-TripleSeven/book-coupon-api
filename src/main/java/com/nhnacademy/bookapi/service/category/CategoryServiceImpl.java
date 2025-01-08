@@ -1,12 +1,17 @@
 package com.nhnacademy.bookapi.service.category;
 
+import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
+import com.nhnacademy.bookapi.dto.category.CategorySearchDTO;
+import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCategory;
 import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.CategoryRepository;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,5 +76,13 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategoryById(Long categoryId) {
         Optional<Category> byId = categoryRepository.findById(categoryId);
         byId.ifPresent(categoryRepository::delete);
+    }
+
+    @Transactional(readOnly = true)
+    public List<CategorySearchDTO> searchCategoriesByName(String query) {
+        List<Category> categories = categoryRepository.findByNameContaining(query);
+        return categories.stream()
+                .map(category -> new CategorySearchDTO(category.getId(), category.getName()))
+                .collect(Collectors.toList());
     }
 }
