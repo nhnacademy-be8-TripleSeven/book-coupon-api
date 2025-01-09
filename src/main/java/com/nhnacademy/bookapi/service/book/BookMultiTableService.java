@@ -32,6 +32,7 @@ import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import com.nhnacademy.bookapi.service.image.ImageService;
 import com.nhnacademy.bookapi.service.object.ObjectService;
+import com.nhnacademy.bookapi.service.review.ReviewService;
 import com.nhnacademy.bookapi.service.tag.TagService;
 import java.io.IOException;
 import java.io.InputStream;
@@ -75,6 +76,7 @@ public class BookMultiTableService {
     private final BookPopularityRepository popularityRepository;
     private final BookPopularityRepository bookPopularityRepository;
     private final BookCategoryRepository bookCategoryRepository;
+    private final ReviewService reviewService;
 
     @Transactional(readOnly = true)
     public BookDTO getAdminBookById(Long id) {
@@ -123,7 +125,7 @@ public class BookMultiTableService {
         List<MultipartFile> bookCoverImages = Optional.ofNullable(bookUpdateDTO.getCoverImage()).orElse(Collections.emptyList());
         for (MultipartFile bookCoverImage : bookCoverImages) {
             String path = uploadCoverImageToStorage(objectService, bookCoverImage,
-                bookUpdateDTO.getIsbn() + "cover.jpg");
+                bookUpdateDTO.getIsbn() + "_cover.jpg");
 
             Image image = new Image(path);
             BookCoverImage coverImage = new BookCoverImage(image, book);
@@ -131,7 +133,7 @@ public class BookMultiTableService {
         }
         List<MultipartFile> detailImages = Optional.ofNullable(bookUpdateDTO.getDetailImage()).orElse(Collections.emptyList());
         for (MultipartFile detailImage : detailImages) {
-            String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "detail.jpg");
+            String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "_detail.jpg");
             Image image = new Image(path);
             BookImage bookImage = new BookImage();
             imageService.bookDetailSave(image, bookImage);
@@ -268,7 +270,7 @@ public class BookMultiTableService {
         if(!coverImages.isEmpty()) {
             for (MultipartFile multipartFile : coverImages) {
                 String path = uploadCoverImageToStorage(objectService, multipartFile,
-                    bookCreatDTO.getIsbn() + "cover.jpg");
+                    bookCreatDTO.getIsbn() + "_cover.jpg");
                 Image image = new Image(path);
                 BookCoverImage bookCoverImage = new BookCoverImage(image, book);
                 imageService.bookCoverSave(image, bookCoverImage);
@@ -279,7 +281,7 @@ public class BookMultiTableService {
         if(!detailImage.isEmpty()) {
             for (MultipartFile multipartFile : detailImage) {
                 String path = uploadCoverImageToStorage(objectService, multipartFile,
-                    bookCreatDTO.getIsbn() + "detail.jpg");
+                    bookCreatDTO.getIsbn() + "_detail.jpg");
                 Image image = new Image(path);
                 BookImage bookImage = new BookImage(book, image);
                 imageService.bookDetailSave(image, bookImage);
@@ -310,7 +312,7 @@ public class BookMultiTableService {
         tagService.deleteBookTag(bookId);
 
         // 리뷰 삭제
-        reviewRepository.deleteByBookId(bookId);
+        reviewService.deleteAllReviewsWithBook(bookId);
 
         // Book Coupon 삭제
         bookCouponRepository.deleteByBookId(bookId);

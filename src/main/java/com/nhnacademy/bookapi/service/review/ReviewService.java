@@ -84,7 +84,8 @@ public class ReviewService {
         } catch (RuntimeException e) {
             throw new RuntimeException("토큰 발급에 실패했습니다: " + e.getMessage());
         }
-
+        String objectName = "reviews" + "_" + bookId;
+        objectService.deleteObject("triple-seven", objectName);
     }
 
     @Transactional
