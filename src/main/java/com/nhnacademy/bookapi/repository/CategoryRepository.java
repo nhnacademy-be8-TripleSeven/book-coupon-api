@@ -18,7 +18,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     @Query("select c from Category c join BookCategory bc on bc.category.id = c.id where bc.book.id =:bookId")
     List<Category> findByBookId(@Param("bookId") Long bookId);
 
-    Category findCategoryByName(String name);
+    Optional<Category> findCategoryByName(String name);
 
 
     Page<Category> findCategoryByLevel(int level, Pageable pageable);
@@ -27,5 +27,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query("select c from Category c where c.level = :level")
     List<Category> findByLevel(int level);
+
+    @Query("SELECT c FROM Category c LEFT JOIN FETCH c.children WHERE c.parent IS NULL")
+    List<Category> findAllRootCategories();
 
 }

@@ -26,30 +26,5 @@ public class CustomBookSearchRepositoryImpl implements CustomBookSearchRepositor
 
     private ElasticsearchTemplate elasticsearchTemplate;
 
-    private Page<BookSearchResponseDTO> mapToDTOPage(List<BookDocument> documents, Pageable pageable, long totalHits) {
-        List<BookSearchResponseDTO> dtos = documents.stream()
-            .map(doc -> new BookSearchResponseDTO(
-                doc.getId(),
-                doc.getIsbn13(),
-                doc.getTitle(),
-                doc.getDescription(),
-                doc.getPublishDate(),
-                doc.getRegularPrice(),
-                doc.getSalePrice(),
-                doc.getStock(),
-                doc.getPage(),
-                doc.getBestSellerRank(),
-                doc.getClickCount(),
-                doc.getSearchCount(),
-                doc.getCartCount(),
-                doc.getCoverUrl(),
-                doc.getPublisherName(),
-                doc.getBookCreators(),
-                doc.getCategories()
-            ))
-            .collect(Collectors.toList());
-        return new PageImpl<>(dtos, pageable, totalHits);
-    }
-
 
 }

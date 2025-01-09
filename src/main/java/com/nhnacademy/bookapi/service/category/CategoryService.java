@@ -2,6 +2,8 @@ package com.nhnacademy.bookapi.service.category;
 
 
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
+import com.nhnacademy.bookapi.dto.category.CategoryLevelDTO;
+import com.nhnacademy.bookapi.dto.category.CategoryResponseDTO;
 import com.nhnacademy.bookapi.dto.category.CategorySearchDTO;
 import com.nhnacademy.bookapi.entity.BookCategory;
 import com.nhnacademy.bookapi.entity.Category;
@@ -34,6 +36,11 @@ public interface CategoryService {
     List<CategoryDTO> getAllCategories();
 
     List<CategoryDTO> getCategoryByLevel(int level);
+
+    List<CategoryResponseDTO> getAllCategoriesAsTree();
+
+    CategoryLevelDTO getCategoryLevelList();
+
 
 }
 

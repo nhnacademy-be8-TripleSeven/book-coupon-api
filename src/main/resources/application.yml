@@ -26,7 +26,10 @@ spring:
       retry:
         enabled: true
 
-
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
   elasticsearch:
     uris: http://115.94.72.197:9200
     username: elastic
