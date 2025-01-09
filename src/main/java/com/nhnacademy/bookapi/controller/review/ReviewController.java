@@ -43,7 +43,7 @@ public class ReviewController {
         String imageUrl = null;
         if (file != null && !file.isEmpty()) {
             try (InputStream inputStream = file.getInputStream()) {
-                String objectName = "reviews"+"_"+reviewRequestDto.getBookId();
+                String objectName = "reviews/" + "review"+"_"+userId+"_"+reviewRequestDto.getBookId();
                 // object storage에 저장되는 objectName은
                 // reviews_bookId
                 objectService.uploadObject("triple-seven", objectName, inputStream);

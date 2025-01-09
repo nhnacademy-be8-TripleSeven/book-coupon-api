@@ -74,6 +74,7 @@ public class ReviewService {
 
     @Transactional
     public void deleteAllReviewsWithBook(Long bookId) {
+        List<Long> userIds = reviewRepository.findAllUserIdsByBookId(bookId);
         reviewRepository.deleteByBookId(bookId);
         ObjectService objectService = new ObjectService("https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e");
         try {
@@ -84,8 +85,10 @@ public class ReviewService {
         } catch (RuntimeException e) {
             throw new RuntimeException("토큰 발급에 실패했습니다: " + e.getMessage());
         }
-        String objectName = "reviews" + "_" + bookId;
-        objectService.deleteObject("triple-seven", objectName);
+        for (Long userId : userIds) {
+            String objectName = "reviews/"+ "review" + "_" + userId + "_" + bookId;
+            objectService.deleteObject("triple-seven", objectName);
+        }
     }
 
     @Transactional

@@ -47,10 +47,10 @@ public class ImageService {
     @Transactional
     public void deleteBookCoverImageAndBookDetailImage(long bookId) {
 
-       List<Image> imageIdByBookId = bookImageRepository.findImageByBookId(bookId);
+       List<Image> detailImages = bookImageRepository.findImageByBookId(bookId);
 
 
-        List<Image> imageByBookId = bookCoverImageRepository.findImageByBookId(bookId);
+        List<Image> coverImages = bookCoverImageRepository.findImageByBookId(bookId);
 
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException("book not found"));
       
@@ -58,17 +58,17 @@ public class ImageService {
         ObjectService objectService = this.getObjectService(); // 토큰 발급이 완료된 객체
       
               // 2. BookImage 삭제
-        if (imageIdByBookId != null && !imageIdByBookId.isEmpty()) {
+        if (detailImages != null && !detailImages.isEmpty()) {
             bookImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리
-            imageRepository.deleteAll(imageIdByBookId); // 삭제할 Image 리스트
-            objectService.deleteObject("triple-seven", book.getIsbn13() + "_cover.jpg");
+            imageRepository.deleteAll(detailImages); // 삭제할 Image 리스트
+            objectService.deleteObject("triple-seven", book.getIsbn13() + "_detail.jpg");
         }
 
         // 3. BookCoverImage 삭제
-        if (imageByBookId != null && !imageByBookId.isEmpty()) {
+        if (coverImages != null && !coverImages.isEmpty()) {
             bookCoverImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리
-            imageRepository.deleteAll(imageByBookId); // 삭제할 Image 리스트
-            objectService.deleteObject("triple-seven", book.getIsbn13() + "_detail.jpg");
+            imageRepository.deleteAll(coverImages); // 삭제할 Image 리스트
+            objectService.deleteObject("triple-seven", book.getIsbn13() + "_cover.jpg");
         }
 
 
