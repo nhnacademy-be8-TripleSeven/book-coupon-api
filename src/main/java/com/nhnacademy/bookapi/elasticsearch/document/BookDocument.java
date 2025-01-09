@@ -11,18 +11,22 @@ import lombok.Setter;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Setter
 @Getter
-@Document(indexName = "nhn24_new" )
+@Document(indexName = "nhn24_new_alias" )
 public class BookDocument {
 
     @Id
     private String id;
 
+    @Field(type = FieldType.Text, analyzer = "custom_korean_analyzer")
     private String title;
 
     private String description;
+
+    @Field(type = FieldType.Keyword)
 
     private String isbn13;
 
@@ -35,15 +39,10 @@ public class BookDocument {
     @Field(name = "saleprice") // Elasticsearch 매핑 이름에 맞춤
     private int salePrice;
 
-    private int stock;
-
-    private int page;
 
     @Field(name = "bestsellerrank") // Elasticsearch 매핑 이름에 맞춤
     private int bestSellerRank;
 
-    @Field(name = "clickcount") // Elasticsearch 매핑 이름에 맞춤
-    private int clickCount;
 
     @Field(name = "searchcount") // Elasticsearch 매핑 이름에 맞춤
     private int searchCount;

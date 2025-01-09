@@ -1,8 +1,6 @@
 package com.nhnacademy.bookapi.repository;
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
-import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.Type;
@@ -24,18 +22,17 @@ public interface BookRepository extends JpaRepository<Book, Long>, BookRepositor
 
 
     // 이달의 베스트
-    @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
+    @Query("select distinct new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
         + "from Book b "
         + "join BookType bt on bt.book.id = b.id "
         + "join BookCoverImage bci on bci.book.id = b.id "
         + "join Image i on i.id = bci.image.id "
-        + "where bt.types = 'BESTSELLER' "
-        + "order by bt.ranks asc")
-    Page<BookDetailResponseDTO> findBookTypeBestsellerByRankAsc(Pageable pageable);
+        + "where bt.types = 'BESTSELLER'")
+    Page<BookDetailResponseDTO> findBookTypeBestseller(Pageable pageable);
 
 
     //이 도서는 어때요? ITEMNEWSPECIAL
-    @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) " +
+    @Query("select distinct new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) " +
         "from Book b " +
         "join BookType bt on bt.book.id = b.id " +
         "join BookCoverImage bci on bci.book.id = b.id " +

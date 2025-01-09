@@ -45,7 +45,7 @@ public class BookController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PostMapping("/admin/books/createBook")
-    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart("coverImages") List<MultipartFile> coverImages, @RequestPart("detailImages") List<MultipartFile> detailImages)
+    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart(value = "coverImages", required = false) List<MultipartFile> coverImages, @RequestPart(value = "detailImages", required = false) List<MultipartFile> detailImages)
         throws IOException {
         bookCreatDTO.setCoverImages(coverImages);
         bookCreatDTO.setDetailImages(detailImages);
@@ -68,8 +68,8 @@ public class BookController {
     @PostMapping("/admin/books/updateBook")
     public ResponseEntity<Void> updateBook(
         @RequestPart("bookUpdateDTO") BookUpdateDTO bookUpdateDTO,
-        @RequestPart("coverImage") List<MultipartFile> coverImages,
-        @RequestPart("detailImage") List<MultipartFile> detailImages
+        @RequestPart(value = "coverImage", required = false) List<MultipartFile> coverImages,
+        @RequestPart(value = "detailImage", required = false) List<MultipartFile> detailImages
     )
         throws IOException {
         bookUpdateDTO.setCoverImage(coverImages);

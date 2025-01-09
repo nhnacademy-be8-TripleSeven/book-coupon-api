@@ -405,7 +405,7 @@ class CouponServiceImplTest {
         Category category = new Category("Test Category", 0);
         category.setTestId(1L);
 
-        category.create("Test Category",0);
+        category.create("Test Category",0, null);
 
 
         CouponPolicy policy = new CouponPolicy("Test Policy", 1000L,

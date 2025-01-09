@@ -1,6 +1,8 @@
 package com.nhnacademy.bookapi.entity;
 
 import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,8 +22,12 @@ public class Category {
 
     private int level;
 
-    @ManyToOne
+
+    @ManyToOne(fetch = FetchType.LAZY)
     private Category parent;
+
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Category> children = new ArrayList<>();
 
     public Category(String name, int level, Category parent) {
         this.name = name;
@@ -35,15 +41,17 @@ public class Category {
         this.parent = null;
     }
 
-    public void create(String name, int level) {
+    public void create(String name, int level, Category parent) {
         this.name = name;
         this.level = level;
+        this.parent = parent;
     }
 
 
-    public void update(String newName, int level) {
+    public void update(String newName, int level, Category parent) {
         this.name = newName;
         this.level = level;
+        this.parent = parent;
     }
 
 

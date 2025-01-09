@@ -280,7 +280,7 @@ public class BookApiSaveService {
             }
 
             String coverUrl = book.path("cover").asText();
-            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
+            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "cover_.jpg");
 
             image= new Image(book.path("cover").asText());
             imageRepository.save(image);
@@ -383,37 +383,38 @@ public class BookApiSaveService {
         return bookCreatorList;
     }
 
-
+    @Transactional
     public List<Category> categoryParseSave(String category, Book book, int level) throws Exception {
         List<Category> categoryList = new ArrayList<>();
         String[] categories = category.split(">");
-        Category parentCategory = null;
+        Category parentCategory = null; // 초기화
 
         for (String categoryName : categories) {
             categoryName = categoryName.trim();
 
-
             // 중복 확인 및 기존 카테고리 조회
-            Category categoryByName = categoryRepository.findCategoryByName(categoryName);
+            Category categoryByName = categoryRepository.findCategoryByName(categoryName).orElse(null);
             Category saveCategory;
 
             if (categoryByName != null) {
                 saveCategory = categoryByName;
-                level++;
             } else {
-                saveCategory = new Category();
-                saveCategory.create(categoryName, level);
-                saveCategory = categoryRepository.save(saveCategory);
+                Category newCategory = new Category();
+                newCategory.create(categoryName, level, parentCategory); // parentCategory 설정
+
+                // 저장 후 saveCategory에 할당
+                saveCategory = categoryRepository.save(newCategory);
                 categoryList.add(saveCategory);
-                level++;
             }
+
+            // 상위 카테고리로 설정
+            parentCategory = saveCategory;
+            level++;
 
             // 도서와 카테고리 매핑 저장
             BookCategory bookCategory = new BookCategory();
-            bookCategory.create(book,saveCategory);
+            bookCategory.create(book, saveCategory);
             bookCategoryRepository.save(bookCategory);
-
-
         }
         return categoryList;
     }

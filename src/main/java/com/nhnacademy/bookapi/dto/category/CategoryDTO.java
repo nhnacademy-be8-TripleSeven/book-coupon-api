@@ -21,6 +21,7 @@ public class CategoryDTO {
         this.parent = parent;
     }
 
+
     public CategoryDTO(String name, Integer level, CategoryDTO parent) {
         this.name = name;
         this.level = level;
@@ -37,5 +38,11 @@ public class CategoryDTO {
         this.name = name;
         this.level = level;
     }
+
+    public CategoryDTO(String name){
+        this.name = name;
+    }
+
+
 
 }

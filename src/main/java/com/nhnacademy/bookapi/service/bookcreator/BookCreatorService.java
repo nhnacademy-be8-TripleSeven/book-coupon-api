@@ -37,7 +37,7 @@ public class BookCreatorService {
         return creatorByBookId;
     }
     public BookCreator getBookCreatorByCreatorId(long creatorId) {
-        return bookCreatorRepository.findById(creatorId).orElseThrow();
+        return bookCreatorRepository.findById(creatorId).orElse(null);
     }
 
     public void saveBookCreator(BookCreator bookCreator, BookCreatorMap bookCreatorMap) {
@@ -51,5 +51,9 @@ public class BookCreatorService {
 
     public void deleteBookCreatorMap(long bookId) {
         bookCreatorMapRepository.deleteAllByBookId(bookId);
+    }
+
+    public BookCreator getBookCreatorByName(String name){
+        return bookCreatorRepository.findCreatorByName(name).orElse(null);
     }
 }

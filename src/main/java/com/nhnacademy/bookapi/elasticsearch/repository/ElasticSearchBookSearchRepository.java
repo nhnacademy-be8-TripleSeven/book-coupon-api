@@ -20,7 +20,30 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
         "}}")
     Page<BookDocument> searchByCategoriesOrTitle(List<String> categories, String keyword, Pageable pageable);
 
-    // 출판일 기준 정렬
+    // 제목과 ISBN으로 검색
+    @Query("{ " +
+        "  \"function_score\": { " +
+        "    \"query\": { " +
+        "      \"bool\": { " +
+        "        \"should\": [ " +
+        "          { \"match\": { \"title\": { \"query\": \"?0\", \"boost\": 4 } } }, " +
+        "          { \"match\": { \"isbn13\": { \"query\": \"?0\", \"boost\": 1 } } }, " +
+        "          { \"match\": { \"bookcreators\": { \"query\": \"?0\", \"boost\": 3 } } }, " + // 변경됨
+        "          { \"match\": { \"publishername\": { \"query\": \"?0\", \"boost\": 2 } } } " + // 변경됨
+        "        ] " +
+        "      } " +
+        "    }, " +
+        "    \"boost_mode\": \"sum\", " +
+        "    \"script_score\": { " +
+        "      \"script\": { " +
+        "        \"source\": \"_score + doc['popularity'].value\" " +
+        "      } " +
+        "    } " +
+        "  } " +
+        "}")
+    Page<BookDocument> searchWithPopularityAndWeights(String keyword, Pageable pageable);
+
+
     @Query("{ " +
         "  \"function_score\": { " +
         "    \"query\": { " +
@@ -42,7 +65,5 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
         "    } " +
         "  } " +
         "}")
-    Page<BookDocument> searchWithPopularityAndWeights(String keyword, Pageable pageable);
-
-
+    List<BookDocument> getBooksByTerm(String term, Pageable pageable);
 }
