@@ -47,6 +47,7 @@ import com.nhnacademy.bookapi.service.object.ObjectService;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -69,13 +70,14 @@ public class BookApiSaveService {
     private final BookCategoryRepository bookCategoryRepository;
     private final BookCreatorMapRepository bookCreatorMapRepository;
     private final BookCoverImageRepository bookCoverImageRepository;
-
+    @Autowired
+    private ObjectService objectService;
   //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
     private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
-    private final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
-    private final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
-    private final String username = "rlgus4531@naver.com";
-    private final String password = "team3";
+//    private final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
+//    private final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
+//    private final String username = "rlgus4531@naver.com";
+//    private final String password = "team3";
     private final String containerName = "triple-seven";
     //여기까지
     
@@ -126,10 +128,8 @@ public class BookApiSaveService {
     public void aladinApiSaveBook(String bookType, String searchTarget, int start, int max) throws Exception {
         JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
         //object storage에 저장
-        ObjectService objectService = new ObjectService(storageUrl);
-        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+        objectService.generateAuthToken();
         //여기까지
-
 
         for (JsonNode book : bookList) {
             int level = 1;
@@ -230,8 +230,7 @@ public class BookApiSaveService {
         JsonNode bookList = bookApiService.getEditorChoiceBookList(bookType, searchTarget, start, max, categoryId);
 
         //object storage에 저장
-        ObjectService objectService = new ObjectService(storageUrl);
-        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+        objectService.generateAuthToken();
         //여기까지
 
 
