@@ -209,9 +209,6 @@ public class BookApiSaveService {
 
             bookTypeRepository.saveAll(bookTypes);
 
-            bookImage.setBook(saveBook);
-            bookImage.setImage(image);
-            bookImageRepository.save(bookImage);
 
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
@@ -255,7 +252,7 @@ public class BookApiSaveService {
 
             Book saveBook = new Book();
             BookPopularity bookPopularity = new BookPopularity();
-            BookImage bookImage = new BookImage();
+
             Image image;
             BookType saveBookType = new BookType();
             Publisher publisher = new Publisher();
@@ -282,7 +279,7 @@ public class BookApiSaveService {
             String coverUrl = book.path("cover").asText();
             String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "cover_.jpg");
 
-            image= new Image(book.path("cover").asText());
+            image = new Image(uploadedImageUrl);
             imageRepository.save(image);
 
             //bookcoverimage mapping
@@ -318,9 +315,6 @@ public class BookApiSaveService {
 
             bookTypeRepository.saveAll(bookTypes);
 
-            bookImage.setBook(saveBook);
-            bookImage.setImage(image);
-            bookImageRepository.save(bookImage);
 
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();

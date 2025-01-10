@@ -126,18 +126,32 @@ public class BookMultiTableService {
         for (MultipartFile bookCoverImage : bookCoverImages) {
             String path = uploadCoverImageToStorage(objectService, bookCoverImage,
                 bookUpdateDTO.getIsbn() + "_cover.jpg");
-            imageService.deleteBookCoverImage(bookUpdateDTO.getId());
-            Image image = new Image(path);
-            BookCoverImage coverImage = new BookCoverImage(image, book);
-            imageService.bookCoverSave(image, coverImage);
+            Image coverImage = imageService.getCoverImage(bookUpdateDTO.getId());
+            if(coverImage == null){
+                Image newCoverImage = new Image(path);
+                BookCoverImage bookCover = new BookCoverImage(newCoverImage, book);
+                imageService.bookCoverSave(newCoverImage, bookCover);
+            }else {
+                coverImage.update(path);
+                BookCoverImage bookCover = new BookCoverImage(coverImage, book);
+                imageService.bookCoverSave(coverImage, bookCover);
+            }
+
         }
         List<MultipartFile> detailImages = Optional.ofNullable(bookUpdateDTO.getDetailImage()).orElse(Collections.emptyList());
         for (MultipartFile detailImage : detailImages) {
             String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "_detail.jpg");
-            imageService.deleteBookDetailImage(bookUpdateDTO.getId());
-            Image image = new Image(path);
-            BookImage bookImage = new BookImage();
-            imageService.bookDetailSave(image, bookImage);
+            Image detail = imageService.getDetailImage(bookUpdateDTO.getId());
+            if(detail == null){
+                Image newDetail = new Image(path);
+                BookImage bookImage = new BookImage(book, newDetail);
+                imageService.bookDetailSave(newDetail, bookImage);
+            }else {
+                detail.update(path);
+                BookImage bookImage = new BookImage(book, detail);
+                imageService.bookDetailSave(detail, bookImage);
+            }
+
         }
 
         List<CategoryDTO> categories = bookUpdateDTO.getCategories();
