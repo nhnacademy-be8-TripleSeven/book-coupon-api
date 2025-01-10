@@ -13,9 +13,11 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -49,8 +51,12 @@ public class BookSearchController {
     @GetMapping("/term/{term}")
     public ResponseEntity<Page<BookDocument>> bookTitleSearch(@PathVariable(name = "term") String term, Pageable pageable) {
 
-        Page<BookDocument> documents = elasticSearchBookSearchRepository.searchWithPopularityAndWeights(term, pageable);
-        return ResponseEntity.ok(documents);
+        Page<BookDocument> booksByTerm = elasticSearchBookSearchRepository.searchWithPopularityAndWeights(term,
+            pageable);
+
+
+
+        return ResponseEntity.ok(booksByTerm);
     }
 
 
@@ -79,5 +85,10 @@ public class BookSearchController {
         Page<BookDetailResponseDTO> categorySearchBooks = bookService.getCategorySearchBooks(
             categories, keyword, pageable);
         return ResponseEntity.ok(categorySearchBooks);
+    }
+
+    @GetMapping("/categorySearch")
+    public ResponseEntity<Page<BookDetailResponseDTO>> getBookByCategoryId(@RequestParam long id, Pageable pageable) {
+        return ResponseEntity.ok(bookService.searchBookByCategoryId(id, pageable));
     }
 }

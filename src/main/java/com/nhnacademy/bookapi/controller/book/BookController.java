@@ -5,9 +5,11 @@ import com.nhnacademy.bookapi.dto.book.BookApiDTO;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 
+import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 
 import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
+import com.nhnacademy.bookapi.dto.book.CartItemDTO;
 import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
@@ -43,8 +45,10 @@ public class BookController {
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @PostMapping("/admin/books/createBook")
-    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart MultipartFile cover, @RequestPart MultipartFile detail)
+    public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart(value = "coverImages", required = false) List<MultipartFile> coverImages, @RequestPart(value = "detailImages", required = false) List<MultipartFile> detailImages)
         throws IOException {
+        bookCreatDTO.setCoverImages(coverImages);
+        bookCreatDTO.setDetailImages(detailImages);
         bookMultiTableService.createBook(bookCreatDTO);
         return ResponseEntity.status(201).build();
     }
@@ -62,8 +66,14 @@ public class BookController {
     })
     //ToDo bookUpdate
     @PostMapping("/admin/books/updateBook")
-    public ResponseEntity<Void> updateBook(@RequestPart BookUpdateDTO bookUpdateDTO, @RequestPart MultipartFile cover,@RequestPart MultipartFile detail)
+    public ResponseEntity<Void> updateBook(
+        @RequestPart("bookUpdateDTO") BookUpdateDTO bookUpdateDTO,
+        @RequestPart(value = "coverImage", required = false) List<MultipartFile> coverImages,
+        @RequestPart(value = "detailImage", required = false) List<MultipartFile> detailImages
+    )
         throws IOException {
+        bookUpdateDTO.setCoverImage(coverImages);
+        bookUpdateDTO.setDetailImage(detailImages);
         bookMultiTableService.updateBook(bookUpdateDTO);
         return ResponseEntity.ok().build();
     }
@@ -73,8 +83,8 @@ public class BookController {
             @ApiResponse(responseCode = "204", description = "책 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
-    @DeleteMapping("/admin/books/delete/{bookId}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long bookId) {
+    @DeleteMapping("/admin/books/delete")
+    public ResponseEntity<Void> deleteBook(@RequestParam("bookId") Long bookId) {
         bookMultiTableService.deleteBook(bookId);
         return ResponseEntity.noContent().build();
     }
@@ -199,5 +209,19 @@ public class BookController {
     public ResponseEntity<BookApiDTO> getBooksByISBN(@PathVariable String isbn) throws Exception {
         BookApiDTO aladinBookByIsbn = bookApiSaveService.getAladinBookByIsbn(isbn);
         return ResponseEntity.ok(aladinBookByIsbn);
+    }
+
+
+
+    @PostMapping("/books/cartItems")
+    public ResponseEntity<List<CartItemDTO>> getCartItems(@RequestBody List<Long> bookIds) {
+        List<CartItemDTO> cartItemDTOS = bookService.getCartItemsByIds(bookIds);
+        return ResponseEntity.ok(cartItemDTOS);
+    }
+
+    @GetMapping("/books/{bookId}/name")
+    public ResponseEntity<String> getBookName(@PathVariable Long bookId) {
+        String name = bookService.getBookName(bookId);
+        return ResponseEntity.ok(name);
     }
 }

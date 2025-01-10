@@ -19,6 +19,7 @@ import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.entity.Image;
 import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
+import com.nhnacademy.bookapi.entity.Tag;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCouponRepository;
 import com.nhnacademy.bookapi.repository.BookPopularityRepository;
@@ -31,13 +32,16 @@ import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import com.nhnacademy.bookapi.service.image.ImageService;
 import com.nhnacademy.bookapi.service.object.ObjectService;
+import com.nhnacademy.bookapi.service.review.ReviewService;
 import com.nhnacademy.bookapi.service.tag.TagService;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -72,6 +76,7 @@ public class BookMultiTableService {
     private final BookPopularityRepository popularityRepository;
     private final BookPopularityRepository bookPopularityRepository;
     private final BookCategoryRepository bookCategoryRepository;
+    private final ReviewService reviewService;
 
     @Transactional(readOnly = true)
     public BookDTO getAdminBookById(Long id) {
@@ -117,18 +122,18 @@ public class BookMultiTableService {
         book.update(bookUpdateDTO.getTitle(),bookUpdateDTO.getIsbn(), bookUpdateDTO.getPublishedDate(),
             bookUpdateDTO.getRegularPrice(),bookUpdateDTO.getSalePrice(),bookUpdateDTO.getDescription());
 
-        List<MultipartFile> bookCoverImages = bookUpdateDTO.getCoverImage();
+        List<MultipartFile> bookCoverImages = Optional.ofNullable(bookUpdateDTO.getCoverImage()).orElse(Collections.emptyList());
         for (MultipartFile bookCoverImage : bookCoverImages) {
             String path = uploadCoverImageToStorage(objectService, bookCoverImage,
-                bookUpdateDTO.getIsbn() + "cover.jpg");
+                bookUpdateDTO.getIsbn() + "_cover.jpg");
 
             Image image = new Image(path);
             BookCoverImage coverImage = new BookCoverImage(image, book);
             imageService.bookCoverSave(image, coverImage);
         }
-        List<MultipartFile> detailImages = bookUpdateDTO.getDetailImage();
+        List<MultipartFile> detailImages = Optional.ofNullable(bookUpdateDTO.getDetailImage()).orElse(Collections.emptyList());
         for (MultipartFile detailImage : detailImages) {
-            String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "detail.jpg");
+            String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "_detail.jpg");
             Image image = new Image(path);
             BookImage bookImage = new BookImage();
             imageService.bookDetailSave(image, bookImage);
@@ -137,15 +142,22 @@ public class BookMultiTableService {
         List<CategoryDTO> categories = bookUpdateDTO.getCategories();
         Category categoryById = null;
         for (CategoryDTO categoryDTO : categories) {
+            // 현재 카테고리를 데이터베이스에서 조회
             categoryById = categoryService.getCategoryById(categoryDTO.getId());
-            if(categoryById != null) {
-                categoryById.update(categoryDTO.getName(), categoryById.getLevel());
-            }else {
-                categoryById = new Category(categoryDTO.getName(), categoryDTO.getLevel());
+
+            Category parentCategory = null;
+            if (categoryDTO.getParent() != null) {
+                parentCategory = categoryService.getCategoryById(categoryDTO.getParent().getId()); // 부모 조회
+            }// 부모 조회
+            if (categoryById != null) {
+                // 이미 존재하는 경우 이름과 부모 업데이트
+                categoryById.update(categoryDTO.getName(), categoryDTO.getLevel(), parentCategory);
+            } else {
+                // 존재하지 않는 경우 새로 생성
+                categoryById = new Category(categoryDTO.getName(), categoryDTO.getLevel(), parentCategory);
                 BookCategory bookCategory = new BookCategory(book, categoryById);
                 categoryService.categorySave(categoryById, bookCategory);
             }
-
         }
 
         List<BookCreatorDTO> authors = bookUpdateDTO.getAuthors();
@@ -161,19 +173,25 @@ public class BookMultiTableService {
             BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
             bookCreatorService.saveBookCreator(bookCreator, bookCreatorMap);
         }
-
-        BookIndex bookIndex = bookIndexService.getBookIndex(bookUpdateDTO.getId());
-        bookIndex.updateIndexText(bookUpdateDTO.getIndex());
+        if(!bookUpdateDTO.getIndex().isEmpty()) {
+            BookIndex bookIndex = bookIndexService.getBookIndex(bookUpdateDTO.getId());
+            if(bookIndex == null) {
+                bookIndex = new BookIndex(bookUpdateDTO.getIndex(), book);
+                bookIndexService.createBookIndex(bookIndex);
+            }else {
+                bookIndex.updateIndexText(bookUpdateDTO.getIndex());
+            }
+        }
 
         List<BookType> bookTypeByBookId = bookTypeService.getBookTypeByBookId(
             bookUpdateDTO.getId());
 
         List<BookTypeDTO> bookTypes = bookUpdateDTO.getBookTypes();
-        for (BookTypeDTO bookType : bookTypes) {
+        for (BookType bookType : bookTypeByBookId) {
             bookTypeService.deleteBookType(bookType.getId());
         }
-        for (BookType type : bookTypeByBookId) {
-            BookType bookType = new BookType(type.getTypes(), type.getRanks(), book);
+        for (BookTypeDTO type : bookTypes) {
+            BookType bookType = new BookType(type.getType(), type.getRanks(), book);
             bookTypeService.createBookType(bookType);
         }
     }
@@ -213,8 +231,8 @@ public class BookMultiTableService {
 
         List<BookCreatorDTO> authors = bookCreatDTO.getAuthors();
         for (BookCreatorDTO author : authors) {
-            BookCreator bookCreatorByCreatorId = bookCreatorService.getBookCreatorByCreatorId(
-                author.getId());
+            BookCreator bookCreatorByCreatorId = bookCreatorService.getBookCreatorByName(
+                author.getName());
             if(bookCreatorByCreatorId != null) {
                 BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreatorByCreatorId);
                 bookCreatorService.saveBookCreatorMap(bookCreatorMap);
@@ -229,24 +247,40 @@ public class BookMultiTableService {
 
         List<BookTypeDTO> bookTypes = bookCreatDTO.getBookTypes();
         for (BookTypeDTO bookType : bookTypes) {
+
+
             BookType type = new BookType(bookType.getType(), bookType.getRanks(), book);
             bookTypeService.createBookType(type);
         }
 
         List<CategoryDTO> categories = bookCreatDTO.getCategories();
-        Category category = null;
+        if(categories.isEmpty()){
+            throw new IllegalArgumentException("Book does not have any categories.");
+        }
+        for (CategoryDTO categoryDTO : categories) {
+            // 카테고리 이름으로 조회
+            Category category = categoryService.getCategoryByName(categoryDTO.getName());
 
-        for (CategoryDTO categorys : categories) {
-            Category categoryByName = categoryService.getCategoryByName(categorys.getName());
-            if(categoryByName != null) {
-                BookCategory bookCategory = new BookCategory(book, categoryByName);
-                categoryService.bookCategorySave(bookCategory);
-            }else{
-                category = new Category(categorys.getName(), categorys.getLevel());
+            if (category != null) {
+                // 이미 존재하는 경우 BookCategory만 저장
                 BookCategory bookCategory = new BookCategory(book, category);
+                categoryService.bookCategorySave(bookCategory);
+            } else {
+                // 부모 카테고리를 설정 (ID가 존재하는 경우만)
+                Category parentCategory = null;
+                if (categoryDTO.getParent() != null && categoryDTO.getParent().getId() != null) {
+                    parentCategory = categoryService.getCategoryById(categoryDTO.getParent().getId());
+                }
+
+                // 새 카테고리 생성
+                category = new Category(categoryDTO.getName(), categoryDTO.getLevel(), parentCategory);
+                BookCategory bookCategory = new BookCategory(book, category);
+                // 카테고리와 BookCategory 저장
                 categoryService.categorySave(category, bookCategory);
             }
         }
+
+
 
         BookIndex bookIndex = new BookIndex(bookCreatDTO.getIndex(), book);
         bookIndexService.createBookIndex(bookIndex);
@@ -254,48 +288,65 @@ public class BookMultiTableService {
         BookPopularity bookPopularity = new BookPopularity(book, 0, 0, 0);
         bookPopularityRepository.save(bookPopularity);
 
-        List<MultipartFile> coverImage = bookCreatDTO.getCoverImage();
-        for (MultipartFile multipartFile : coverImage) {
-            String path = uploadCoverImageToStorage(objectService, multipartFile,
-                bookCreatDTO.getIsbn() + "cover.jpg");
-            Image image = new Image(path);
-            BookCoverImage bookCoverImage = new BookCoverImage(image, book);
-            imageService.bookCoverSave(image, bookCoverImage);
+        List<MultipartFile> coverImages = Optional.ofNullable(bookCreatDTO.getCoverImages())
+            .orElse(Collections.emptyList());
+        if(!coverImages.isEmpty()) {
+            for (MultipartFile multipartFile : coverImages) {
+                String path = uploadCoverImageToStorage(objectService, multipartFile,
+                    bookCreatDTO.getIsbn() + "_cover.jpg");
+                Image image = new Image(path);
+                BookCoverImage bookCoverImage = new BookCoverImage(image, book);
+                imageService.bookCoverSave(image, bookCoverImage);
+            }
         }
-        List<MultipartFile> detailImage = bookCreatDTO.getDetailImage();
-        for (MultipartFile multipartFile : detailImage) {
-            String path = uploadCoverImageToStorage(objectService, multipartFile,
-                bookCreatDTO.getIsbn() + "detail.jpg");
-            Image image = new Image(path);
-            BookImage bookImage = new BookImage(book, image);
-            imageService.bookDetailSave(image, bookImage);
+        List<MultipartFile> detailImage = Optional.ofNullable(bookCreatDTO.getDetailImages())
+            .orElse(Collections.emptyList());
+        if(!detailImage.isEmpty()) {
+            for (MultipartFile multipartFile : detailImage) {
+                String path = uploadCoverImageToStorage(objectService, multipartFile,
+                    bookCreatDTO.getIsbn() + "_detail.jpg");
+                Image image = new Image(path);
+                BookImage bookImage = new BookImage(book, image);
+                imageService.bookDetailSave(image, bookImage);
+            }
         }
+
 
 
     }
-
     @Transactional
     public void deleteBook(long bookId) {
+        // Book Type 삭제
         bookTypeService.deleteBookType(bookId);
 
-        bookIndexService.deleteBookIndex(bookId);
+        // Book Index 삭제
+        bookIndexService.deleteIndex(bookId);
 
+        // Book Creator 삭제
         bookCreatorService.deleteBookCreatorMap(bookId);
 
+        // Book Category 삭제
         bookCategoryRepository.deleteAllByBookId(bookId);
 
-        imageService.deleteBookCoverImageAndBookDeleteImage(bookId);
+        // Book Cover Image 삭제
+        imageService.deleteBookCoverImageAndBookDetailImage(bookId);
 
+        // Tags 삭제
         tagService.deleteBookTag(bookId);
 
-        reviewRepository.deleteByBookId(bookId);
+        // 리뷰 삭제
+        reviewService.deleteAllReviewsWithBook(bookId);
 
+        // Book Coupon 삭제
         bookCouponRepository.deleteByBookId(bookId);
 
+        // Wrapper 삭제
         wrapperRepository.deleteByBookId(bookId);
 
+        // Book Popularity 삭제
         bookPopularityRepository.deleteByBookId(bookId);
 
+        // Book 삭제
         bookService.deleteBook(bookId);
     }
 

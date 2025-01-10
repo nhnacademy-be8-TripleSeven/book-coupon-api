@@ -13,7 +13,7 @@ public interface BookTypeRepository extends JpaRepository<BookType, Long> {
 
     List<BookType> findAllByBook(Book book);
 
-    @Query("select bt from BookType bt where bt.book.id =:bookId")
+    @Query("select bt from BookType bt where bt.book.id = :bookId")
     List<BookType> findByBookId(@Param("bookId") Long bookId);
 
     @Modifying

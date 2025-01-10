@@ -32,6 +32,7 @@ import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 
+import com.nhnacademy.bookapi.service.image.ImageService;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -79,10 +80,11 @@ public class BookApiSaveService {
     //여기까지
     
     private final BookIndexRepository bookIndexRepository;
+    private final ImageService imageService;
 
     public BookApiDTO getAladinBookByIsbn(String isbn) throws Exception {
-        ObjectService objectService = new ObjectService(storageUrl);
-        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
+//        ObjectService objectService = new ObjectService(storageUrl);
+//        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
 
         JsonNode book = bookApiService.getBook(isbn).get(0);
 
@@ -99,7 +101,6 @@ public class BookApiSaveService {
             pubDate = LocalDate.parse(pubDateStr);
         }
         String cover = book.path("cover").asText();
-        String path = uploadCoverImageToStorage(objectService, cover, "cover.jpg");
 
         BookApiDTO apiDTO = new BookApiDTO(
             book.path("title").asText(),
@@ -110,7 +111,8 @@ public class BookApiSaveService {
             book.path("priceSales").asInt(),
             List.of(cover),
             1000,
-            0
+            0,
+            book.path("publisher").asText()
         );
 
         apiDTO.createBookTypeParse(book.path("bestRank").asInt());
@@ -169,9 +171,9 @@ public class BookApiSaveService {
             }
 
             String coverUrl = book.path("cover").asText();
-            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
+            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "_cover.jpg");
 
-            image= new Image(book.path("cover").asText());
+            image= new Image(uploadedImageUrl);
             imageRepository.save(image);
 
             //bookcoverimage mapping
@@ -278,7 +280,7 @@ public class BookApiSaveService {
             }
 
             String coverUrl = book.path("cover").asText();
-            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + ".jpg");
+            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "cover_.jpg");
 
             image= new Image(book.path("cover").asText());
             imageRepository.save(image);
@@ -381,37 +383,38 @@ public class BookApiSaveService {
         return bookCreatorList;
     }
 
-
+    @Transactional
     public List<Category> categoryParseSave(String category, Book book, int level) throws Exception {
         List<Category> categoryList = new ArrayList<>();
         String[] categories = category.split(">");
-        Category parentCategory = null;
+        Category parentCategory = null; // 초기화
 
         for (String categoryName : categories) {
             categoryName = categoryName.trim();
 
-
             // 중복 확인 및 기존 카테고리 조회
-            Category categoryByName = categoryRepository.findCategoryByName(categoryName);
+            Category categoryByName = categoryRepository.findCategoryByName(categoryName).orElse(null);
             Category saveCategory;
 
             if (categoryByName != null) {
                 saveCategory = categoryByName;
-                level++;
             } else {
-                saveCategory = new Category();
-                saveCategory.create(categoryName, level);
-                saveCategory = categoryRepository.save(saveCategory);
+                Category newCategory = new Category();
+                newCategory.create(categoryName, level, parentCategory); // parentCategory 설정
+
+                // 저장 후 saveCategory에 할당
+                saveCategory = categoryRepository.save(newCategory);
                 categoryList.add(saveCategory);
-                level++;
             }
+
+            // 상위 카테고리로 설정
+            parentCategory = saveCategory;
+            level++;
 
             // 도서와 카테고리 매핑 저장
             BookCategory bookCategory = new BookCategory();
-            bookCategory.create(book,saveCategory);
+            bookCategory.create(book, saveCategory);
             bookCategoryRepository.save(bookCategory);
-
-
         }
         return categoryList;
     }

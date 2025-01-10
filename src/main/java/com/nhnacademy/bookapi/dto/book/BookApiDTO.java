@@ -30,9 +30,12 @@ public class BookApiDTO {
     private List<String> coverImage;
     private int stock;
     private int page;
+    private String publisherName;
+
 
     public BookApiDTO(String title, String isbn, LocalDate publishedDate, String description,
-        int regularPrice, int salePrice, List<String> coverImage, int stock, int page) {
+        int regularPrice, int salePrice, List<String> coverImage, int stock, int page,
+        String publisherName) {
         this.title = title;
         this.isbn = isbn;
         this.publishedDate = publishedDate;
@@ -42,6 +45,7 @@ public class BookApiDTO {
         this.coverImage = coverImage;
         this.stock = stock;
         this.page = page;
+        this.publisherName = publisherName;
     }
 
     public void createCategoryParse(String category) {

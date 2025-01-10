@@ -20,4 +20,7 @@ public interface BookIndexRepository extends JpaRepository<BookIndex, Long> {
     String findByBookId(@Param("bookId") Long bookId);
 
 
+    @Query("select bi from BookIndex bi where bi.book.id =:bookId")
+    Optional<BookIndex> findIndexByBookId(@Param("bookId") Long bookId);
+
 }

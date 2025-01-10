@@ -2,23 +2,11 @@ package com.nhnacademy.bookapi.dto.tag;
 
 
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Getter;
 
+@Getter
 public class TagRequestDto {
 
     @NotEmpty
     private String name;
-
-    public TagRequestDto() {}
-
-    public TagRequestDto(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(@NotEmpty String name) {
-        this.name = name;
-    }
 }

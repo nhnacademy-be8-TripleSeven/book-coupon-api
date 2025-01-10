@@ -2,9 +2,14 @@ package com.nhnacademy.bookapi.service.category;
 
 
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
+import com.nhnacademy.bookapi.dto.category.CategoryLevelDTO;
+import com.nhnacademy.bookapi.dto.category.CategoryResponseDTO;
+import com.nhnacademy.bookapi.dto.category.CategorySearchDTO;
 import com.nhnacademy.bookapi.entity.BookCategory;
 import com.nhnacademy.bookapi.entity.Category;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
     List<CategoryDTO> updateCategoryList(Long bookId);
@@ -21,31 +26,23 @@ public interface CategoryService {
 
     void categorySaveList(List<CategoryDTO> categoryDTOList);
 
-    List<CategoryDTO> getCategoryByLevel(int level);
+    Page<CategoryDTO> getCategoryByLevel(int level, Pageable pageable);
 
     void deleteCategoryById(Long categoryId);
-}
 
-import com.nhnacademy.bookapi.dto.category.CategorySearchDTO;
-import com.nhnacademy.bookapi.entity.Category;
-import com.nhnacademy.bookapi.repository.CategoryRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.stream.Collectors;
+    List<CategorySearchDTO> searchCategoriesByName(String name);
 
-@Service
-@RequiredArgsConstructor
-public class CategoryService {
-    private final CategoryRepository categoryRepository;
+    List<CategoryDTO> getAllCategories();
 
-    public List<CategorySearchDTO> searchCategoriesByName(String query) {
-        List<Category> categories = categoryRepository.findByNameContaining(query);
-        return categories.stream()
-                .map(category -> new CategorySearchDTO(category.getId(), category.getName()))
-                .collect(Collectors.toList());
-    }
+    List<CategoryDTO> getCategoryByLevel(int level);
+
+    List<CategoryResponseDTO> getAllCategoriesAsTree();
+
+    CategoryLevelDTO getCategoryLevelList();
+
 
 }
+
+
 

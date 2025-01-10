@@ -22,18 +22,17 @@ public interface BookRepository extends JpaRepository<Book, Long>, BookRepositor
 
 
     // 이달의 베스트
-    @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
+    @Query("select distinct new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
         + "from Book b "
         + "join BookType bt on bt.book.id = b.id "
         + "join BookCoverImage bci on bci.book.id = b.id "
         + "join Image i on i.id = bci.image.id "
-        + "where bt.types = 'BESTSELLER' "
-        + "order by bt.ranks asc")
-    Page<BookDetailResponseDTO> findBookTypeBestsellerByRankAsc(Pageable pageable);
+        + "where bt.types = 'BESTSELLER'")
+    Page<BookDetailResponseDTO> findBookTypeBestseller(Pageable pageable);
 
 
     //이 도서는 어때요? ITEMNEWSPECIAL
-    @Query("select new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) " +
+    @Query("select distinct new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) " +
         "from Book b " +
         "join BookType bt on bt.book.id = b.id " +
         "join BookCoverImage bci on bci.book.id = b.id " +
@@ -68,6 +67,16 @@ public interface BookRepository extends JpaRepository<Book, Long>, BookRepositor
     Page<BookDetailResponseDTO> findByCategoryAndTitle(@Param("categories") List<String> categories, @Param("keyword") String keyword, Pageable pageable);
 
     List<Book> findByTitleContaining(String title);
+
+    @Query("select distinct new com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO(b.id, b.title, b.publisher.name, b.regularPrice, b.salePrice, i.url, b.publishDate) "
+        + "from Book b "
+        + "join BookType bt on bt.book.id = b.id "
+        + "join BookCoverImage bci on bci.book.id = b.id "
+        + "join Image i on i.id = bci.image.id "
+        + "join BookCategory bc on bc.book.id = b.id "
+        + "join Category c on c.id = bc.category.id "
+        + "where c.id = :id")
+    Page<BookDetailResponseDTO> findByCategoryId(Long id, Pageable pageable);
 
 
 

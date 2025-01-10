@@ -8,6 +8,9 @@ import com.nhnacademy.bookapi.exception.TagAlreadyExistException;
 import com.nhnacademy.bookapi.exception.TagNotFoundException;
 import com.nhnacademy.bookapi.repository.BookTagRepository;
 import com.nhnacademy.bookapi.repository.TagRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,9 +73,6 @@ public class TagService {
     // 모든 태그 조회
     public List<TagResponseDto> getAllTags() {
         List<TagResponseDto> result = new ArrayList<>();
-        if (tagRepository.findAll().isEmpty()) {
-            throw new TagNotFoundException("No tags found");
-        }
 
         for (Tag tag : tagRepository.findAll()) {
             result.add(new TagResponseDto(tag.getId(), tag.getName()));
@@ -95,5 +95,12 @@ public class TagService {
 
     }
 
-    
+    public Page<TagResponseDto> getAllTags(Pageable pageable) {
+        Page<Tag> tags = tagRepository.findAll(pageable);
+        List<TagResponseDto> result = new ArrayList<>();
+        for (Tag tag : tags) {
+            result.add(new TagResponseDto(tag.getId(), tag.getName()));
+        }
+        return new PageImpl<>(result, pageable, tags.getTotalElements());
+    }
 }

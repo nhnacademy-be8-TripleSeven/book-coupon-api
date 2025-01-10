@@ -10,4 +10,6 @@ public interface BookPopularityRepository extends JpaRepository<BookPopularity, 
     @Modifying
     @Query("delete from BookPopularity bp where bp.book.id =:bookId")
     void deleteByBookId(Long bookId);
+
+    boolean existsByBookId(Long bookId);
 }
