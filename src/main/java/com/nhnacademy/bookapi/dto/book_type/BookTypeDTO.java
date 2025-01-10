@@ -13,18 +13,20 @@ public class BookTypeDTO {
 
     private Long id;
     private int ranks;
-    @JsonProperty("type")
-    private Type type;
+    private String type;
     private Long bookId;
 
-    public BookTypeDTO(Long id, int ranks, Type type) {
+    public BookTypeDTO(Long id, int ranks, String type) {
         this.id = id;
         this.ranks = ranks;
         this.type = type;
     }
 
-    public BookTypeDTO(int ranks, Type type) {
-        this.ranks = ranks;
+    public BookTypeDTO(String type, int ranks) {
         this.type = type;
+        this.ranks = ranks;
     }
+
+
+
 }
