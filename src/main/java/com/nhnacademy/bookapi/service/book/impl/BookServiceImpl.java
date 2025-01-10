@@ -277,7 +277,7 @@ public class BookServiceImpl implements BookService {
         Optional<Book> bookOptional = bookRepository.findById(bookId);
 
         if(bookOptional.isEmpty()){
-            throw new BookNotFoundException("book not found");
+            return "ERROR: not found book";
         }
 
         Book book = bookOptional.get();
