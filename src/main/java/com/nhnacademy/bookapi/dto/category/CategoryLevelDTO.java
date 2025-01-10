@@ -15,5 +15,5 @@ public class CategoryLevelDTO {
     private List<CategoryDTO> level5;
 
 
-
 }
+

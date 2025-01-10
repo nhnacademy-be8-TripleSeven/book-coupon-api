@@ -22,7 +22,7 @@ public class BookTypeServiceImpl implements BookTypeService {
         return bookTypeRepository.findByBookId(bookId).stream().map(bookType -> new BookTypeDTO(
             bookType.getId(),
             bookType.getRanks(),
-            bookType.getTypes(),
+            bookType.getTypes().name(),
             bookType.getBook().getId()
         )).toList();
     }

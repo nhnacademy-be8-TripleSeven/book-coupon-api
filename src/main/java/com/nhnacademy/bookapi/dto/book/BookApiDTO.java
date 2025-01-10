@@ -61,7 +61,7 @@ public class BookApiDTO {
 
     public void createBookTypeParse(int rank) {
         BookTypeDTO bookTypeDTO = new BookTypeDTO(
-            rank, Type.BOOK
+            "BOOK", rank
         );
         this.bookTypes = List.of(bookTypeDTO);
     }
