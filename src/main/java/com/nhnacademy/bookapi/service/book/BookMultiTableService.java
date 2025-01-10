@@ -203,11 +203,10 @@ public class BookMultiTableService {
 
         List<BookTypeDTO> bookTypes = bookUpdateDTO.getBookTypes();
         for (BookType bookType : bookTypeByBookId) {
-            bookTypeService.deleteBookType(bookType.getId());
-        }
-        for (BookTypeDTO type : bookTypes) {
-            BookType bookType = new BookType(type.getType(), type.getRanks(), book);
-            bookTypeService.createBookType(bookType);
+            int index = 0;
+            BookTypeDTO bookTypeDTO = bookTypes.get(index);
+            bookType.update(bookTypeDTO.getType(), bookTypeDTO.getRanks(), book);
+            index++;
         }
     }
 
