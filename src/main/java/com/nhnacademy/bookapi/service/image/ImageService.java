@@ -44,17 +44,14 @@ public class ImageService {
         return imageRepository.findBookImageByBookId(bookId);
     }
 
-    public void deleteBookDetailImage(long bookId){
-        List<Image> detailImageByBookId = imageRepository.findDetailImageByBookId(bookId);
-        imageRepository.deleteAll(detailImageByBookId);
-
+    public Image getCoverImage(long bookId){
+        return imageRepository.findCoverImageByBookId(bookId).orElse(null);
     }
 
-    public void deleteBookCoverImage(long bookId){
-        List<Image> coverImageByBookId = imageRepository.findCoverImageByBookId(bookId);
-        imageRepository.deleteAll(coverImageByBookId);
-    }
 
+    public Image getDetailImage(long bookId){
+        return imageRepository.findDetailImageByBookId(bookId).orElse(null);
+    }
     @Transactional
     public void deleteBookCoverImageAndBookDetailImage(long bookId) {
 
