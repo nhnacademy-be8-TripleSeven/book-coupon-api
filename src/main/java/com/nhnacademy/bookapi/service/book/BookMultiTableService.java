@@ -79,7 +79,8 @@ public class BookMultiTableService {
     private final BookPopularityRepository bookPopularityRepository;
     private final BookCategoryRepository bookCategoryRepository;
     private final ReviewService reviewService;
-    @Autowired
+
+
     private final ObjectService objectService;
     @Transactional(readOnly = true)
     public BookDTO getAdminBookById(Long id) {
@@ -135,8 +136,6 @@ public class BookMultiTableService {
                 imageService.bookCoverSave(newCoverImage, bookCover);
             }else {
                 coverImage.update(path);
-                BookCoverImage bookCover = new BookCoverImage(coverImage, book);
-                imageService.bookCoverSave(coverImage, bookCover);
             }
 
         }
