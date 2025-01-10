@@ -20,6 +20,7 @@ import com.nhnacademy.bookapi.entity.Image;
 import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Tag;
+import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCouponRepository;
 import com.nhnacademy.bookapi.repository.BookPopularityRepository;
@@ -177,16 +178,18 @@ public class BookMultiTableService {
 
         List<BookCreatorDTO> authors = bookUpdateDTO.getAuthors();
         for (BookCreatorDTO bookCreatorDTO : authors) {
+
             BookCreator bookCreatorByCreatorId = bookCreatorService.getBookCreatorByCreatorId(
                 bookCreatorDTO.getId());
             if(bookCreatorByCreatorId != null) {
                 bookCreatorByCreatorId.update(bookCreatorDTO.getName(),
                     Role.valueOf(bookCreatorDTO.getRole().toUpperCase(Locale.ROOT)));
+            }else {
+                BookCreator bookCreator = new BookCreator(bookCreatorDTO.getName(),
+                    Role.valueOf(bookCreatorDTO.getRole().toUpperCase()));
+                BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
+                bookCreatorService.saveBookCreator(bookCreator, bookCreatorMap);
             }
-            BookCreator bookCreator = new BookCreator(bookCreatorDTO.getName(),
-                Role.valueOf(bookCreatorDTO.getRole().toUpperCase()));
-            BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
-            bookCreatorService.saveBookCreator(bookCreator, bookCreatorMap);
         }
         if(!bookUpdateDTO.getIndex().isEmpty()) {
             BookIndex bookIndex = bookIndexService.getBookIndex(bookUpdateDTO.getId());
@@ -200,13 +203,14 @@ public class BookMultiTableService {
 
         List<BookType> bookTypeByBookId = bookTypeService.getBookTypeByBookId(
             bookUpdateDTO.getId());
-
+        int index = 0;
         List<BookTypeDTO> bookTypes = bookUpdateDTO.getBookTypes();
-        for (BookType bookType : bookTypeByBookId) {
-            int index = 0;
-            BookTypeDTO bookTypeDTO = bookTypes.get(index);
-            bookType.update(bookTypeDTO.getType(), bookTypeDTO.getRanks(), book);
-            index++;
+        if(!bookTypes.isEmpty()) {
+            for (BookType bookType : bookTypeByBookId) {
+                BookTypeDTO bookTypeDTO = bookTypes.get(index);
+                bookType.update(Type.valueOf(bookTypeDTO.getType()), bookTypeDTO.getRanks(), book);
+                index++;
+            }
         }
     }
 
@@ -219,7 +223,7 @@ public class BookMultiTableService {
 
         boolean existed = bookService.existsBookByIsbn(bookCreatDTO.getIsbn());
         if(existed){
-            throw new IllegalArgumentException("Book with ISBN " + bookCreatDTO.getIsbn() + " already exists.");
+            return;
         }
 
         Book book = new Book(
@@ -263,7 +267,7 @@ public class BookMultiTableService {
         for (BookTypeDTO bookType : bookTypes) {
 
 
-            BookType type = new BookType(bookType.getType(), bookType.getRanks(), book);
+            BookType type = new BookType(Type.valueOf(bookType.getType()), bookType.getRanks(), book);
             bookTypeService.createBookType(type);
         }
 

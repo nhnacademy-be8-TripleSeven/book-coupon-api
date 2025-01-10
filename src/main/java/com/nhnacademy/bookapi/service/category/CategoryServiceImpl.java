@@ -70,7 +70,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void saveCategory(CategoryDTO categoryDTO) {
         Category parentCategory = null;
-        if(categoryDTO.getParent() != null){
+        if(categoryDTO.getParentCategoryId() != null){
             parentCategory = categoryRepository.findById(categoryDTO.getParentCategoryId()).orElse(null);
         }
 
