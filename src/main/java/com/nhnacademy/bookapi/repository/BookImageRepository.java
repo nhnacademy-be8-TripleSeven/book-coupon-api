@@ -27,4 +27,7 @@ public interface BookImageRepository extends JpaRepository<BookImage, Long> {
     @Query("DELETE from BookImage bi where bi.book.id = :bookId")
     void deleteByBookId(Long bookId);
 
+    @Modifying
+    void deleteByImageId(Long imageId);
+
 }

@@ -24,5 +24,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     @Query("delete from Review r where r.book.id =:id")
     void deleteByBookId(Long id);
 
+    @Query("select distinct r.userId from Review r where r.book.id = :bookId")
+    List<Long> findAllUserIdsByBookId(Long bookId);
+
     boolean existsByBookId(Long id);
 }

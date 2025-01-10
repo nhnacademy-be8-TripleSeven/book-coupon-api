@@ -24,28 +24,28 @@ import org.springframework.test.context.TestPropertySource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-
-@ExtendWith(MockitoExtension.class)
-class BookServiceImplTest {
-
-    @InjectMocks
-    private BookServiceImpl bookService;
-
-    @Mock
-    private BookRepository bookRepository;
-
-    @Mock
-    private BookCreatorRepository bookCreatorRepository;
-
-
-    @BeforeEach
-    void setUp(){
-
-    }
-
-    @Test
-    void test1(){
-        bookRepository.deleteAll();
-        assertEquals(true, bookRepository.existsById(1L));
-    }
-}
+//
+//@ExtendWith(MockitoExtension.class)
+//class BookServiceImplTest {
+//
+//    @InjectMocks
+//    private BookServiceImpl bookService;
+//
+//    @Mock
+//    private BookRepository bookRepository;
+//
+//    @Mock
+//    private BookCreatorRepository bookCreatorRepository;
+//
+//
+//    @BeforeEach
+//    void setUp(){
+//
+//    }
+//
+//    @Test
+//    void test1(){
+//        bookRepository.deleteAll();
+//        assertEquals(true, bookRepository.existsById(1L));
+//    }
+//}

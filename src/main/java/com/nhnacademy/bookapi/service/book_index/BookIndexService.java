@@ -83,7 +83,7 @@ public class BookIndexService {
     }
 
     public BookIndex getBookIndex(long bookId) {
-        return bookIndexRepository.findById(bookId).orElse(null);
+        return bookIndexRepository.findIndexByBookId(bookId).orElse(null);
     }
 
     public void createBookIndex(BookIndex bookIndex){

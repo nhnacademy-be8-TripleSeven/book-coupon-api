@@ -26,7 +26,10 @@ spring:
       retry:
         enabled: true
 
-
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
   elasticsearch:
     uris: http://115.94.72.197:9200
     username: elastic
@@ -94,4 +97,11 @@ hibernate:
   dialect: org.hibernate.dialect.MySQLDialect
 
 
-
+object:
+  storage:
+    url: https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e
+  auth:
+    url: https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens
+  tenantId: c20e3b10d61749a2a52346ed0261d79e
+  username: rlgus4531@naver.com
+  password: team3

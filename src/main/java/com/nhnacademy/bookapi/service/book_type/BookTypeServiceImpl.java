@@ -7,6 +7,7 @@ import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.BookTypeRepository;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,4 +41,5 @@ public class BookTypeServiceImpl implements BookTypeService {
     public void createBookType(BookType bookType) {
         bookTypeRepository.save(bookType);
     }
+
 }

@@ -178,7 +178,7 @@ public class BookServiceImpl implements BookService {
     public Page<BookDetailResponseDTO> getMonthlyBestBooks() {
         Pageable pageable = Pageable.ofSize(10);
 
-        Page<BookDetailResponseDTO> bookTypeBestsellerByRankAsc = bookRepository.findBookTypeBestsellerByRankAsc(pageable);
+        Page<BookDetailResponseDTO> bookTypeBestsellerByRankAsc = bookRepository.findBookTypeBestseller(pageable);
 
         for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeBestsellerByRankAsc) {
             long id = bookDetailResponseDTO.getId();

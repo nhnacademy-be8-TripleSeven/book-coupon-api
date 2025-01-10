@@ -23,4 +23,7 @@ public interface BookCoverImageRepository extends JpaRepository<BookCoverImage, 
 
     @Modifying
     void deleteByBookId(Long bookId);
+
+    @Modifying
+    void deleteByImageId(Long imageId);
 }
