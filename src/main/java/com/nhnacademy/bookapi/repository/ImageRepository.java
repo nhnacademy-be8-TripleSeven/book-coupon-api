@@ -15,8 +15,11 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     @Query("select i.url from Image i join BookCoverImage bci on bci.image.id = i.id where bci.book.id =:bookId")
     List<String> findBookCoverImageByBookId(Long bookId);
 
-    @Query("SELECT i.id FROM Image i WHERE i.url = :path")
-    Long findIdByPath(String path);
+    @Query("select i from Image i join BookCoverImage bci on bci.image.id = i.id where bci.book.id = :bookId")
+    List<Image> findCoverImageByBookId(Long bookId);
+
+    @Query("select i from Image i join BookImage bci on bci.image.id = i.id where bci.book.id = :bookId")
+    List<Image> findDetailImageByBookId(Long bookId);
 
     @Modifying
     @Query("DELETE FROM Image i WHERE i.url = :path")
