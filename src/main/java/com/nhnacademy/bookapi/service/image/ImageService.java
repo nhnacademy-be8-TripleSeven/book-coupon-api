@@ -44,6 +44,18 @@ public class ImageService {
         return imageRepository.findBookImageByBookId(bookId);
     }
 
+    public void deleteBookDetailImage(String path){
+        Long idByPath = imageRepository.findIdByPath(path);
+        imageRepository.deleteById(idByPath);
+        bookImageRepository.deleteById(idByPath);
+    }
+
+    public void deleteBookCoverImage(String path){
+        Long idByPath = imageRepository.findIdByPath(path);
+        imageRepository.deleteById(idByPath);
+        bookCoverImageRepository.deleteById(idByPath);
+    }
+
     @Transactional
     public void deleteBookCoverImageAndBookDetailImage(long bookId) {
 

@@ -1,23 +1,20 @@
 package com.nhnacademy.bookapi.controller.book;
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.BookSearchResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
-import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
+import com.nhnacademy.bookapi.elasticsearch.dto.DocumentSearchResponseDTO;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
+import com.nhnacademy.bookapi.elasticsearch.service.BookSearchService;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.book.impl.BookServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,6 +34,7 @@ public class BookSearchController {
 
     private final ElasticSearchBookSearchRepository elasticSearchBookSearchRepository;
     private final BookServiceImpl bookServiceImpl;
+    private final BookSearchService bookSearchService;
 
     @GetMapping("/id")
     public ResponseEntity<SearchBookDetail> bookTitleSearch(@RequestParam(name = "id") Long id) {
@@ -49,13 +47,10 @@ public class BookSearchController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @GetMapping("/term/{term}")
-    public ResponseEntity<Page<BookDocument>> bookTitleSearch(@PathVariable(name = "term") String term, Pageable pageable) {
+    public ResponseEntity<Page<DocumentSearchResponseDTO>> bookTitleSearch(@PathVariable(name = "term") String term, Pageable pageable) {
 
-        Page<BookDocument> booksByTerm = elasticSearchBookSearchRepository.searchWithPopularityAndWeights(term,
+        Page<DocumentSearchResponseDTO> booksByTerm = bookSearchService.elasticSearch(term,
             pageable);
-
-
-
         return ResponseEntity.ok(booksByTerm);
     }
 

@@ -48,4 +48,6 @@ public interface BookService {
     Page<BookDetailResponseDTO> searchBookByCategoryId(Long categoryId, Pageable pageable);
 
     String getBookName(Long bookId);
+
+
 }
