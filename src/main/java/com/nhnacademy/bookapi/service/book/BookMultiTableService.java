@@ -126,7 +126,7 @@ public class BookMultiTableService {
         for (MultipartFile bookCoverImage : bookCoverImages) {
             String path = uploadCoverImageToStorage(objectService, bookCoverImage,
                 bookUpdateDTO.getIsbn() + "_cover.jpg");
-            imageService.deleteBookCoverImage(path);
+            imageService.deleteBookCoverImage(bookUpdateDTO.getId());
             Image image = new Image(path);
             BookCoverImage coverImage = new BookCoverImage(image, book);
             imageService.bookCoverSave(image, coverImage);
@@ -134,7 +134,7 @@ public class BookMultiTableService {
         List<MultipartFile> detailImages = Optional.ofNullable(bookUpdateDTO.getDetailImage()).orElse(Collections.emptyList());
         for (MultipartFile detailImage : detailImages) {
             String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "_detail.jpg");
-            imageService.deleteBookDetailImage(path);
+            imageService.deleteBookDetailImage(bookUpdateDTO.getId());
             Image image = new Image(path);
             BookImage bookImage = new BookImage();
             imageService.bookDetailSave(image, bookImage);
