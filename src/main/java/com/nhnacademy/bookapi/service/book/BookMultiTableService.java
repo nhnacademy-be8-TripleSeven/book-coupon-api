@@ -128,22 +128,30 @@ public class BookMultiTableService {
                 bookUpdateDTO.getIsbn() + "_cover.jpg");
             Image coverImage = imageService.getCoverImage(bookUpdateDTO.getId());
             if(coverImage == null){
-                coverImage = new Image(path);
+                Image newCoverImage = new Image(path);
+                BookCoverImage bookCover = new BookCoverImage(newCoverImage, book);
+                imageService.bookCoverSave(newCoverImage, bookCover);
+            }else {
+                coverImage.update(path);
+                BookCoverImage bookCover = new BookCoverImage(coverImage, book);
+                imageService.bookCoverSave(coverImage, bookCover);
             }
-            coverImage.update(path);
-            BookCoverImage bookCover = new BookCoverImage(coverImage, book);
-            imageService.bookCoverSave(coverImage, bookCover);
+
         }
         List<MultipartFile> detailImages = Optional.ofNullable(bookUpdateDTO.getDetailImage()).orElse(Collections.emptyList());
         for (MultipartFile detailImage : detailImages) {
             String path = uploadCoverImageToStorage(objectService, detailImage, bookUpdateDTO.getIsbn() + "_detail.jpg");
             Image detail = imageService.getDetailImage(bookUpdateDTO.getId());
             if(detail == null){
-                detail = new Image(path);
+                Image newDetail = new Image(path);
+                BookImage bookImage = new BookImage(book, newDetail);
+                imageService.bookDetailSave(newDetail, bookImage);
+            }else {
+                detail.update(path);
+                BookImage bookImage = new BookImage(book, detail);
+                imageService.bookDetailSave(detail, bookImage);
             }
-            detail.update(path);
-            BookImage bookImage = new BookImage();
-            imageService.bookDetailSave(detail, bookImage);
+
         }
 
         List<CategoryDTO> categories = bookUpdateDTO.getCategories();

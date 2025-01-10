@@ -209,9 +209,6 @@ public class BookApiSaveService {
 
             bookTypeRepository.saveAll(bookTypes);
 
-            bookImage.setBook(saveBook);
-            bookImage.setImage(image);
-            bookImageRepository.save(bookImage);
 
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
