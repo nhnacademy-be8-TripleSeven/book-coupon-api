@@ -11,6 +11,7 @@ import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import com.nhnacademy.bookapi.service.object.ObjectService;
 import org.aspectj.apache.bcel.generic.LineNumberGen;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.swing.text.html.Option;
+import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -26,6 +29,8 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
+    @Autowired
+    private ObjectService objectService;
 
     public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository) {
         this.reviewRepository = reviewRepository;
@@ -33,7 +38,7 @@ public class ReviewService {
     }
 
     @Transactional
-    public boolean addReview(Long userId, ReviewRequestDto reviewRequestDto, String imageUrl) {
+    public boolean addReview(Long userId, ReviewRequestDto reviewRequestDto, MultipartFile file) {
         Book book = getBook(reviewRequestDto.getBookId());
 
         // 이미 리뷰가 있는지 확인
@@ -41,6 +46,17 @@ public class ReviewService {
             throw new ReviewAlreadyExistException("이미 이 책에 리뷰를 작성했습니다.");
         }
 
+        String imageUrl = null;
+        objectService.generateAuthToken();
+        if (file != null && !file.isEmpty()) {
+            try (InputStream inputStream = file.getInputStream()) {
+                String objectName = "reviews/" + "review"+"_"+userId+"_"+reviewRequestDto.getBookId();
+                objectService.uploadObject("triple-seven", objectName, inputStream);
+                imageUrl = objectService.getStorageUrl() + "/triple-seven/" + objectName;
+            } catch (IOException e) {
+                throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
+            }
+        }
         // 리뷰 생성 및 저장
         Review review = new Review(
                 reviewRequestDto.getText(),
@@ -71,20 +87,12 @@ public class ReviewService {
         reviewRepository.delete(review);
         return true;
     }
-
+    // 도서 삭제 시 도서에 달려있는 리뷰들 삭제
     @Transactional
     public void deleteAllReviewsWithBook(Long bookId) {
         List<Long> userIds = reviewRepository.findAllUserIdsByBookId(bookId);
         reviewRepository.deleteByBookId(bookId);
-        ObjectService objectService = new ObjectService("https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e");
-        try {
-            objectService.generateAuthToken("https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens",
-                    "c20e3b10d61749a2a52346ed0261d79e",
-                    "rlgus4531@naver.com",
-                    "team3");
-        } catch (RuntimeException e) {
-            throw new RuntimeException("토큰 발급에 실패했습니다: " + e.getMessage());
-        }
+        objectService.generateAuthToken();
         for (Long userId : userIds) {
             String objectName = "reviews/"+ "review" + "_" + userId + "_" + bookId;
             objectService.deleteObject("triple-seven", objectName);

@@ -3,11 +3,16 @@ package com.nhnacademy.bookapi.service.object;
 
 import com.amazonaws.util.IOUtils;
 import java.net.HttpURLConnection;
+
+import jakarta.annotation.PostConstruct;
 import lombok.Data;
 import lombok.NonNull;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.ResponseExtractor;
@@ -19,15 +24,25 @@ import java.util.Collections;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
+@Component
 public class ObjectService {
 
     private String tokenId;
+    @Value("${object.storage.url}")
     private String storageUrl;
-    private RestTemplate restTemplate;
+    @Value("${object.auth.url}")
+    private String authUrl;
+    @Value("${object.tenantId}")
+    private String tenantId;
+    @Value("${object.username}")
+    private String username;
+    @Value("${object.password}")
+    private String password;
+    private RestTemplate restTemplate = new RestTemplate();
 
-    public ObjectService(String storageUrl) {
-        this.setStorageUrl(storageUrl);
-        this.restTemplate = new RestTemplate();
+    @PostConstruct
+    public void init() {
+        generateAuthToken();
     }
 
     private String getUrl(@NonNull String containerName, @NonNull String objectName) {
@@ -35,7 +50,8 @@ public class ObjectService {
     }
 
     //토큰 발급
-    public void generateAuthToken(String authUrl, String tenantId, String username, String password) {
+    public void generateAuthToken() {
+
         // 요청 헤더 설정
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -43,14 +59,14 @@ public class ObjectService {
         // 요청 본문 구성
         String payload = String.format(
                 "{\"auth\": {\"tenantId\": \"%s\", \"passwordCredentials\": {\"username\": \"%s\", \"password\": \"%s\"}}}",
-                tenantId, username, password
+                this.tenantId, this.username, this.password
         );
 
         HttpEntity<String> requestEntity = new HttpEntity<>(payload, headers);
 
         // API 요청 및 응답 처리
         ResponseEntity<String> response = restTemplate.exchange(
-                authUrl, HttpMethod.POST, requestEntity, String.class
+                this.authUrl, HttpMethod.POST, requestEntity, String.class
         );
 
         if (response.getStatusCode() == HttpStatus.OK) {

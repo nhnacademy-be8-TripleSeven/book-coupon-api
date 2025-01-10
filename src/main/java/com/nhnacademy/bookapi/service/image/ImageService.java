@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.service.image;
 
+import com.netflix.discovery.converters.Auto;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCoverImage;
 import com.nhnacademy.bookapi.entity.BookImage;
@@ -13,6 +14,7 @@ import java.util.List;
 
 import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,8 @@ public class ImageService {
     private final BookCoverImageRepository bookCoverImageRepository;
     private final BookImageRepository bookImageRepository;
     private final BookRepository bookRepository;
+    @Autowired
+    private ObjectService objectService;
 
     public void bookCoverSave(Image image, BookCoverImage bookCoverImage) {
         imageRepository.save(image);
@@ -44,17 +48,14 @@ public class ImageService {
         return imageRepository.findBookImageByBookId(bookId);
     }
 
-    public void deleteBookDetailImage(long bookId){
-        List<Image> detailImageByBookId = imageRepository.findDetailImageByBookId(bookId);
-        imageRepository.deleteAll(detailImageByBookId);
-
+    public Image getCoverImage(long bookId){
+        return imageRepository.findCoverImageByBookId(bookId).orElse(null);
     }
 
-    public void deleteBookCoverImage(long bookId){
-        List<Image> coverImageByBookId = imageRepository.findCoverImageByBookId(bookId);
-        imageRepository.deleteAll(coverImageByBookId);
-    }
 
+    public Image getDetailImage(long bookId){
+        return imageRepository.findDetailImageByBookId(bookId).orElse(null);
+    }
     @Transactional
     public void deleteBookCoverImageAndBookDetailImage(long bookId) {
 
@@ -66,7 +67,7 @@ public class ImageService {
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException("book not found"));
       
    
-        ObjectService objectService = this.getObjectService(); // 토큰 발급이 완료된 객체
+        objectService.generateAuthToken();
       
               // 2. BookImage 삭제
         if (detailImages != null && !detailImages.isEmpty()) {
@@ -84,21 +85,4 @@ public class ImageService {
 
 
     }
-
-    // 도서 이미지 삭제를 위한 ObjectService 객체 생성 및 토큰 발급
-    private ObjectService getObjectService() {
-        ObjectService objectService = new ObjectService("https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e");
-        try {
-            objectService.generateAuthToken("https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens",
-                    "c20e3b10d61749a2a52346ed0261d79e",
-                    "rlgus4531@naver.com",
-                    "team3");
-        } catch (RuntimeException e) {
-            throw new RuntimeException("토큰 발급에 실패했습니다: " + e.getMessage());
-        }
-        return objectService;
-
-
-    }
-
 }
