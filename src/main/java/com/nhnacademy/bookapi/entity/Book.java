@@ -117,6 +117,9 @@ public class Book {
         this.salePrice = salePrice;
         this.description = description;
     }
+    public void addId(long id){
+        this.id = id;
+    }
 
 }
 
