@@ -5,22 +5,19 @@ import com.nhnacademy.bookapi.dto.book.BookApiDTO;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 
-import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 
-import com.nhnacademy.bookapi.dto.book.BookSearchDTO;
 import com.nhnacademy.bookapi.dto.book.CartItemDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
-import com.nhnacademy.bookapi.service.book.BookApiSaveService;
+
+import com.nhnacademy.bookapi.book_api.BookApiSaveService;
 import com.nhnacademy.bookapi.service.book.BookMultiTableService;
 import com.nhnacademy.bookapi.service.book.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import java.io.IOException;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -114,64 +111,6 @@ public class BookController {
     }
 
 
-
-    // 미구현
-    @Operation(summary = "도서 검색", description = "검색 기능 제공")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "검색 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청")
-    })
-    @GetMapping("/books/search")
-    public ResponseEntity<Void> searchBooks(@RequestParam(required = false) String title) {
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "조건 검색", description = "제목, 저자, 출판사, ISBN 조건 중 선택하여 검색")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "검색 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청"),
-            @ApiResponse(responseCode = "404", description = "결과 없음")
-    })
-    @GetMapping("/books/search/conditions")
-    public ResponseEntity<Void> searchBooksByConditions(
-            @RequestParam(required = false) String title,
-            @RequestParam(required = false) String author,
-            @RequestParam(required = false) String publisher,
-            @RequestParam(required = false) String isbn) {
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "도서 정렬", description = "정렬 기능 제공")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "정렬 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청")
-    })
-    @GetMapping("/books/sort")
-    public ResponseEntity<Void> sortBooks(@RequestParam(required = false, defaultValue = "latest") String sort) {
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "도서 카테고리 필터링", description = "카테고리 필터 기능 제공")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "필터링 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청")
-    })
-    @GetMapping("/books/category-filter")
-    public ResponseEntity<Void> filterBooks(@RequestParam(required = false) String category) {
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "도서 페이징", description = "페이징 기능 제공")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "페이징 성공"),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청")
-    })
-    @GetMapping("/books/page")
-    public ResponseEntity<Void> paginateBooks(@RequestParam(defaultValue = "1") int page,
-                                              @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok().build();
-    }
-
     // 오늘 본 상품 조회
     @Operation(summary = "오늘 본 상품 조회", description = "guest Id를 이용하여 오늘 본 상품을 조회합니다.")
     @ApiResponses({
@@ -204,13 +143,6 @@ public class BookController {
     public ResponseEntity<Void> getBooksByCategory(@PathVariable String bookType) {
         return ResponseEntity.ok().build();
     }
-
-    @GetMapping("/books/aladin/isbn/{isbn}")
-    public ResponseEntity<BookApiDTO> getBooksByISBN(@PathVariable String isbn) throws Exception {
-        BookApiDTO aladinBookByIsbn = bookApiSaveService.getAladinBookByIsbn(isbn);
-        return ResponseEntity.ok(aladinBookByIsbn);
-    }
-
 
 
     @PostMapping("/books/cartItems")
