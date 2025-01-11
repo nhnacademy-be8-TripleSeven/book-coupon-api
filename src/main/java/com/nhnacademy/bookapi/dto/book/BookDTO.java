@@ -5,11 +5,13 @@ import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 @Getter
+@Builder
 public class BookDTO {
 
     private Long id;
@@ -70,6 +72,10 @@ public class BookDTO {
     public void addImage(List<String> coverImage, List<String> detailImage) {
         this.coverImage = coverImage;
         this.detailImage = detailImage;
+    }
+
+    public void addId(long id) {
+        this.id = id;
     }
 
     public void addCategory(List<CategoryDTO> categories) {
