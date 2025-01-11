@@ -22,12 +22,15 @@ public class Category {
 
     private int level;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     private Category parent;
 
+
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Category> children = new ArrayList<>();
+
+    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, orphanRemoval = true)
+    private List<BookCategory> bookCategories = new ArrayList<>();
 
     public Category(String name, int level, Category parent) {
         this.name = name;

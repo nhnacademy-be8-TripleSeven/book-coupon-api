@@ -23,6 +23,7 @@ import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCouponRepository;
 import com.nhnacademy.bookapi.repository.BookPopularityRepository;
+import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import com.nhnacademy.bookapi.repository.WrapperRepository;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+@Transactional
 @RequiredArgsConstructor
 @Service
 public class BookMultiTableService {
@@ -75,6 +77,7 @@ public class BookMultiTableService {
     private final BookPopularityRepository bookPopularityRepository;
     private final BookCategoryRepository bookCategoryRepository;
     private final ReviewService reviewService;
+    private final CategoryRepository categoryRepository;
 
 
     @Transactional(readOnly = true)
@@ -145,26 +148,58 @@ public class BookMultiTableService {
 
     }
 
-    private void categoryUpdateOrCreate(List<CategoryDTO> categoryList, Book book) {
-        Category category = null;
-        for (CategoryDTO categoryDTO : categoryList) {
-            if (categoryDTO.getId() != null){
-                category = categoryService.getCategoryById(categoryDTO.getId());
-            }
-            Category parentCategory = null;
-            if(categoryDTO.getParent() != null){
-                parentCategory = categoryService.getCategoryById(categoryDTO.getParent().getId());
-            }
-            if(category != null){
-                category.update(categoryDTO.getName(), categoryDTO.getLevel(), parentCategory);
+
+    private void categoryCreate(List<CategoryDTO> categoryDTOList, Book book) {
+        Category parentCategory = null;
+
+        for (CategoryDTO categoryDTO : categoryDTOList) {
+            Category categoryByName = categoryService.getCategoryByName(categoryDTO.getName());
+            Category saveCategory;
+            if(categoryByName != null) {
+                saveCategory = categoryByName;
             }else {
-                category = new Category(categoryDTO.getName(), categoryDTO.getLevel(), parentCategory);
-                BookCategory bookCategory = new BookCategory(book, category);
-                categoryService.categorySave(category, bookCategory);
+                Category newCategory = new Category();
+                newCategory.create(categoryDTO.getName(), categoryDTO.getLevel(), parentCategory);
+                saveCategory = categoryRepository.save(newCategory);
             }
 
+            parentCategory = saveCategory;
+
+            BookCategory bookCategory = new BookCategory();
+            bookCategory.create(book, parentCategory);
+
+            bookCategoryRepository.save(bookCategory);
         }
     }
+
+    private void categoryUpdateOrCreate(List<CategoryDTO> categoryList, Book book) {
+        Category parentCategory = null; // 직전 등록된 카테고리
+
+        for (CategoryDTO categoryDTO : categoryList) {
+            Category category = null;
+
+            // 기존 카테고리 가져오기
+            if (categoryDTO.getId() != null) {
+                category = categoryService.getCategoryById(categoryDTO.getId());
+            }
+
+
+            // 기존 카테고리가 없으면 새로 생성
+            if (category == null) {
+                category = categoryService.getCategoryByName(categoryDTO.getName());
+                BookCategory bookCategory = new BookCategory(book, category);
+                categoryService.categorySave(category, bookCategory); // 새 카테고리와 북카테고리 저장
+            } else{
+                // 기존 카테고리가 있다면 업데이트
+                category.update(categoryDTO.getName(), categoryDTO.getLevel(), parentCategory);
+            }
+
+            // 현재 카테고리를 다음 반복에서의 부모 카테고리로 설정
+            parentCategory = category;
+        }
+    }
+
+
 
     private void creatorUpdateOrCreate(List<BookCreatorDTO> creatorList, Book book) {
         for (BookCreatorDTO bookCreatorDTO : creatorList) {
@@ -278,7 +313,7 @@ public class BookMultiTableService {
 
         List<CategoryDTO> categories = bookCreatDTO.getCategories();
 
-        categoryUpdateOrCreate(categories, book);
+        categoryCreate(categories, book);
 
         indexCreateOrUpdate(bookCreatDTO.getIndex(), book);
 
