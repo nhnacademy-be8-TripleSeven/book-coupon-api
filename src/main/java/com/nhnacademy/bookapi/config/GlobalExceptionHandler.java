@@ -26,7 +26,7 @@ public class GlobalExceptionHandler {
                 request.getDescription(false).replace("uri=", "")
         );
         ex.printStackTrace();
-        log.info("check for admin page-{}", ex.getCause());
+
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

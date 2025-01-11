@@ -15,6 +15,7 @@ public class BookApiService {
     @Value("${aladin.api.key}")
     private String apiKey;
 
+
     private String BOOK = "Book";
 
     public BookApiService(ObjectMapper objectMapper) {
@@ -22,6 +23,7 @@ public class BookApiService {
     }
 
     public JsonNode getBookList(String bookType,String searchTarget, int start, int max) throws Exception{
+
         String url =  "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey="+apiKey+"&QueryType="+ bookType +"&MaxResults="+max+"&start="+start+"&SearchTarget="+ searchTarget +"&Cover=Big&output=js&Version=20131101";
 
         // REST API 호출
@@ -35,6 +37,7 @@ public class BookApiService {
     }
 
     public JsonNode getEditorChoiceBookList(String bookType,String searchTarget, int start, int max, int categoryId) throws Exception{
+
         String url =  "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey="+apiKey+"&QueryType="+ bookType +"&MaxResults="+max+"&start="+start+"&SearchTarget="+ searchTarget+ "&Cover=Big&CategoryId="+ categoryId +"&output=js&Version=20131101";
 
         // REST API 호출
@@ -45,6 +48,7 @@ public class BookApiService {
 
         // 원하는 데이터 반환
         return rootNode.path("item");
+
     }
 
     public JsonNode getBook(String isbn) throws Exception{

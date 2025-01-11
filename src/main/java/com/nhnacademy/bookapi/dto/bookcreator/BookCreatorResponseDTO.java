@@ -11,7 +11,7 @@ import lombok.Getter;
 public class BookCreatorResponseDTO {
 
 
-    private List<String> creators;
+    private final List<String> creators;
 
     public BookCreatorResponseDTO(List<BookCreator> creators) {
         this.creators = new ArrayList<>();
