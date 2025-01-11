@@ -16,6 +16,10 @@ import com.nhnacademy.bookapi.entity.Image;
 import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
+import com.nhnacademy.bookapi.entity.BookCreator;
+import com.nhnacademy.bookapi.entity.BookCreatorMap;
+import com.nhnacademy.bookapi.entity.Category;
+import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCoverImageRepository;
@@ -53,7 +57,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class BookApiSaveService {
 
     private final BookApiService bookApiService;
-
+    private final BookIndexRepository bookIndexRepository;
+    private final ImageService imageService;
     private final BookRepository bookRepository;
     private final BookCreatorRepository bookCreatorRepository;
     private final BookPopularityRepository bookPopularRepository;
@@ -66,34 +71,30 @@ public class BookApiSaveService {
     private final BookCreatorMapRepository bookCreatorMapRepository;
     private final BookCoverImageRepository bookCoverImageRepository;
 
+    private final ObjectService objectService;
   //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
     private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
-    private final String authUrl = "https://api-identity.infrastructure.cloud.toast.com/v2.0/tokens";
-    private final String tenantId = "c20e3b10d61749a2a52346ed0261d79e";
-    private final String username = "rlgus4531@naver.com";
-    private final String password = "team3";
     private final String containerName = "triple-seven";
-    //여기까지
+
     
-    private final BookIndexRepository bookIndexRepository;
-    private final ImageService imageService;
 
     public BookApiDTO getAladinBookByIsbn(String isbn) throws Exception {
-//        ObjectService objectService = new ObjectService(storageUrl);
-//        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
 
         JsonNode book = bookApiService.getBook(isbn).get(0);
-
         String isbn13 = book.path("isbn13").asText();
+        if(!isbn13.equals(isbn)) {
+            return new BookApiDTO();
+        }
         boolean findIsbn = bookRepository.existsByIsbn13(isbn);
-
 
         if(findIsbn){
             return new BookApiDTO();
         }
         String pubDateStr = book.path("pubDate").asText();
         LocalDate pubDate = null;
-        if(pubDateStr != null || !pubDateStr.isEmpty()) {
+
+        if(!pubDateStr.isEmpty()) {
+
             pubDate = LocalDate.parse(pubDateStr);
         }
         String cover = book.path("cover").asText();
@@ -110,6 +111,7 @@ public class BookApiSaveService {
             0,
             book.path("publisher").asText()
         );
+
 
         apiDTO.createBookTypeParse(book.path("bestRank").asInt());
         apiDTO.createAuthorParse(book.path("author").asText());
@@ -329,7 +331,15 @@ public class BookApiSaveService {
     }
 
 
-    public List<BookCreator> authorParseSave(String author, Book book) throws Exception {
+    public List<BookCreator> authorParseSave(String author, Book book){
+
+        apiDTO.createBookTypeParse(book.path("bestRank").asInt());
+        apiDTO.createAuthorParse(book.path("author").asText());
+        apiDTO.createCategoryParse(book.path("categoryName").asText());
+        return apiDTO;
+    }
+  
+    public List<BookCreator> authorParseSave(String author, Book book) {
 
 
         List<BookCreator> bookCreatorList = new ArrayList<>();
@@ -374,7 +384,8 @@ public class BookApiSaveService {
     }
 
     @Transactional
-    public List<Category> categoryParseSave(String category, Book book, int level) throws Exception {
+    public List<Category> categoryParseSave(String category, Book book, int level)  {
+
         List<Category> categoryList = new ArrayList<>();
         String[] categories = category.split(">");
         Category parentCategory = null; // 초기화
@@ -408,6 +419,7 @@ public class BookApiSaveService {
         }
         return categoryList;
     }
+  
     //object storage에 이미지 업로드 메소드
     public String uploadCoverImageToStorage(ObjectService objectService, String imageUrl, String objectName) {
         try {
