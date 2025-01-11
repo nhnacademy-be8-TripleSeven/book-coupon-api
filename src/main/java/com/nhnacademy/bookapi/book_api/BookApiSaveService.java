@@ -123,11 +123,6 @@ public class BookApiSaveService {
 
     public void aladinApiSaveBook(String bookType, String searchTarget, int start, int max) throws Exception {
         JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
-        //object storage에 저장
-        ObjectService objectService = new ObjectService(storageUrl);
-        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
-        //여기까지
-
 
         for (JsonNode book : bookList) {
             int level = 1;
@@ -227,10 +222,6 @@ public class BookApiSaveService {
     public void aladinApiEditorChoiceSaveBook(String bookType, String searchTarget, int start, int max, int categoryId) throws Exception {
         JsonNode bookList = bookApiService.getEditorChoiceBookList(bookType, searchTarget, start, max, categoryId);
 
-        //object storage에 저장
-        ObjectService objectService = new ObjectService(storageUrl);
-        objectService.generateAuthToken(authUrl, tenantId, username, password); // 토큰 발급
-        //여기까지
 
 
         for (JsonNode book : bookList) {
@@ -331,13 +322,6 @@ public class BookApiSaveService {
     }
 
 
-    public List<BookCreator> authorParseSave(String author, Book book){
-
-        apiDTO.createBookTypeParse(book.path("bestRank").asInt());
-        apiDTO.createAuthorParse(book.path("author").asText());
-        apiDTO.createCategoryParse(book.path("categoryName").asText());
-        return apiDTO;
-    }
   
     public List<BookCreator> authorParseSave(String author, Book book) {
 
@@ -350,7 +334,7 @@ public class BookApiSaveService {
         // "지은이)", "그림)", "엮은이)", "원작)", "옮긴이)" 로 끝나는 구분자를 기준으로 분리
         String[] split = author.split("\\),");
         for (String s : split) {
-            s = s.trim(); // 공백 제거
+            s = s.trim();
             Role role = null;
             String roleName = null;
             if(s.contains("(") && s.contains(")")) {
