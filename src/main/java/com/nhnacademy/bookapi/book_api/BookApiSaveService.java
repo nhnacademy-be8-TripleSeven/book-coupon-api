@@ -1,9 +1,8 @@
-package com.nhnacademy.bookapi.service.book;
+package com.nhnacademy.bookapi.book_api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 
 import com.nhnacademy.bookapi.dto.book.BookApiDTO;
-import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCategory;
 import com.nhnacademy.bookapi.entity.BookCoverImage;
@@ -40,11 +39,8 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
 
 import com.nhnacademy.bookapi.service.object.ObjectService;
-import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

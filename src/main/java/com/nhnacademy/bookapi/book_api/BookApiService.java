@@ -1,4 +1,4 @@
-package com.nhnacademy.bookapi.service.book;
+package com.nhnacademy.bookapi.book_api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

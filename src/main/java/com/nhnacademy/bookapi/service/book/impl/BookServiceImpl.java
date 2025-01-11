@@ -4,36 +4,28 @@ import com.nhnacademy.bookapi.dto.book.*;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 
-import com.nhnacademy.bookapi.dto.book.*;
-
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
-import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
-import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 
-import jakarta.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Transactional
@@ -182,7 +174,7 @@ public class BookServiceImpl implements BookService {
 
         for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeBestsellerByRankAsc) {
             long id = bookDetailResponseDTO.getId();
-            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.BookCreatorListByBookId(
+            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.bookCreatorListByBookId(
                     id);
             bookDetailResponseDTO.setCreator(bookCreatorResponseDTO.getCreators());
         }
@@ -194,21 +186,21 @@ public class BookServiceImpl implements BookService {
     @Transactional(readOnly = true)
     public Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable) {
 
+        if(bookType == Type.BESTSELLER && pageable.getSort().isUnsorted()){
+            pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Direction.ASC, "ranks"));
+        }
+
         Page<BookDetailResponseDTO> bookTypeItemByType = bookRepository.findBookTypeItemByType(
                 bookType, pageable);
         for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeItemByType) {
             long id = bookDetailResponseDTO.getId();
-            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.BookCreatorListByBookId(id);
+            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.bookCreatorListByBookId(id);
             bookDetailResponseDTO.setCreator(bookCreatorResponseDTO.getCreators());
         }
         return bookTypeItemByType;
     }
 
-//    @Override
-//    public Page<BookDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable) {
-//        return bookRepository.findByCategoryAndTitle(
-//            categories, keyword, pageable);
-//    }
+
 
     public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable) {
         return bookRepository.findByCategoryAndTitle(
@@ -226,13 +218,6 @@ public class BookServiceImpl implements BookService {
     }
 
 
-    public Page<BookDTO> getBookUpdateList(String keyword, Pageable pageable) {
-        Page<BookDTO> bookByKeyword = bookRepository.findBookByKeyword(keyword, pageable);
-        if(bookByKeyword == null) {
-            throw new BookNotFoundException(keyword);
-        }
-        return bookByKeyword;
-    }
 
 
     public Page<BookDTO> getBookList(String keyword, Pageable pageable) {
