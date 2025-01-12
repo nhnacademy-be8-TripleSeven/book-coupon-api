@@ -1,8 +1,10 @@
 package com.nhnacademy.bookapi.dto.book_tag;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 public class BookTagResponseDTO {
 
     private Long bookId;
