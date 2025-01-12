@@ -75,9 +75,9 @@ public class BookTagController {
             @ApiResponse(responseCode = "200", description = "책의 태그 조회 성공"),
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
-    @GetMapping("/book-tags/{bookId}")
+    @GetMapping("/admin/book-tags/{bookId}")
     public ResponseEntity<List<BookTagResponseDTO>> getBookTagsByBook(@PathVariable Long bookId) {
         List<BookTagResponseDTO> tags = bookTagService.getBookTagsByBook(bookId);
         return ResponseEntity.ok(tags);
-    }
+    }//
 }
