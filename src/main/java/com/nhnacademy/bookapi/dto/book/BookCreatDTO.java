@@ -39,7 +39,5 @@ public class BookCreatDTO {
 
 
 
-    public void addIsbn(String isbn) {
-        this.isbn = isbn;
-    }
+
 }

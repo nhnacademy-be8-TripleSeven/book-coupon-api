@@ -150,9 +150,7 @@ public class BookApiSaveService {
 
             Publisher selectPublisher = publisherRepository.findByName(publisherName);
 
-            if(publisherName.isEmpty()){
-                publisherName = "출판사 없음";
-            }
+
             if(selectPublisher == null ) {
                 publisher = new Publisher(publisherName);
                 publisherRepository.save(publisher);
