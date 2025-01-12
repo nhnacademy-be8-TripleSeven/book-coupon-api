@@ -35,6 +35,12 @@ public class Coupon {
 
     private LocalDateTime couponUseAt;
 
+    @OneToOne(mappedBy = "coupon", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private BookCoupon bookCoupon;
+
+    @OneToOne(mappedBy = "coupon", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private CategoryCoupon categoryCoupon;
+
     public Coupon(String name, CouponPolicy policy) {
         this.name = name;
         this.couponPolicy = policy;

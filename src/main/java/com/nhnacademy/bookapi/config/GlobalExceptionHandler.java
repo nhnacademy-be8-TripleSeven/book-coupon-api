@@ -234,4 +234,53 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+
+    // 만료된 쿠폰 예외
+    @ExceptionHandler(CouponExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleCouponExpiredException(CouponExpiredException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.GONE.value(), // 상태 코드 410 (Gone) 사용
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.GONE);
+    }
+
+    // 잘못된 쿠폰 사용 예외
+    @ExceptionHandler(InvalidCouponUsageException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidCouponUsageException(InvalidCouponUsageException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.FORBIDDEN.value(), // 상태 코드 403 사용
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+    }
+
+    // 쿠폰 소유권 문제 예외
+    @ExceptionHandler(CouponNotAssignedException.class)
+    public ResponseEntity<ErrorResponse> handleCouponNotAssignedException(CouponNotAssignedException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.UNAUTHORIZED.value(), // 상태 코드 401 사용
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    }
+
+    // 이미 사용된 쿠폰 예외
+    @ExceptionHandler(CouponAlreadyUsedException.class)
+    public ResponseEntity<ErrorResponse> handleCouponAlreadyUsedException(CouponAlreadyUsedException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
 }
