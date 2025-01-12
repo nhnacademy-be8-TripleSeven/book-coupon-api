@@ -3,12 +3,14 @@ package com.nhnacademy.bookapi.dto.book_type;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nhnacademy.bookapi.entity.Type;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Builder
 public class BookTypeDTO {
 
     private Long id;

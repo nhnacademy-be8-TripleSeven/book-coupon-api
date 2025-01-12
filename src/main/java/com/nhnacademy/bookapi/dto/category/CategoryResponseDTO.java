@@ -2,7 +2,10 @@ package com.nhnacademy.bookapi.dto.category;
 
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
+@Getter
 public class CategoryResponseDTO {
     private Long id;
     private String name;
@@ -15,6 +18,11 @@ public class CategoryResponseDTO {
         this.name = name;
         this.level = level;
         this.children = (children != null) ? children : new ArrayList<>();
+    }
+
+    public CategoryResponseDTO(Long id, String name) {
+        this.id = id;
+        this.name = name;
     }
 
     // Getter, Setter 등

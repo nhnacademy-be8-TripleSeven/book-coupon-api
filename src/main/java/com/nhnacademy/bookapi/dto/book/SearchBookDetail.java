@@ -8,8 +8,9 @@ import com.nhnacademy.bookapi.entity.Image;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+@NoArgsConstructor
 @Getter
 @Setter
 public class SearchBookDetail {
@@ -45,5 +46,12 @@ public class SearchBookDetail {
         this.page = page;
         this.coverUrl = coverUrl;
         this.publisher = publisher;
+    }
+
+    public SearchBookDetail(String title, String description, String isbn13, int regularPrice) {
+        this.title = title;
+        this.description = description;
+        this.isbn13 = isbn13;
+        this.regularPrice = regularPrice;
     }
 }

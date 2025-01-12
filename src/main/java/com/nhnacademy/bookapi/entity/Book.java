@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.entity;
 
 
 
+import jakarta.persistence.Access;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,6 +15,8 @@ import jakarta.persistence.OneToMany;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -22,6 +25,8 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @Getter
+@AllArgsConstructor
+@Builder
 public class Book {
 
     @Id
@@ -118,6 +123,10 @@ public class Book {
         this.description = description;
     }
     public void addId(long id){
+        this.id = id;
+    }
+
+    public void setTestId(long id){
         this.id = id;
     }
 

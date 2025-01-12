@@ -54,18 +54,7 @@ public class BookDTO {
         this.page = page;
     }
 
-    public BookDTO(Long id, String title, String isbn, LocalDate publishedDate,
-        String description, int regularPrice, int salePrice, int stock, int page) {
-        this.id = id;
-        this.title = title;
-        this.isbn = isbn;
-        this.publishedDate = publishedDate;
-        this.description = description;
-        this.regularPrice = regularPrice;
-        this.salePrice = salePrice;
-        this.page = page;
-        this.stock = stock;
-    }
+
 
 
 
@@ -74,9 +63,6 @@ public class BookDTO {
         this.detailImage = detailImage;
     }
 
-    public void addId(long id) {
-        this.id = id;
-    }
 
     public void addCategory(List<CategoryDTO> categories) {
         this.categories = categories;
