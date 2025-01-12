@@ -3,7 +3,7 @@ package com.nhnacademy.bookapi.dto.book_tag;
 import jakarta.validation.constraints.NotNull;
 
 public class BookTagRequestDTO {
-
+//
     @NotNull
     private Long bookId;
 

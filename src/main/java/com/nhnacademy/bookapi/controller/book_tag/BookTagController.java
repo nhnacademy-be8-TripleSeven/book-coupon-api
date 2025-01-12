@@ -79,5 +79,5 @@ public class BookTagController {
     public ResponseEntity<List<BookTagResponseDTO>> getBookTagsByBook(@PathVariable Long bookId) {
         List<BookTagResponseDTO> tags = bookTagService.getBookTagsByBook(bookId);
         return ResponseEntity.ok(tags);
-    }
+    }//
 }
