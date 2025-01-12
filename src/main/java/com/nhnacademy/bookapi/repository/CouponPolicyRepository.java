@@ -10,5 +10,6 @@ public interface CouponPolicyRepository extends JpaRepository<CouponPolicy, Long
     Optional<CouponPolicy> findById(Long id);
     Optional<CouponPolicy> findByName(String name);
     List<CouponPolicy> findByNameContainingIgnoreCase(String name);
+    List<CouponPolicy> findByNameContaining(String name);
 
 }

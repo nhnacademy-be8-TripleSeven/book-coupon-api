@@ -11,4 +11,6 @@ public interface CategoryCouponRepository extends JpaRepository<CategoryCoupon, 
 
 //    @Query("SELECT cc FROM CategoryCoupon cc JOIN FETCH cc.category WHERE cc.coupon = :coupon")
 //    Optional<CategoryCoupon> findByCouponWithCategory(Coupon coupon);
+
+    boolean existsByCoupon(Coupon coupon);
 }

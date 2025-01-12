@@ -3,6 +3,8 @@ package com.nhnacademy.bookapi.service.coupon;
 
 import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
+import com.nhnacademy.bookapi.entity.Coupon;
+import com.nhnacademy.bookapi.entity.CouponPolicy;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,19 +17,19 @@ public interface CouponService {
 
     CategoryCouponResponseDTO createCategoryCoupon(CategoryCouponCreationRequestDTO request);
 
+    Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy);
+
+    void createCouponsInBulk(CouponBulkCreationRequestDTO request);
+
     CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
 
     void deleteCoupon(Long id);
 
     void expireCoupons();
 
-    CouponUseResponseDTO useCoupon(Long userId, Long couponId);
+    CouponUseResponseDTO useCoupon(Long userId, Long couponId, Long bookId);
 
     CouponUseResponseDTO useBaseCoupon(Long couponId);
-
-    CouponUseResponseDTO useBookCoupon(Long userId, Long couponId, Long bookId);
-
-    CouponUseResponseDTO useCategoryCoupon(Long userId, Long couponId, Long categoryId);
 
     List<CouponDetailsDTO> getAllCouponsByMemberId(Long userId);
 
@@ -46,4 +48,6 @@ public interface CouponService {
     void assignMonthlyBirthdayCoupons();
 
     CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId);
+
+    List<CouponAssignResponseDTO> issueWelcomeCoupon(Long memberId);
 }
