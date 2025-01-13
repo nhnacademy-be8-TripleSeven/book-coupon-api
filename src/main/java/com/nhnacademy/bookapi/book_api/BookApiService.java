@@ -22,34 +22,34 @@ public class BookApiService {
         this.objectMapper = objectMapper;
     }
 
-    public JsonNode getBookList(String bookType,String searchTarget, int start, int max) throws Exception{
-
-        String url =  "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey="+apiKey+"&QueryType="+ bookType +"&MaxResults="+max+"&start="+start+"&SearchTarget="+ searchTarget +"&Cover=Big&output=js&Version=20131101";
-
-        // REST API 호출
-        String jsResponse = restTemplate.getForObject(url, String.class);
-
-        // JSON 응답을 파싱
-        JsonNode rootNode = objectMapper.readTree(jsResponse);
-
-        // 원하는 데이터 반환
-        return rootNode.path("item");
-    }
-
-    public JsonNode getEditorChoiceBookList(String bookType,String searchTarget, int start, int max, int categoryId) throws Exception{
-
-        String url =  "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey="+apiKey+"&QueryType="+ bookType +"&MaxResults="+max+"&start="+start+"&SearchTarget="+ searchTarget+ "&Cover=Big&CategoryId="+ categoryId +"&output=js&Version=20131101";
-
-        // REST API 호출
-        String jsResponse = restTemplate.getForObject(url, String.class);
-
-        // JSON 응답을 파싱
-        JsonNode rootNode = objectMapper.readTree(jsResponse);
-
-        // 원하는 데이터 반환
-        return rootNode.path("item");
-
-    }
+//    public JsonNode getBookList(String bookType,String searchTarget, int start, int max) throws Exception{
+//
+//        String url =  "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey="+apiKey+"&QueryType="+ bookType +"&MaxResults="+max+"&start="+start+"&SearchTarget="+ searchTarget +"&Cover=Big&output=js&Version=20131101";
+//
+//        // REST API 호출
+//        String jsResponse = restTemplate.getForObject(url, String.class);
+//
+//        // JSON 응답을 파싱
+//        JsonNode rootNode = objectMapper.readTree(jsResponse);
+//
+//        // 원하는 데이터 반환
+//        return rootNode.path("item");
+//    }
+//
+//    public JsonNode getEditorChoiceBookList(String bookType,String searchTarget, int start, int max, int categoryId) throws Exception{
+//
+//        String url =  "http://www.aladin.co.kr/ttb/api/ItemList.aspx?ttbkey="+apiKey+"&QueryType="+ bookType +"&MaxResults="+max+"&start="+start+"&SearchTarget="+ searchTarget+ "&Cover=Big&CategoryId="+ categoryId +"&output=js&Version=20131101";
+//
+//        // REST API 호출
+//        String jsResponse = restTemplate.getForObject(url, String.class);
+//
+//        // JSON 응답을 파싱
+//        JsonNode rootNode = objectMapper.readTree(jsResponse);
+//
+//        // 원하는 데이터 반환
+//        return rootNode.path("item");
+//
+//    }
 
     public JsonNode getBook(String isbn) throws Exception{
 

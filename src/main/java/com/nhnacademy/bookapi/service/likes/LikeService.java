@@ -98,14 +98,14 @@ public class LikeService {
         likeRepository.delete(like);
     }
 
-    public Page<LikesResponseDto> getPagedLikesByUserId(Long userId, Pageable pageable) {
-        Page<Likes> likesPage = likeRepository.findAllByUserIdWithBook(userId, pageable);
-
-
-        return likesPage.map(like ->
-                new LikesResponseDto(like.getBook().getId(), like.getBook().getTitle(), like.getCreatedAt())
-        );
-    }
+//    public Page<LikesResponseDto> getPagedLikesByUserId(Long userId, Pageable pageable) {
+//        Page<Likes> likesPage = likeRepository.findAllByUserIdWithBook(userId, pageable);
+//
+//
+//        return likesPage.map(like ->
+//                new LikesResponseDto(like.getBook().getId(), like.getBook().getTitle(), like.getCreatedAt())
+//        );
+//    }
 
     public Page<LikesResponseDto> getPagedLikesByUserIdAndKeyword(Long userId, String keyword, Pageable pageable) {
         Page<Likes> likesPage = likeRepository.findAllByUserIdAndBookTitleContaining(userId, keyword, pageable);

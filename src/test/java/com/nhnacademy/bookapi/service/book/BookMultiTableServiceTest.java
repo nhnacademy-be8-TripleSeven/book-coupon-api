@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.service.book;
 
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
+import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book_type.BookTypeDTO;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
@@ -86,6 +87,10 @@ class BookMultiTableServiceTest {
 
     @Mock
     private ReviewService reviewService;
+    @Mock
+    private BookCouponRepository bookCouponRepository;
+    @Mock
+    private BookRepository bookRepository;
 
     @Mock
     private CategoryRepository categoryRepository;
@@ -454,10 +459,183 @@ class BookMultiTableServiceTest {
         verify(objectService).loadImageFromStorage(containerName, objectName);
     }
 
+    @Test
+    void testBookTypeDelete_Success() throws IOException {
+// Given
+        long bookId = 1L;
+        // Mock 설정
+        doNothing().when(bookTypeService).deleteBookType(bookId);
+        when(bookIndexService.deleteIndex(bookId)).thenReturn(true); // boolean 반환값 설정
+        doNothing().when(bookCreatorService).deleteBookCreatorMap(bookId);
+        doNothing().when(imageService).deleteBookCoverImageAndBookDetailImage(bookId);
+        doNothing().when(tagService).deleteBookTag(bookId);
+        doNothing().when(reviewService).deleteAllReviewsWithBook(bookId);
+
+
+        // When
+        bookMultiTableService.deleteBook(bookId);
+
+        // Then
+        verify(bookTypeService, times(1)).deleteBookType(bookId);
+        verify(bookIndexService, times(1)).deleteIndex(bookId); // boolean 메서드 호출 검증
+        verify(bookCreatorService, times(1)).deleteBookCreatorMap(bookId);
+        verify(bookCategoryRepository, times(1)).deleteAllByBookId(bookId);
+        verify(imageService, times(1)).deleteBookCoverImageAndBookDetailImage(bookId);
+        verify(tagService, times(1)).deleteBookTag(bookId);
+        verify(reviewService, times(1)).deleteAllReviewsWithBook(bookId);
+        verify(wrapperRepository, times(1)).deleteByBookId(bookId);
+    }
 
 
 
+    @Test
+    void testGetBookOrderDetail_WithEmptyCategoryList() {
+        // Given
+        long bookId = 1L;
+        BookOrderDetailResponse mockBookDetail = BookOrderDetailResponse.builder()
+            .id(bookId)
+            .title("Test Book")
+            .regularPrice(1000)
+            .salePrice(1000)
+            .wrappable(true)
+            .category(new ArrayList<>()) // 명시적으로 초기화
+            .build();
 
+        when(bookRepository.findBookOrderDetail(bookId)).thenReturn(mockBookDetail);
+        when(categoryService.getCategoryListByBookId(bookId)).thenReturn(Collections.emptyList());
+
+        // When
+        BookOrderDetailResponse result = bookMultiTableService.getBookOrderDetail(bookId);
+
+        // Then
+        assertNotNull(result);
+        assertEquals(bookId, result.getId());
+        assertEquals("Test Book", result.getTitle());
+        assertNotNull(result.getCategory());
+        assertEquals(0, result.getCategory().size());
+        verify(bookRepository, times(1)).findBookOrderDetail(bookId);
+        verify(categoryService, times(1)).getCategoryListByBookId(bookId);
+    }
+
+    @Test
+    void testBookCoverImageUpdateOrCreate_UpdateExistingImage() throws IOException {
+        // Given
+        List<MultipartFile> coverImages = Collections.singletonList(mock(MultipartFile.class));
+        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
+            .salePrice(100).stock(100).page(100).build();
+        String isbn = "1234567890";
+
+        Image mockImage = mock(Image.class);
+        when(imageService.getCoverImage(mockBook.getId())).thenReturn(mockImage);
+
+        // Mock uploadCoverImageToStorage
+        BookMultiTableService spyService = spy(bookMultiTableService);
+        String uploadedPath = "uploaded/path.jpg";
+        doReturn(uploadedPath).when(spyService).uploadCoverImageToStorage(any(), any(), anyString());
+
+        // When
+        spyService.bookCoverImageUpdateOrCreate(coverImages, mockBook, isbn);
+
+        // Then
+        verify(imageService, times(1)).getCoverImage(mockBook.getId());
+        verify(mockImage, times(1)).update(uploadedPath);
+        verify(imageService, never()).bookCoverSave(any(), any());
+    }
+
+    @Test
+    void testBookCoverImageUpdateOrCreate_CreateNewImage() throws IOException {
+        // Given
+        List<MultipartFile> coverImages = Collections.singletonList(mock(MultipartFile.class));
+        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
+            .salePrice(1000).stock(100).page(100).build();
+        String isbn = "1234567890";
+
+        // Mock coverImage가 없는 경우
+        when(imageService.getCoverImage(mockBook.getId())).thenReturn(null);
+
+        // Mock uploadCoverImageToStorage
+        BookMultiTableService spyService = spy(bookMultiTableService);
+        String uploadedPath = "uploaded/cover/path.jpg";
+        doReturn(uploadedPath).when(spyService).uploadCoverImageToStorage(any(), any(), anyString());
+
+        // When
+        spyService.bookCoverImageUpdateOrCreate(coverImages, mockBook, isbn);
+
+        // Then
+        verify(imageService, times(1)).getCoverImage(mockBook.getId());
+        verify(imageService, times(1)).bookCoverSave(any(Image.class), any(BookCoverImage.class));
+        verifyNoMoreInteractions(imageService);
+    }
+
+
+    @Test
+    void testBookCoverImageUpdateOrCreate_EmptyCoverImages() throws IOException {
+        // Given
+        List<MultipartFile> coverImages = Collections.emptyList();
+        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
+            .salePrice(1000).stock(100).page(100).build();
+        String isbn = "1234567890";
+
+        // When
+        bookMultiTableService.bookCoverImageUpdateOrCreate(coverImages, mockBook, isbn);
+
+        // Then
+        verify(imageService, never()).getCoverImage(anyLong());
+        verify(objectService, never()).uploadObject(anyString(), anyString(), any());
+        verify(imageService, never()).bookCoverSave(any(), any());
+    }
+
+    @Test
+    void testBookDetailImageUpdateOrCreate_UpdateExistingImage() throws IOException {
+        // Given
+        List<MultipartFile> detailImages = Collections.singletonList(mock(MultipartFile.class));
+        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
+            .salePrice(1000).stock(100).page(100).build();
+        String isbn = "1234567890";
+
+        // Mock detailImage가 이미 존재하는 경우
+        Image mockDetailImage = mock(Image.class);
+        when(imageService.getDetailImage(mockBook.getId())).thenReturn(mockDetailImage);
+
+        // Mock uploadCoverImageToStorage
+        BookMultiTableService spyService = spy(bookMultiTableService);
+        String uploadedPath = "uploaded/detail/path.jpg";
+        doReturn(uploadedPath).when(spyService).uploadCoverImageToStorage(any(), any(), anyString());
+
+        // When
+        spyService.bookDetailImageUpdateOrCreate(detailImages, mockBook, isbn);
+
+        // Then
+        verify(imageService, times(1)).getDetailImage(mockBook.getId());
+        verify(mockDetailImage, times(1)).update(uploadedPath);
+        verify(imageService, never()).bookDetailSave(any(Image.class), any(BookImage.class));
+    }
+
+    @Test
+    void testBookDetailImageUpdateOrCreate_CreateNewImage() throws IOException {
+        // Given
+        List<MultipartFile> detailImages = Collections.singletonList(mock(MultipartFile.class));
+        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
+            .salePrice(1000).stock(100).page(100).build();
+        String isbn = "1234567890";
+
+        Image mockDetailImage = mock(Image.class);
+
+        // Mock detailImage가 없는 경우
+        when(imageService.getDetailImage(mockBook.getId())).thenReturn(null);
+
+
+        // Mock uploadCoverImageToStorage
+        BookMultiTableService spyService = spy(bookMultiTableService);
+        String uploadedPath = "uploaded/detail/path.jpg";
+        doReturn(uploadedPath).when(spyService).uploadCoverImageToStorage(any(), any(), anyString());
+
+        // When
+        spyService.bookDetailImageUpdateOrCreate(detailImages, mockBook, isbn);
+        verify(imageService, times(1)).getDetailImage(mockBook.getId());
+        verify(imageService, times(1)).bookDetailSave(any(Image.class), any(BookImage.class));
+        verifyNoMoreInteractions(imageService);
+    }
 
 
 

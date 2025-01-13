@@ -2,7 +2,6 @@ package com.nhnacademy.bookapi.entity;
 
 
 
-import jakarta.persistence.Access;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -130,5 +129,8 @@ public class Book {
         this.id = id;
     }
 
+    public void setTestTitle(String title){
+        this.title = title;
+    }
 }
 
