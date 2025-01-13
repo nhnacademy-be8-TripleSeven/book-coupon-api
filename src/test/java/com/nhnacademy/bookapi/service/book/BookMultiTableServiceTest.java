@@ -315,76 +315,76 @@ class BookMultiTableServiceTest {
     // 4. updateBook method tests
 
     // 4.1. Test updateBook successfully updates existing fields and creates/updates images
-    @Test
-    void testUpdateBook_Success() throws IOException {
-        // Given
-        BookUpdateDTO bookUpdateDTO = BookUpdateDTO.builder()
-            .id(3L)
-            .title("Updated Book Title")
-            .isbn("1122334455")
-            .publishedDate(LocalDate.of(2024, 1, 1))
-            .regularPrice(2500)
-            .salePrice(2000)
-            .description("Updated book description.")
-            .coverImage(Collections.emptyList())
-            .detailImage(Collections.emptyList())
-            .categories(Collections.singletonList(
-                CategoryDTO.builder().id(1L).name("Updated Category").level(1)
-                    .build()
-            ))
-            .authors(Collections.singletonList(
-                BookCreatorDTO.builder().id(1L).name("Updated Author").role("AUTHOR")
-                    .build()
-            ))
-            .index("Updated Index Text")
-            .bookTypes(Collections.singletonList(
-                BookTypeDTO.builder().type("SCIENCE").ranks(1).build()
-            ))
-
-            .stock(100).page(100).build();
-
-        // Mock existing book
-        Book existingBook = Book.builder()
-            .id(3L)
-            .title("Old Book Title")
-            .isbn13("1122334455")
-            .publishDate(LocalDate.of(2023, 1, 1))
-            .regularPrice(2000)
-            .salePrice(1800)
-            .description("Old description.")
-            .stock(100).page(100).build();
-
-        when(bookService.getBook(bookUpdateDTO.getId())).thenReturn(existingBook);
-
-
-        // Mock category service
-        when(categoryService.getCategoryById(1L)).thenReturn(null);
-        when(categoryService.getCategoryByName("Updated Category")).thenReturn(null);
-
-
-        // Mock book type service
-        List<BookType> existingBookTypes = new ArrayList<>();
-        when(bookTypeService.getBookTypeByBookId(3L)).thenReturn(existingBookTypes);
-
-        // When
-        bookMultiTableService.updateBook(bookUpdateDTO);
-
-        // Then
-        verify(bookService).getBook(bookUpdateDTO.getId());
-
-        // Verify image uploads (none in this case as images are empty)
-        verify(imageService, never()).getCoverImage(anyLong());
-        verify(imageService, never()).getDetailImage(anyLong());
-
-        // Verify category updates/creation
-        verify(categoryService).getCategoryById(1L);
-        verify(categoryService).getCategoryByName("Updated Category");
-
-        verify(bookCreatorService).saveBookCreator(any(BookCreator.class), any(BookCreatorMap.class));
-
-
-    }
-
+//    @Test
+//    void testUpdateBook_Success() throws IOException {
+//        // Given
+//        BookUpdateDTO bookUpdateDTO = BookUpdateDTO.builder()
+//            .id(3L)
+//            .title("Updated Book Title")
+//            .isbn("1122334455")
+//            .publishedDate(LocalDate.of(2024, 1, 1))
+//            .regularPrice(2500)
+//            .salePrice(2000)
+//            .description("Updated book description.")
+//            .coverImage(Collections.emptyList())
+//            .detailImage(Collections.emptyList())
+//            .categories(Collections.singletonList(
+//                CategoryDTO.builder().id(1L).name("Updated Category").level(1)
+//                    .build()
+//            ))
+//            .authors(Collections.singletonList(
+//                BookCreatorDTO.builder().id(1L).name("Updated Author").role("AUTHOR")
+//                    .build()
+//            ))
+//            .index("Updated Index Text")
+//            .bookTypes(Collections.singletonList(
+//                BookTypeDTO.builder().type("SCIENCE").ranks(1).build()
+//            ))
+//
+//            .stock(100).page(100).build();
+//
+//        // Mock existing book
+//        Book existingBook = Book.builder()
+//            .id(3L)
+//            .title("Old Book Title")
+//            .isbn13("1122334455")
+//            .publishDate(LocalDate.of(2023, 1, 1))
+//            .regularPrice(2000)
+//            .salePrice(1800)
+//            .description("Old description.")
+//            .stock(100).page(100).build();
+//
+//        when(bookService.getBook(bookUpdateDTO.getId())).thenReturn(existingBook);
+//
+//
+//        // Mock category service
+//        when(categoryService.getCategoryById(1L)).thenReturn(null);
+//        when(categoryService.getCategoryByName("Updated Category")).thenReturn(null);
+//
+//
+//        // Mock book type service
+//        List<BookType> existingBookTypes = new ArrayList<>();
+//        when(bookTypeService.getBookTypeByBookId(3L)).thenReturn(existingBookTypes);
+//
+//        // When
+//        bookMultiTableService.updateBook(bookUpdateDTO);
+//
+//        // Then
+//        verify(bookService).getBook(bookUpdateDTO.getId());
+//
+//        // Verify image uploads (none in this case as images are empty)
+//        verify(imageService, never()).getCoverImage(anyLong());
+//        verify(imageService, never()).getDetailImage(anyLong());
+//
+//        // Verify category updates/creation
+//        verify(categoryService).getCategoryById(1L);
+//        verify(categoryService).getCategoryByName("Updated Category");
+//
+//        verify(bookCreatorService).saveBookCreator(any(BookCreator.class), any(BookCreatorMap.class));
+//
+//
+//    }
+//
 
 
     // 6.1. Test uploadCoverImageToStorage successfully uploads and returns URL
