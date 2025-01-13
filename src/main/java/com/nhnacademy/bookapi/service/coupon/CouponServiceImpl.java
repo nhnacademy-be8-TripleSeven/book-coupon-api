@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -653,10 +654,6 @@ public class CouponServiceImpl implements CouponService {
         }
     }
 
-
-
-
-
     // 쿠폰 상세 정보 DTO 변환
     private CouponDetailsDTO mapToCouponDetailsDTO(Coupon coupon) {
         String bookTitle = bookCouponRepository.findByCoupon(coupon)
@@ -680,6 +677,49 @@ public class CouponServiceImpl implements CouponService {
 
 
 
+
+    // 결제 가능한 쿠폰 목록
+    @Override
+    @Transactional(readOnly = true)
+    public List<AvailableCouponResponseDTO> getAvailableCoupons(Long userId, List<Long> bookIds, Long paymentAmount) {
+        // QueryDSL로 구현된 findAvailableCoupons 메서드 호출
+        List<Coupon> availableCoupons = couponRepository.findAvailableCoupons(userId, paymentAmount, bookIds);
+
+        // 결과를 DTO로 매핑하여 반환
+        return availableCoupons.stream()
+                .map(coupon -> new AvailableCouponResponseDTO(
+                        coupon.getId(),
+                        coupon.getName(),
+                        coupon.getCouponPolicy().getCouponDiscountRate(),
+                        coupon.getCouponPolicy().getCouponDiscountAmount(),
+                        coupon.getCouponPolicy().getCouponMaxAmount(),
+                        coupon.getCouponExpiryDate()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Long applyCoupon(Long couponId, Long paymentAmount) {
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+
+        CouponPolicy policy = coupon.getCouponPolicy();
+
+        log.info("Applying coupon: {}, Policy: {}", coupon.getName(), policy.getName());
+
+        if (policy.getCouponDiscountAmount() != null) {
+            // 고정 할인 금액 방식
+            Long discountAmount = policy.getCouponDiscountAmount();
+            return Math.min(discountAmount, policy.getCouponMaxAmount());
+        } else if (policy.getCouponDiscountRate() != null) {
+            // 할인율 방식 (소수점 처리)
+            Long calculatedDiscount = paymentAmount * policy.getCouponDiscountRate().multiply(new BigDecimal(100)).longValue() / 100;
+            return Math.min(calculatedDiscount, policy.getCouponMaxAmount());
+        }
+
+        throw new IllegalArgumentException("Invalid coupon discount policy");
+    }
 
 
 
