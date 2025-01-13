@@ -4,6 +4,7 @@ package com.nhnacademy.bookapi.controller.book;
 import com.nhnacademy.bookapi.dto.book.BookApiDTO;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
+import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book.CartItemDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
@@ -150,5 +151,11 @@ public class BookController {
     public ResponseEntity<String> getBookName(@PathVariable Long bookId) {
         String name = bookService.getBookName(bookId);
         return ResponseEntity.ok(name);
+    }
+
+    @GetMapping("/books/orderDetail/{bookId}")
+    public ResponseEntity<BookOrderDetailResponse> getBookOrderDetail(@PathVariable Long bookId) {
+        BookOrderDetailResponse bookOrderDetail = bookMultiTableService.getBookOrderDetail(bookId);
+        return ResponseEntity.ok(bookOrderDetail);
     }
 }

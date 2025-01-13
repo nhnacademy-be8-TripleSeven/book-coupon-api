@@ -16,10 +16,7 @@ import com.nhnacademy.bookapi.entity.Image;
 import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
-import com.nhnacademy.bookapi.entity.BookCreator;
-import com.nhnacademy.bookapi.entity.BookCreatorMap;
-import com.nhnacademy.bookapi.entity.Category;
-import com.nhnacademy.bookapi.entity.Role;
+import com.nhnacademy.bookapi.entity.Wrapper;
 import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCoverImageRepository;
@@ -35,6 +32,7 @@ import com.nhnacademy.bookapi.repository.CategoryRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import com.nhnacademy.bookapi.repository.PublisherRepository;
 
+import com.nhnacademy.bookapi.repository.WrapperRepository;
 import com.nhnacademy.bookapi.service.image.ImageService;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -75,8 +73,8 @@ public class BookApiSaveService {
   //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
     private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
     private final String containerName = "triple-seven";
+    private final WrapperRepository wrapperRepository;
 
-    
 
     public BookApiDTO getAladinBookByIsbn(String isbn) throws Exception {
 
@@ -197,9 +195,14 @@ public class BookApiSaveService {
             BookType newBookType = new BookType();
             newBookType = new BookType(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
             bookTypes.add(newBookType);
-
             bookTypeRepository.saveAll(bookTypes);
 
+            if(saveBookType.getTypes() != Type.EBOOK){
+                Wrapper wrapper = Wrapper.builder().book(saveBook).wrappable(true).build();
+                wrapperRepository.save(wrapper);
+            }else {
+                wrapperRepository.save(Wrapper.builder().book(saveBook).wrappable(false).build());
+            }
 
             String author = book.path("author").asText().trim();
             String category = book.path("categoryName").asText();
@@ -295,6 +298,11 @@ public class BookApiSaveService {
 
             bookRepository.save(saveBook);
 
+            if(saveBookType.getTypes() != Type.EBOOK){
+                Wrapper wrapper = Wrapper.builder().book(saveBook).wrappable(true).build();
+                wrapperRepository.save(wrapper);
+            }
+
 
             BookType newBookType = new BookType();
             newBookType = new BookType(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
@@ -366,9 +374,8 @@ public class BookApiSaveService {
     }
 
     @Transactional
-    public List<Category> categoryParseSave(String category, Book book, int level)  {
+    public void categoryParseSave(String category, Book book, int level)  {
 
-        List<Category> categoryList = new ArrayList<>();
         String[] categories = category.split(">");
         Category parentCategory = null; // 초기화
 
@@ -387,7 +394,6 @@ public class BookApiSaveService {
 
                 // 저장 후 saveCategory에 할당
                 saveCategory = categoryRepository.save(newCategory);
-                categoryList.add(saveCategory);
             }
 
             // 상위 카테고리로 설정
@@ -399,7 +405,6 @@ public class BookApiSaveService {
             bookCategory.create(book, saveCategory);
             bookCategoryRepository.save(bookCategory);
         }
-        return categoryList;
     }
   
     //object storage에 이미지 업로드 메소드
