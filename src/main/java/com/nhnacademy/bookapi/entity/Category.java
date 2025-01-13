@@ -25,12 +25,8 @@ public class Category {
     @ManyToOne(fetch = FetchType.LAZY)
     private Category parent;
 
-
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Category> children = new ArrayList<>();
-
-    @OneToMany(mappedBy = "category", cascade = CascadeType.PERSIST, orphanRemoval = true)
-    private List<BookCategory> bookCategories = new ArrayList<>();
 
     public Category(String name, int level, Category parent) {
         this.name = name;
@@ -47,6 +43,10 @@ public class Category {
     public void create(String name, int level, Category parent) {
         this.name = name;
         this.level = level;
+        this.parent = parent;
+    }
+
+    public void updateParent(Category parent) {
         this.parent = parent;
     }
 

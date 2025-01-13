@@ -1,8 +1,17 @@
 package com.nhnacademy.bookapi.repository.querydsl.Book;
 
 import com.nhnacademy.bookapi.dto.book.BookDTO;
+import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
+import com.nhnacademy.bookapi.dto.category.CategoryDTO;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.QBook;
+import com.nhnacademy.bookapi.entity.QBookCategory;
+import com.nhnacademy.bookapi.entity.QBookCoverImage;
+import com.nhnacademy.bookapi.entity.QBookCreator;
+import com.nhnacademy.bookapi.entity.QBookCreatorMap;
+import com.nhnacademy.bookapi.entity.QCategory;
+import com.nhnacademy.bookapi.entity.QImage;
+import com.nhnacademy.bookapi.entity.QWrapper;
 import com.querydsl.core.types.Projections;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -85,8 +94,40 @@ public class BookRepositoryImpl extends QuerydslRepositorySupport implements Boo
     }
 
     @Override
-    @Transactional
-    public void updateBook(BookDTO bookUpdateDTO) {
+    public BookOrderDetailResponse findBookOrderDetail(Long id) {
+        QBook book = QBook.book;
+        QWrapper wrapper = QWrapper.wrapper;
+        QBookCategory bookCategory = QBookCategory.bookCategory;
+        QCategory category = QCategory.category;
+        QImage image = QImage.image;
+        QBookCoverImage coverImage = QBookCoverImage.bookCoverImage;
+        QBookCreatorMap bookCreatorMap = QBookCreatorMap.bookCreatorMap;
+        QBookCreator bookCreator = QBookCreator.bookCreator;
 
+        return from(book)
+            .leftJoin(bookCategory).on(bookCategory.book.id.eq(book.id))
+            .leftJoin(category).on(bookCategory.category.id.eq(category.id))
+            .leftJoin(coverImage).on(coverImage.book.id.eq(book.id))
+            .leftJoin(image).on(coverImage.image.id.eq(image.id))
+            .leftJoin(bookCreatorMap).on(bookCreatorMap.book.id.eq(book.id))
+            .leftJoin(bookCreator).on(bookCreator.id.eq(bookCreatorMap.creator.id))
+            .leftJoin(wrapper).on(wrapper.book.id.eq(book.id))
+            .where(book.id.eq(id))
+            .select(Projections.constructor(
+                BookOrderDetailResponse.class,
+                book.id,
+                book.title,
+                book.regularPrice,
+                book.salePrice,
+                image.url.as("coverUrl"),
+                wrapper.wrappable,
+                Projections.constructor(
+                    CategoryDTO.class,
+                    category.id,
+                    category.name
+                )
+            ))
+            .fetchOne();
     }
+
 }

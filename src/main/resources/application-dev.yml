@@ -3,17 +3,17 @@ spring:
   application:
     name: book-coupon-api
 
-#  datasource:
-#    url: jdbc:mysql://133.186.241.167:3306/nhn_academy_37?serverTimezone=UTC&characterEncoding=UTF-8
-#    username: nhn_academy_37
-#    password: xo-5vMk2*gQpu*f1
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-
   datasource:
-    url: jdbc:mysql://133.186.241.167:3306/project_be8_triple_seven_book_coupon?serverTimezone=UTC&characterEncoding=UTF-8
-    username: project_be8_triple_seven
-    password: eo1cItEUe@J2Tym
+    url: jdbc:mysql://133.186.241.167:3306/nhn_academy_37?serverTimezone=UTC&characterEncoding=UTF-8
+    username: nhn_academy_37
+    password: xo-5vMk2*gQpu*f1
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+#  datasource:
+#    url: jdbc:mysql://133.186.241.167:3306/project_be8_triple_seven_book_coupon?serverTimezone=UTC&characterEncoding=UTF-8
+#    username: project_be8_triple_seven
+#    password: eo1cItEUe@J2Tym
+#    driver-class-name: com.mysql.cj.jdbc.Driver
 
 
   jpa:
