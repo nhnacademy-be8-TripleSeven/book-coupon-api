@@ -32,6 +32,7 @@ import com.nhnacademy.bookapi.repository.PublisherRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import com.nhnacademy.bookapi.repository.WrapperRepository;
 import com.nhnacademy.bookapi.service.book_index.BookIndexService;
+import com.nhnacademy.bookapi.service.book_tag.BookTagService;
 import com.nhnacademy.bookapi.service.book_type.BookTypeService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
@@ -84,7 +85,7 @@ public class BookMultiTableService {
     private final CategoryRepository categoryRepository;
     private final BookTypeRepository bookTypeRepository;
     private final BookRepository bookRepository;
-
+    private final BookTagService bookTagService;
 
     @Transactional(readOnly = true)
     public BookDTO getAdminBookById(Long id) {
@@ -220,7 +221,7 @@ public class BookMultiTableService {
         imageService.deleteBookCoverImageAndBookDetailImage(bookId);
 
         // Tags 삭제
-        tagService.deleteBookTag(bookId);
+        bookTagService.deleteAllByBookId(bookId);
 
         // 리뷰 삭제
         reviewService.deleteAllReviewsWithBook(bookId);
