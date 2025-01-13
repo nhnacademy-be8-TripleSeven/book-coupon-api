@@ -97,20 +97,20 @@ public class LikeController {
         return ResponseEntity.ok(isLiked);
     }
     
-    @Operation(summary = "유저의 모든 좋아요 조회", description = "사용자가 좋아요를 누른 모든 도서를 조회합니다.")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "404", description = "사용자의 좋아요 기록이 없음")
-    })
-    @GetMapping
-    public ResponseEntity<List<LikesResponseDto>> getAllLikesByUserId(@RequestHeader("X-USER") Long userId,
-                                                                      @RequestParam(defaultValue = "0") int page,
-                                                                      @RequestParam(defaultValue = "10") int size) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
-        Page<LikesResponseDto> likesPage = likeService.getPagedLikesByUserId(userId, pageable);
-
-        return ResponseEntity.ok(likesPage.getContent());
-    }
+//    @Operation(summary = "유저의 모든 좋아요 조회", description = "사용자가 좋아요를 누른 모든 도서를 조회합니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "200", description = "조회 성공"),
+//            @ApiResponse(responseCode = "404", description = "사용자의 좋아요 기록이 없음")
+//    })
+//    @GetMapping
+//    public ResponseEntity<List<LikesResponseDto>> getAllLikesByUserId(@RequestHeader("X-USER") Long userId,
+//                                                                      @RequestParam(defaultValue = "0") int page,
+//                                                                      @RequestParam(defaultValue = "10") int size) {
+//        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+//        Page<LikesResponseDto> likesPage = likeService.getPagedLikesByUserId(userId, pageable);
+//
+//        return ResponseEntity.ok(likesPage.getContent());
+//    }
 
     @Operation(summary = "유저의 좋아요 내역 조회 (도서 제목 검색 가능)", description = "사용자가 좋아요를 누른 도서를 조회합니다. 도서 제목으로 검색 가능합니다.")
     @ApiResponses({
