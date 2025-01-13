@@ -216,6 +216,11 @@ public class CategoryServiceImpl implements CategoryService {
         return new CategoryLevelDTO(level1, level2, level3, level4, level5);
     }
 
+    @Override
+    public List<CategoryDTO> getCategoryListByBookId(Long bookId) {
+        return categoryRepository.findByBookId(bookId).stream().map(category -> new CategoryDTO(category.getId(), category.getName(), category.getLevel())).toList();
+    }
+
     private List<CategoryResponseDTO> buildCategoryTree(List<Category> categories) {
         List<CategoryResponseDTO> categoryTree = new ArrayList<>();
 

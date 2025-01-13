@@ -243,6 +243,7 @@ public class BookMultiTableService {
         if(bookOrderDetail == null){
             bookOrderDetail = new BookOrderDetailResponse();
         }
+        bookOrderDetail.addCategoryList(categoryService.getCategoryListByBookId(bookId));
         return bookOrderDetail;
     }
 

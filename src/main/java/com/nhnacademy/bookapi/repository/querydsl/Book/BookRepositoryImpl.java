@@ -12,7 +12,9 @@ import com.nhnacademy.bookapi.entity.QBookCreatorMap;
 import com.nhnacademy.bookapi.entity.QCategory;
 import com.nhnacademy.bookapi.entity.QImage;
 import com.nhnacademy.bookapi.entity.QWrapper;
+import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Projections;
+import com.querydsl.jpa.JPAExpressions;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.List;
@@ -104,13 +106,10 @@ public class BookRepositoryImpl extends QuerydslRepositorySupport implements Boo
         QBookCreatorMap bookCreatorMap = QBookCreatorMap.bookCreatorMap;
         QBookCreator bookCreator = QBookCreator.bookCreator;
 
+        // 메인 DTO 생성
         return from(book)
-            .leftJoin(bookCategory).on(bookCategory.book.id.eq(book.id))
-            .leftJoin(category).on(bookCategory.category.id.eq(category.id))
             .leftJoin(coverImage).on(coverImage.book.id.eq(book.id))
             .leftJoin(image).on(coverImage.image.id.eq(image.id))
-            .leftJoin(bookCreatorMap).on(bookCreatorMap.book.id.eq(book.id))
-            .leftJoin(bookCreator).on(bookCreator.id.eq(bookCreatorMap.creator.id))
             .leftJoin(wrapper).on(wrapper.book.id.eq(book.id))
             .where(book.id.eq(id))
             .select(Projections.constructor(
@@ -120,13 +119,7 @@ public class BookRepositoryImpl extends QuerydslRepositorySupport implements Boo
                 book.regularPrice,
                 book.salePrice,
                 image.url.as("coverUrl"),
-                wrapper.wrappable,
-                Projections.constructor(
-                    CategoryDTO.class,
-                    category.id,
-                    category.name
-                )
-            ))
+                wrapper.wrappable))
             .fetchOne();
     }
 
