@@ -1,16 +1,16 @@
 package com.nhnacademy.bookapi.entity;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Entity
+@Builder
 public class Coupon {
 
     @Id
@@ -34,6 +34,12 @@ public class Coupon {
     private CouponStatus couponStatus;
 
     private LocalDateTime couponUseAt;
+
+    @OneToOne(mappedBy = "coupon", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private BookCoupon bookCoupon;
+
+    @OneToOne(mappedBy = "coupon", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private CategoryCoupon categoryCoupon;
 
     public Coupon(String name, CouponPolicy policy) {
         this.name = name;

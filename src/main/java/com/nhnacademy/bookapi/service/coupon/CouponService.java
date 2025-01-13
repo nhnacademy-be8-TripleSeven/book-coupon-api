@@ -3,6 +3,8 @@ package com.nhnacademy.bookapi.service.coupon;
 
 import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
+import com.nhnacademy.bookapi.entity.Coupon;
+import com.nhnacademy.bookapi.entity.CouponPolicy;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -15,27 +17,15 @@ public interface CouponService {
 
     CategoryCouponResponseDTO createCategoryCoupon(CategoryCouponCreationRequestDTO request);
 
-    CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
+    Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy);
 
-    void deleteCoupon(Long id);
+    BulkCouponCreationResponseDTO createCouponsInBulk(CouponBulkCreationRequestDTO request);
 
     void expireCoupons();
 
-    CouponUseResponseDTO useCoupon(Long userId, Long couponId);
+    CouponUseResponseDTO useCoupon(Long userId, Long couponId, Long bookId);
 
     CouponUseResponseDTO useBaseCoupon(Long couponId);
-
-    CouponUseResponseDTO useBookCoupon(Long userId, Long couponId, Long bookId);
-
-    CouponUseResponseDTO useCategoryCoupon(Long userId, Long couponId, Long categoryId);
-
-    List<CouponDetailsDTO> getAllCouponsByMemberId(Long userId);
-
-    List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId);
-
-    List<CouponDetailsDTO> getUsedCouponsByMemberId(Long memberId);
-
-    List<CouponDetailsDTO> getCouponsByPolicyId(Long policyId);
 
     List<CouponDetailsDTO> getCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate);
 
@@ -46,4 +36,16 @@ public interface CouponService {
     void assignMonthlyBirthdayCoupons();
 
     CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId);
+
+    List<CouponAssignResponseDTO> issueWelcomeCoupon(Long memberId);
+
+    List<AvailableCouponResponseDTO> getAvailableCoupons(Long userId, List<Long> bookIds, Long amount);
+
+    Long applyCoupon(Long couponId, Long paymentAmount);
+
+    // 사용 가능성이 있는 미사용 코드
+    void deleteCoupon(Long id);
+
+    CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
+
 }
