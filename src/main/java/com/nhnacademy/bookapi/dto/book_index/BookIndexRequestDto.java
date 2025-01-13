@@ -1,7 +1,9 @@
 package com.nhnacademy.bookapi.dto.book_index;
 
+import lombok.Builder;
 import lombok.Getter;
 
+@Builder
 @Getter
 public class BookIndexRequestDto {
 

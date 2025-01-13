@@ -22,7 +22,6 @@ public class Category {
 
     private int level;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     private Category parent;
 
@@ -44,6 +43,10 @@ public class Category {
     public void create(String name, int level, Category parent) {
         this.name = name;
         this.level = level;
+        this.parent = parent;
+    }
+
+    public void updateParent(Category parent) {
         this.parent = parent;
     }
 

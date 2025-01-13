@@ -47,8 +47,8 @@ public class ReviewService {
         }
 
         String imageUrl = null;
-        objectService.generateAuthToken();
         if (file != null && !file.isEmpty()) {
+            objectService.generateAuthToken();
             try (InputStream inputStream = file.getInputStream()) {
                 String objectName = "reviews/" + "review"+"_"+userId+"_"+reviewRequestDto.getBookId();
                 objectService.uploadObject("triple-seven", objectName, inputStream);

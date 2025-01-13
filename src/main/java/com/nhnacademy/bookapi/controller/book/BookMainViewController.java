@@ -27,22 +27,6 @@ public class BookMainViewController {
     private final BookCreatorService bookCreatorService;
 
 
-
-//    @Operation(summary = "월간 베스트 조회", description = "메인화면의 월간베스트 책 출력")
-//    @ApiResponses(value = {
-//        @ApiResponse(responseCode = "201", description = "월간 베스트 책 출력 성공"),
-//        @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
-//    })
-//    @GetMapping("/books/monthly")
-//    public ResponseEntity<Page<BookDetailResponseDTO>> getMonthlyBooks(Pageable pageable) {
-//
-//        Page<BookDetailResponseDTO> monthlyBestBooks =
-//            bookService.getMonthlyBestBooks(pageable);
-//
-//        return ResponseEntity.ok(monthlyBestBooks);
-//    }
-
-
     @GetMapping("/books/monthly")
     public ResponseEntity<List<BookDetailResponseDTO>> getMonthlyBooks() {
 

@@ -3,9 +3,11 @@ package com.nhnacademy.bookapi.dto.review;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 @Getter
+@NoArgsConstructor
 public class ReviewRequestDto {
 
     @NotBlank(message = "리뷰 내용은 비어있을 수 없습니다.")

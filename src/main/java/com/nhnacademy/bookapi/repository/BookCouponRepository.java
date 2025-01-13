@@ -23,4 +23,6 @@ public interface BookCouponRepository extends JpaRepository<BookCoupon, Long> {
 //    Optional<BookCoupon> findByCouponWithBook(Coupon coupon);
 
     boolean existsByBookId(Long bookId);
+
+    boolean existsByCoupon(Coupon coupon);
 }

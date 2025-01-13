@@ -17,7 +17,7 @@ public class BookCoupon {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id", nullable = false)
     private Coupon coupon;
 

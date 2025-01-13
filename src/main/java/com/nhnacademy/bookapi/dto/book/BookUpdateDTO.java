@@ -5,6 +5,8 @@ import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
 import java.time.LocalDate;
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @NoArgsConstructor
+@Builder
 public class BookUpdateDTO {
 
     private Long id;

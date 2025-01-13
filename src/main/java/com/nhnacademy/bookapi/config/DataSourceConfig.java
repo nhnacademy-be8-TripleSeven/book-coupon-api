@@ -3,21 +3,20 @@ package com.nhnacademy.bookapi.config;
 
 import com.nhnacademy.bookapi.credentials.DatabaseCredentials;
 import com.nhnacademy.bookapi.securekeymanager.SecureKeyManagerService;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-
 import javax.sql.DataSource;
-import org.springframework.context.annotation.Profile;
 
+@RequiredArgsConstructor
 @Configuration
 @Profile({"instance1", "instance2"})
 public class DataSourceConfig {
 
-    @Autowired
-    private SecureKeyManagerService secureKeyManagerService;
+
+    private final SecureKeyManagerService secureKeyManagerService;
 
 
     @Bean

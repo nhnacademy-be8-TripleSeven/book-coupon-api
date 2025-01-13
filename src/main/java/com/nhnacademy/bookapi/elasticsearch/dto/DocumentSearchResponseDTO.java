@@ -22,4 +22,10 @@ public class DocumentSearchResponseDTO {
 
     private String coverUrl;
 
+
+    public DocumentSearchResponseDTO(String id, String title, String isbn13) {
+        this.id = id;
+        this.title = title;
+        this.isbn13 = isbn13;
+    }
 }

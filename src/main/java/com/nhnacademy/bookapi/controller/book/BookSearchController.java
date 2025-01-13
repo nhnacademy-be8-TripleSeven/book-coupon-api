@@ -6,6 +6,7 @@ import com.nhnacademy.bookapi.elasticsearch.dto.DocumentSearchResponseDTO;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.elasticsearch.service.BookSearchService;
 import com.nhnacademy.bookapi.entity.Type;
+
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.book.impl.BookServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
