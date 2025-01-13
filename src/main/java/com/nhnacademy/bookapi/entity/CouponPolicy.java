@@ -2,16 +2,15 @@ package com.nhnacademy.bookapi.entity;
 
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
+@Builder
 public class CouponPolicy {
 
     @Id

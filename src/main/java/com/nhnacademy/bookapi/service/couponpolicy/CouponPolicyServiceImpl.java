@@ -66,7 +66,6 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
     }
 
     // 모든 쿠폰 정책 조회
-// 모든 쿠폰 정책 조회
     @Override
     @Transactional(readOnly = true)
     public List<CouponPolicyResponseDTO> getAllCouponPolicies() {

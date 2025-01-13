@@ -68,6 +68,59 @@ class CouponPolicyServiceImplTest {
     }
 
     @Test
+    void testCreateCouponPolicy_ValidWithDiscountRate() {
+        // Given
+        CouponPolicyRequestDTO request = new CouponPolicyRequestDTO(
+                "Discount Rate Policy",
+                1000L,
+                5000L,
+                new BigDecimal("0.1"),
+                0L,
+                30
+        );
+
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> {
+            CouponPolicy policy = invocation.getArgument(0);
+            return policy;
+        });
+
+        // When
+        CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Discount Rate Policy", response.getName());
+        assertEquals(new BigDecimal("0.1"), response.getCouponDiscountRate());
+    }
+
+    @Test
+    void testCreateCouponPolicy_ValidWithDiscountAmount() {
+        // Given
+        CouponPolicyRequestDTO request = new CouponPolicyRequestDTO(
+                "Discount Amount Policy",
+                1000L,
+                5000L,
+                null,
+                1000L,
+                30
+        );
+
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> {
+            CouponPolicy policy = invocation.getArgument(0);
+            return policy;
+        });
+
+        // When
+        CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Discount Amount Policy", response.getName());
+        assertEquals(1000L, response.getCouponDiscountAmount());
+    }
+
+
+    @Test
     void testUpdateCouponPolicy_Success() {
         // Given
         CouponPolicy existingPolicy = new CouponPolicy(
@@ -82,7 +135,7 @@ class CouponPolicyServiceImplTest {
 
         when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> {
             CouponPolicy savedPolicy = invocation.getArgument(0);
-            savedPolicy.setTestId(1L);
+            savedPolicy.builder().id(1L).build();
             return savedPolicy;
         });
 
@@ -177,6 +230,16 @@ class CouponPolicyServiceImplTest {
         // Then
         assertNotNull(responseList);
         assertEquals(2, responseList.size());
+    }
+
+    @Test
+    void testGetAllCouponPolicies_Empty() {
+        // Given
+        when(couponPolicyRepository.findAll()).thenReturn(List.of());
+
+        // Then
+        assertThrows(CouponPolicyNotFoundException.class,
+                () -> couponPolicyService.getAllCouponPolicies());
     }
 
     @Test
@@ -292,4 +355,52 @@ class CouponPolicyServiceImplTest {
         assertThrows(DiscountRateAndAmountException.class,
                 () -> couponPolicyService.createCouponPolicy(request));
     }
+
+
+    @Test
+    void testSearchCouponPoliciesByName_Success() {
+        // Given
+        CouponPolicy policy1 = new CouponPolicy(
+                "Policy A",
+                1000L,
+                5000L,
+                new BigDecimal("0.1"),
+                100L,
+                30
+        );
+        CouponPolicy policy2 = new CouponPolicy(
+                "Policy B",
+                2000L,
+                6000L,
+                new BigDecimal("0.2"),
+                200L,
+                45
+        );
+
+        when(couponPolicyRepository.findByNameContainingIgnoreCase("Policy"))
+                .thenReturn(Arrays.asList(policy1, policy2));
+
+        // When
+        List<CouponPolicyResponseDTO> responseList = couponPolicyService.searchCouponPoliciesByName("Policy");
+
+        // Then
+        assertNotNull(responseList);
+        assertEquals(2, responseList.size());
+        assertEquals("Policy A", responseList.get(0).getName());
+        assertEquals("Policy B", responseList.get(1).getName());
+    }
+
+    @Test
+    void testSearchCouponPoliciesByName_NotFound() {
+        // Given
+        when(couponPolicyRepository.findByNameContainingIgnoreCase("NonExistentPolicy"))
+                .thenReturn(List.of());
+
+        // Then
+        assertThrows(CouponPolicyNotFoundException.class,
+                () -> couponPolicyService.searchCouponPoliciesByName("NonExistentPolicy"));
+    }
+
+
+
 }
