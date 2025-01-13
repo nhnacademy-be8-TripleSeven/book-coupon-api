@@ -243,7 +243,12 @@ public class BookMultiTableService {
         if(bookOrderDetail == null){
             bookOrderDetail = new BookOrderDetailResponse();
         }
-        bookOrderDetail.addCategoryList(categoryService.getCategoryListByBookId(bookId));
+
+        List<CategoryDTO> categoryListByBookId = categoryService.getCategoryListByBookId(bookId);
+        if(categoryListByBookId != null){
+            bookOrderDetail.addCategoryList(categoryListByBookId);
+        }
+
         return bookOrderDetail;
     }
 
@@ -259,7 +264,7 @@ public class BookMultiTableService {
     }
 
 
-    private void bookCoverImageUpdateOrCreate(List<MultipartFile> coverImages, Book book,
+    protected void bookCoverImageUpdateOrCreate(List<MultipartFile> coverImages, Book book,
         String isbn)
         throws IOException {
 
@@ -276,7 +281,7 @@ public class BookMultiTableService {
         }
 
     }
-    private void bookDetailImageUpdateOrCreate(List<MultipartFile> detailImages, Book book,
+    protected void bookDetailImageUpdateOrCreate(List<MultipartFile> detailImages, Book book,
         String isbn)
         throws IOException {
 
@@ -295,7 +300,7 @@ public class BookMultiTableService {
     }
 
 
-    private void categoryCreateAndUpdate(List<CategoryDTO> categoryDTOList, Book book) {
+    protected void categoryCreateAndUpdate(List<CategoryDTO> categoryDTOList, Book book) {
         Category parentCategory = null;
         List<BookCategory> allByBook = bookCategoryRepository.findAllByBook(book);
         if(!allByBook.isEmpty() && !categoryDTOList.isEmpty()){

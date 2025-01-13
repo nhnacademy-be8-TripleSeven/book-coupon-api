@@ -118,214 +118,214 @@ public class BookApiSaveService {
         return apiDTO;
     }
 
-
-    public void aladinApiSaveBook(String bookType, String searchTarget, int start, int max) throws Exception {
-        JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
-
-        for (JsonNode book : bookList) {
-            int level = 1;
-            String isbn = book.path("isbn13").asText();
-            boolean findIsbn = bookRepository.existsByIsbn13(isbn);
-
-            if(isbn.isEmpty()){
-                continue;
-
-            }
-            if(findIsbn) {
-                continue;
-            }
-
-            Book saveBook = new Book();
-            BookPopularity bookPopularity = new BookPopularity();
-            BookImage bookImage = new BookImage();
-            Image image;
-            BookType saveBookType = null;
-            Publisher publisher = null;
-
-            JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
-
-            String publisherName = book.path("publisher").asText();
-
-            Publisher selectPublisher = publisherRepository.findByName(publisherName);
-
-
-            if(selectPublisher == null ) {
-                publisher = new Publisher(publisherName);
-                publisherRepository.save(publisher);
-
-                saveBook.publisherUpdate(publisher);
-            }else {
-                publisher = selectPublisher;
-                saveBook.publisherUpdate(selectPublisher);
-            }
-
-            String coverUrl = book.path("cover").asText();
-            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "_cover.jpg");
-
-            image= new Image(uploadedImageUrl);
-            imageRepository.save(image);
-
-            //bookcoverimage mapping
-            BookCoverImage bookCoverImage = new BookCoverImage(image, saveBook);
-            bookCoverImageRepository.save(bookCoverImage);
-
-            LocalDate pubDate = null;
-
-            String pubDateStr = book.path("pubDate").asText();
-            if(pubDateStr != null || !pubDateStr.isEmpty()) {
-                pubDate = LocalDate.parse(pubDateStr);
-            }
-
-            saveBook.create(book.path("title").asText(), book.path("description").asText(), pubDate,
-                book.path("priceStandard").asInt(),
-                book.path("priceSales").asInt(), isbn, 1000, 0, publisher);
-
-            if(bookDetail != null) {
-                JsonNode subInfo = bookDetail.path("subInfo");
-                saveBook.updatePage(subInfo.path("itemPage").asInt());
-            }
-            List<BookType> bookTypes = new ArrayList<>();
-            //북타입 추가1
-                saveBookType = new BookType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
-                bookTypes.add(saveBookType);
-
-            bookRepository.save(saveBook);
-
-
-            BookType newBookType = new BookType();
-            newBookType = new BookType(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
-            bookTypes.add(newBookType);
-            bookTypeRepository.saveAll(bookTypes);
-
-            if(saveBookType.getTypes() != Type.EBOOK){
-                Wrapper wrapper = Wrapper.builder().book(saveBook).wrappable(true).build();
-                wrapperRepository.save(wrapper);
-            }else {
-                wrapperRepository.save(Wrapper.builder().book(saveBook).wrappable(false).build());
-            }
-
-            String author = book.path("author").asText().trim();
-            String category = book.path("categoryName").asText();
-
-
-
-            authorParseSave(author, saveBook);
-            categoryParseSave(category, saveBook, level);
-
-            //책인기도 초기화
-            bookPopularity.create(saveBook);
-            bookPopularRepository.save(bookPopularity);
-
-        }
-    }
-
-
-    public void aladinApiEditorChoiceSaveBook(String bookType, String searchTarget, int start, int max, int categoryId) throws Exception {
-        JsonNode bookList = bookApiService.getEditorChoiceBookList(bookType, searchTarget, start, max, categoryId);
-
-
-
-        for (JsonNode book : bookList) {
-            int level = 1;
-            String isbn = book.path("isbn13").asText();
-            boolean findIsbn = bookRepository.existsByIsbn13(isbn);
-
-            if(isbn.isEmpty()){
-                continue;
-
-            }
-            if(findIsbn) {
-                BookType saveBookType = new BookType(Type.valueOf(bookType.toUpperCase()), book.path("bestRank").asInt(), bookRepository.findByIsbn13(isbn).get());
-                bookTypeRepository.save(saveBookType);
-                continue;
-            }
-
-            Book saveBook = new Book();
-            BookPopularity bookPopularity = new BookPopularity();
-
-            Image image;
-            BookType saveBookType = new BookType();
-            Publisher publisher = new Publisher();
-
-            JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
-
-            String publisherName = book.path("publisher").asText();
-
-            Publisher selectPublisher = publisherRepository.findByName(publisherName);
-
-            if(publisherName.isEmpty()){
-                publisherName = "출판사 없음";
-            }
-            if(selectPublisher == null ) {
-                publisher = new Publisher(publisherName);
-                publisherRepository.save(publisher);
-
-                saveBook.publisherUpdate(publisher);
-            }else {
-                publisher = selectPublisher;
-                saveBook.publisherUpdate(selectPublisher);
-            }
-
-            String coverUrl = book.path("cover").asText();
-            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "cover_.jpg");
-
-            image = new Image(uploadedImageUrl);
-            imageRepository.save(image);
-
-            //bookcoverimage mapping
-            BookCoverImage bookCoverImage = new BookCoverImage(image, saveBook);
-            bookCoverImageRepository.save(bookCoverImage);
-
-            LocalDate pubDate = null;
-
-            String pubDateStr = book.path("pubDate").asText();
-            if(pubDateStr != null || !pubDateStr.isEmpty()) {
-                pubDate = LocalDate.parse(pubDateStr);
-            }
-
-            saveBook.create(book.path("title").asText(), book.path("description").asText(), pubDate,
-                book.path("priceStandard").asInt(),
-                book.path("priceSales").asInt(), isbn, 1000, 0, publisher);
-
-            if(bookDetail != null) {
-                JsonNode subInfo = bookDetail.path("subInfo");
-                saveBook.updatePage(subInfo.path("itemPage").asInt());
-            }
-            List<BookType> bookTypes = new ArrayList<>();
-            //북타입 추가1
-            saveBookType = new BookType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
-            bookTypes.add(saveBookType);
-
-            bookRepository.save(saveBook);
-
-            if(saveBookType.getTypes() != Type.EBOOK){
-                Wrapper wrapper = Wrapper.builder().book(saveBook).wrappable(true).build();
-                wrapperRepository.save(wrapper);
-            }
-
-
-            BookType newBookType = new BookType();
-            newBookType = new BookType(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
-            bookTypes.add(newBookType);
-
-            bookTypeRepository.saveAll(bookTypes);
-
-
-            String author = book.path("author").asText().trim();
-            String category = book.path("categoryName").asText();
-
-
-            authorParseSave(author, saveBook);
-            categoryParseSave(category, saveBook, level);
-
-            //책인기도 초기화
-            bookPopularity.create(saveBook);
-            bookPopularRepository.save(bookPopularity);
-
-
-        }
-
-    }
+//
+//    public void aladinApiSaveBook(String bookType, String searchTarget, int start, int max) throws Exception {
+//        JsonNode bookList = bookApiService.getBookList(bookType, searchTarget, start, max);
+//
+//        for (JsonNode book : bookList) {
+//            int level = 1;
+//            String isbn = book.path("isbn13").asText();
+//            boolean findIsbn = bookRepository.existsByIsbn13(isbn);
+//
+//            if(isbn.isEmpty()){
+//                continue;
+//
+//            }
+//            if(findIsbn) {
+//                continue;
+//            }
+//
+//            Book saveBook = new Book();
+//            BookPopularity bookPopularity = new BookPopularity();
+//            BookImage bookImage = new BookImage();
+//            Image image;
+//            BookType saveBookType = null;
+//            Publisher publisher = null;
+//
+//            JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
+//
+//            String publisherName = book.path("publisher").asText();
+//
+//            Publisher selectPublisher = publisherRepository.findByName(publisherName);
+//
+//
+//            if(selectPublisher == null ) {
+//                publisher = new Publisher(publisherName);
+//                publisherRepository.save(publisher);
+//
+//                saveBook.publisherUpdate(publisher);
+//            }else {
+//                publisher = selectPublisher;
+//                saveBook.publisherUpdate(selectPublisher);
+//            }
+//
+//            String coverUrl = book.path("cover").asText();
+//            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "_cover.jpg");
+//
+//            image= new Image(uploadedImageUrl);
+//            imageRepository.save(image);
+//
+//            //bookcoverimage mapping
+//            BookCoverImage bookCoverImage = new BookCoverImage(image, saveBook);
+//            bookCoverImageRepository.save(bookCoverImage);
+//
+//            LocalDate pubDate = null;
+//
+//            String pubDateStr = book.path("pubDate").asText();
+//            if(pubDateStr != null || !pubDateStr.isEmpty()) {
+//                pubDate = LocalDate.parse(pubDateStr);
+//            }
+//
+//            saveBook.create(book.path("title").asText(), book.path("description").asText(), pubDate,
+//                book.path("priceStandard").asInt(),
+//                book.path("priceSales").asInt(), isbn, 1000, 0, publisher);
+//
+//            if(bookDetail != null) {
+//                JsonNode subInfo = bookDetail.path("subInfo");
+//                saveBook.updatePage(subInfo.path("itemPage").asInt());
+//            }
+//            List<BookType> bookTypes = new ArrayList<>();
+//            //북타입 추가1
+//                saveBookType = new BookType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
+//                bookTypes.add(saveBookType);
+//
+//            bookRepository.save(saveBook);
+//
+//
+//            BookType newBookType = new BookType();
+//            newBookType = new BookType(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
+//            bookTypes.add(newBookType);
+//            bookTypeRepository.saveAll(bookTypes);
+//
+//            if(saveBookType.getTypes() != Type.EBOOK){
+//                Wrapper wrapper = Wrapper.builder().book(saveBook).wrappable(true).build();
+//                wrapperRepository.save(wrapper);
+//            }else {
+//                wrapperRepository.save(Wrapper.builder().book(saveBook).wrappable(false).build());
+//            }
+//
+//            String author = book.path("author").asText().trim();
+//            String category = book.path("categoryName").asText();
+//
+//
+//
+//            authorParseSave(author, saveBook);
+//            categoryParseSave(category, saveBook, level);
+//
+//            //책인기도 초기화
+//            bookPopularity.create(saveBook);
+//            bookPopularRepository.save(bookPopularity);
+//
+//        }
+//    }
+//
+//
+//    public void aladinApiEditorChoiceSaveBook(String bookType, String searchTarget, int start, int max, int categoryId) throws Exception {
+//        JsonNode bookList = bookApiService.getEditorChoiceBookList(bookType, searchTarget, start, max, categoryId);
+//
+//
+//
+//        for (JsonNode book : bookList) {
+//            int level = 1;
+//            String isbn = book.path("isbn13").asText();
+//            boolean findIsbn = bookRepository.existsByIsbn13(isbn);
+//
+//            if(isbn.isEmpty()){
+//                continue;
+//
+//            }
+//            if(findIsbn) {
+//                BookType saveBookType = new BookType(Type.valueOf(bookType.toUpperCase()), book.path("bestRank").asInt(), bookRepository.findByIsbn13(isbn).get());
+//                bookTypeRepository.save(saveBookType);
+//                continue;
+//            }
+//
+//            Book saveBook = new Book();
+//            BookPopularity bookPopularity = new BookPopularity();
+//
+//            Image image;
+//            BookType saveBookType = new BookType();
+//            Publisher publisher = new Publisher();
+//
+//            JsonNode bookDetail = bookApiService.getBook(isbn).get(0);
+//
+//            String publisherName = book.path("publisher").asText();
+//
+//            Publisher selectPublisher = publisherRepository.findByName(publisherName);
+//
+//            if(publisherName.isEmpty()){
+//                publisherName = "출판사 없음";
+//            }
+//            if(selectPublisher == null ) {
+//                publisher = new Publisher(publisherName);
+//                publisherRepository.save(publisher);
+//
+//                saveBook.publisherUpdate(publisher);
+//            }else {
+//                publisher = selectPublisher;
+//                saveBook.publisherUpdate(selectPublisher);
+//            }
+//
+//            String coverUrl = book.path("cover").asText();
+//            String uploadedImageUrl = uploadCoverImageToStorage(objectService, coverUrl, isbn + "cover_.jpg");
+//
+//            image = new Image(uploadedImageUrl);
+//            imageRepository.save(image);
+//
+//            //bookcoverimage mapping
+//            BookCoverImage bookCoverImage = new BookCoverImage(image, saveBook);
+//            bookCoverImageRepository.save(bookCoverImage);
+//
+//            LocalDate pubDate = null;
+//
+//            String pubDateStr = book.path("pubDate").asText();
+//            if(pubDateStr != null || !pubDateStr.isEmpty()) {
+//                pubDate = LocalDate.parse(pubDateStr);
+//            }
+//
+//            saveBook.create(book.path("title").asText(), book.path("description").asText(), pubDate,
+//                book.path("priceStandard").asInt(),
+//                book.path("priceSales").asInt(), isbn, 1000, 0, publisher);
+//
+//            if(bookDetail != null) {
+//                JsonNode subInfo = bookDetail.path("subInfo");
+//                saveBook.updatePage(subInfo.path("itemPage").asInt());
+//            }
+//            List<BookType> bookTypes = new ArrayList<>();
+//            //북타입 추가1
+//            saveBookType = new BookType(Type.valueOf(bookType.toUpperCase(Locale.ROOT)), book.path("bestRank").asInt(), saveBook);
+//            bookTypes.add(saveBookType);
+//
+//            bookRepository.save(saveBook);
+//
+//            if(saveBookType.getTypes() != Type.EBOOK){
+//                Wrapper wrapper = Wrapper.builder().book(saveBook).wrappable(true).build();
+//                wrapperRepository.save(wrapper);
+//            }
+//
+//
+//            BookType newBookType = new BookType();
+//            newBookType = new BookType(Type.valueOf(searchTarget.toUpperCase(Locale.ROOT)), 0, saveBook);
+//            bookTypes.add(newBookType);
+//
+//            bookTypeRepository.saveAll(bookTypes);
+//
+//
+//            String author = book.path("author").asText().trim();
+//            String category = book.path("categoryName").asText();
+//
+//
+//            authorParseSave(author, saveBook);
+//            categoryParseSave(category, saveBook, level);
+//
+//            //책인기도 초기화
+//            bookPopularity.create(saveBook);
+//            bookPopularRepository.save(bookPopularity);
+//
+//
+//        }
+//
+//    }
 
 
   
