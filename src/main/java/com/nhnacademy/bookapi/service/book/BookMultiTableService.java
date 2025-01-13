@@ -22,6 +22,7 @@ import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.entity.Wrapper;
+import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCouponRepository;
 import com.nhnacademy.bookapi.repository.BookPopularityRepository;
@@ -152,7 +153,7 @@ public class BookMultiTableService {
     public void createBook(BookCreatDTO bookCreatDTO) throws IOException {
         boolean existed = bookService.existsBookByIsbn(bookCreatDTO.getIsbn());
         if(existed){
-            return;
+            throw new BookNotFoundException(bookCreatDTO.getIsbn());
         }
 
         Book book = new Book(

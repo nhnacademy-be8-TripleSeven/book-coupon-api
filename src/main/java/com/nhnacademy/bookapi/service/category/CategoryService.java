@@ -18,13 +18,9 @@ public interface CategoryService {
 
     void categorySave(Category category, BookCategory bookCategory);
 
-    Category getCategoryByName(String categoryName);
-
-    void bookCategorySave(BookCategory bookCategory);
 
     void saveCategory(CategoryDTO categoryDTO);
 
-    void categorySaveList(List<CategoryDTO> categoryDTOList);
 
     Page<CategoryDTO> getCategoryByLevel(int level, Pageable pageable);
 
@@ -43,6 +39,7 @@ public interface CategoryService {
 
     List<CategoryDTO> getCategoryListByBookId(Long bookId);
 
+    List<CategoryDTO> getCategoriesByParentAndLevel(Long parentId, int level);
 
 }
 
