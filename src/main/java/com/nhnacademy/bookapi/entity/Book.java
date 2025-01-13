@@ -2,7 +2,6 @@ package com.nhnacademy.bookapi.entity;
 
 
 
-import jakarta.persistence.Access;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

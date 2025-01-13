@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.dto.book;
 
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
+import java.util.ArrayList;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,7 +20,7 @@ public class BookOrderDetailResponse {
     private int salePrice;
     private String coverUrl;
     private boolean wrappable;
-    private List<CategoryDTO> category;
+    private List<CategoryDTO> category = new ArrayList<>();
 
     public BookOrderDetailResponse(Long id, String title, int regularPrice, int salePrice,
         String coverUrl, boolean wrappable) {
