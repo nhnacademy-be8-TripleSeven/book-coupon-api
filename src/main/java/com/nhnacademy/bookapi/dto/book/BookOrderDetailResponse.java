@@ -21,4 +21,17 @@ public class BookOrderDetailResponse {
     private boolean wrappable;
     private List<CategoryDTO> category;
 
+    public BookOrderDetailResponse(Long id, String title, int regularPrice, int salePrice,
+        String coverUrl, boolean wrappable) {
+        this.id = id;
+        this.title = title;
+        this.regularPrice = regularPrice;
+        this.salePrice = salePrice;
+        this.coverUrl = coverUrl;
+        this.wrappable = wrappable;
+    }
+
+    public void addCategoryList(List<CategoryDTO> categoryList) {
+        this.category.addAll(categoryList);
+    }
 }

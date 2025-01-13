@@ -41,6 +41,8 @@ public interface CategoryService {
 
     CategoryLevelDTO getCategoryLevelList();
 
+    List<CategoryDTO> getCategoryListByBookId(Long bookId);
+
 
 }
 
