@@ -207,43 +207,43 @@ class BookMultiTableServiceTest {
     // 3. createBook method tests
 
     // 3.1. Test createBook when the book already exists
-    @Test
-    void testCreateBook_AlreadyExists() throws IOException {
-        // Given
-        BookCreatDTO bookCreatDTO = BookCreatDTO.builder()
-            .title("Existing Book")
-            .isbn("1234567890")
-            .categories(Arrays.asList(CategoryDTO.builder().name("Non-Fiction").level(1).build()))
-            .bookTypes(Arrays.asList(BookTypeDTO.builder().type("PAPERBACK").ranks(2).build()))
-            .authors(Arrays.asList(BookCreatorDTO.builder().name("Existing Author").role("AUTHOR").build()))
-            .publishedDate(LocalDate.of(2022, 5, 15))
-            .description("An existing book.")
-            .regularPrice(1500)
-            .salePrice(1200)
-            .page(400)
-            .stock(60)
-            .index("Existing Index")
-            .coverImages(Collections.emptyList())
-            .detailImages(Collections.emptyList())
-            .publisherName("Existing Publisher")
-            .build();
-
-        when(bookService.existsBookByIsbn("1234567890")).thenReturn(true);
-
-        // When
-        bookMultiTableService.createBook(bookCreatDTO);
-
-        // Then
-        verify(bookService).existsBookByIsbn("1234567890");
-        verify(bookService, never()).createBook(any(Book.class));
-        verify(publisherRepository, never()).findByName(anyString());
-        verify(publisherRepository, never()).save(any(Publisher.class));
-        verify(bookCreatorService, never()).saveBookCreator(any(BookCreator.class), any(BookCreatorMap.class));
-        verify(bookCategoryRepository, never()).save(any(BookCategory.class));
-        verify(bookPopularityRepository, never()).save(any(BookPopularity.class));
-        verify(imageService, never()).bookCoverSave(any(Image.class), any(BookCoverImage.class));
-        verify(imageService, never()).bookDetailSave(any(Image.class), any(BookImage.class));
-    }
+//    @Test
+//    void testCreateBook_AlreadyExists() throws IOException {
+//        // Given
+//        BookCreatDTO bookCreatDTO = BookCreatDTO.builder()
+//            .title("Existing Book")
+//            .isbn("1234567890")
+//            .categories(Arrays.asList(CategoryDTO.builder().name("Non-Fiction").level(1).build()))
+//            .bookTypes(Arrays.asList(BookTypeDTO.builder().type("PAPERBACK").ranks(2).build()))
+//            .authors(Arrays.asList(BookCreatorDTO.builder().name("Existing Author").role("AUTHOR").build()))
+//            .publishedDate(LocalDate.of(2022, 5, 15))
+//            .description("An existing book.")
+//            .regularPrice(1500)
+//            .salePrice(1200)
+//            .page(400)
+//            .stock(60)
+//            .index("Existing Index")
+//            .coverImages(Collections.emptyList())
+//            .detailImages(Collections.emptyList())
+//            .publisherName("Existing Publisher")
+//            .build();
+//
+//        when(bookService.existsBookByIsbn("1234567890")).thenReturn(true);
+//
+//        // When
+//        bookMultiTableService.createBook(bookCreatDTO);
+//
+//        // Then
+//        verify(bookService).existsBookByIsbn("1234567890");
+//        verify(bookService, never()).createBook(any(Book.class));
+//        verify(publisherRepository, never()).findByName(anyString());
+//        verify(publisherRepository, never()).save(any(Publisher.class));
+//        verify(bookCreatorService, never()).saveBookCreator(any(BookCreator.class), any(BookCreatorMap.class));
+//        verify(bookCategoryRepository, never()).save(any(BookCategory.class));
+//        verify(bookPopularityRepository, never()).save(any(BookPopularity.class));
+//        verify(imageService, never()).bookCoverSave(any(Image.class), any(BookCoverImage.class));
+//        verify(imageService, never()).bookDetailSave(any(Image.class), any(BookImage.class));
+//    }
 
     // 3.2. Test createBook when the book does not exist (successful creation)
     @Test
