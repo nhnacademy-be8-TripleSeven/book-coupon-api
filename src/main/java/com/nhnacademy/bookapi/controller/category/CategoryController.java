@@ -67,6 +67,13 @@ public class CategoryController {
         return ResponseEntity.ok(categoryByLevel);
     }
 
+    @GetMapping("/admin/books/categoriesParentList")
+    public ResponseEntity<List<CategoryDTO>> getCategoryByParentAndLevel(@RequestParam Long parent,@RequestParam int level){
+        List<CategoryDTO> categoriesByParentAndLevel = categoryService.getCategoriesByParentAndLevel(
+            parent, level);
+        return ResponseEntity.ok(categoriesByParentAndLevel);
+    }
+
 
 
 
