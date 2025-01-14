@@ -41,7 +41,7 @@ public class ReviewController {
         reviewService.addReview(userId, reviewRequestDto, file);
         return ResponseEntity.status(201).build();
     }
-//
+
     @Operation(summary = "리뷰 수정", description = "특정 도서에 작성된 리뷰를 수정합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "리뷰 수정 성공"),
