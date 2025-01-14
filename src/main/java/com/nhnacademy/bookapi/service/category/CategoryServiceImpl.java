@@ -35,7 +35,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final List<CategoryDTO> categoryDTOS = new ArrayList<>();
 
     @Transactional(readOnly = true)
-    public List<CategoryDTO> updateCategoryList(Long bookId){
+    public List<CategoryDTO> getCategoryListByBookId(Long bookId){
         return categoryRepository.findByBookId(bookId).stream()
             .map(category -> new CategoryDTO(
                 category.getId(),
@@ -74,6 +74,7 @@ public class CategoryServiceImpl implements CategoryService {
         categoryDTOList.forEach(categoryDTO -> categoryRepository.save(new Category(categoryDTO.getName(), categoryDTO.getLevel())));
     }
 
+    //관리자 페이지에서 카테고리 레벨별 조회
     @Transactional(readOnly = true)
     @Override
     public Page<CategoryDTO> getCategoryByLevel(int level, Pageable pageable) {
@@ -187,10 +188,7 @@ public class CategoryServiceImpl implements CategoryService {
         return new CategoryLevelDTO(level1, level2, level3, level4, level5);
     }
 
-    @Override
-    public List<CategoryDTO> getCategoryListByBookId(Long bookId) {
-        return categoryRepository.findByBookId(bookId).stream().map(category -> new CategoryDTO(category.getId(), category.getName(), category.getLevel())).toList();
-    }
+
 
     @Override
     public List<CategoryDTO> getCategoriesByParentAndLevel(Long parentId, int level) {

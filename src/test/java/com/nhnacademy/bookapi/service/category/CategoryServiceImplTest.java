@@ -36,7 +36,7 @@ class CategoryServiceImplTest {
     private CategoryServiceImpl categoryService;
 
     @Test
-    void testUpdateCategoryList_WithCategories() {
+    void testGetCategoryList_ByBookId_WithCategories() {
         // Given
         Long bookId = 1L;
         List<Category> categories = List.of(
@@ -46,7 +46,7 @@ class CategoryServiceImplTest {
         when(categoryRepository.findByBookId(bookId)).thenReturn(categories);
 
         // When
-        List<CategoryDTO> result = categoryService.updateCategoryList(bookId);
+        List<CategoryDTO> result = categoryService.getCategoryListByBookId(bookId);
 
         // Then
         assertNotNull(result);

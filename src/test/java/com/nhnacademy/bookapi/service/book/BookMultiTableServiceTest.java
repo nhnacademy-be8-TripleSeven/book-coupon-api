@@ -3,7 +3,6 @@ package com.nhnacademy.bookapi.service.book;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
-import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book_type.BookTypeDTO;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
@@ -27,7 +26,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -131,7 +129,7 @@ class BookMultiTableServiceTest {
         when(bookService.getBookById(bookId)).thenReturn(bookDTO);
         when(imageService.getBookCoverImages(bookId)).thenReturn(Collections.emptyList());
         when(imageService.getBookDetailImages(bookId)).thenReturn(Collections.emptyList());
-        when(categoryService.updateCategoryList(bookId)).thenReturn(Collections.emptyList());
+        when(categoryService.getCategoryListByBookId(bookId)).thenReturn(Collections.emptyList());
         when(bookCreatorService.bookCreatorList(bookId)).thenReturn(Collections.emptyList());
         when(tagService.getTagName(bookId)).thenReturn(Collections.emptyList());
         when(bookTypeService.getUpdateBookTypeList(bookId)).thenReturn(Collections.emptyList());
@@ -146,7 +144,7 @@ class BookMultiTableServiceTest {
         verify(bookService).getBookById(bookId);
         verify(imageService).getBookCoverImages(bookId);
         verify(imageService).getBookDetailImages(bookId);
-        verify(categoryService).updateCategoryList(bookId);
+        verify(categoryService).getCategoryListByBookId(bookId);
         verify(bookCreatorService).bookCreatorList(bookId);
         verify(tagService).getTagName(bookId);
         verify(bookTypeService).getUpdateBookTypeList(bookId);
@@ -182,7 +180,7 @@ class BookMultiTableServiceTest {
         when(bookService.getBookList(keyword, pageable)).thenReturn(bookPage);
         when(imageService.getBookCoverImages(1L)).thenReturn(Collections.emptyList());
         when(imageService.getBookDetailImages(1L)).thenReturn(Collections.emptyList());
-        when(categoryService.updateCategoryList(1L)).thenReturn(Collections.emptyList());
+        when(categoryService.getCategoryListByBookId(1L)).thenReturn(Collections.emptyList());
         when(bookCreatorService.bookCreatorList(1L)).thenReturn(Collections.emptyList());
         when(tagService.getTagName(1L)).thenReturn(Collections.emptyList());
         when(bookTypeService.getUpdateBookTypeList(1L)).thenReturn(Collections.emptyList());
@@ -197,7 +195,7 @@ class BookMultiTableServiceTest {
         verify(bookService).getBookList(keyword, pageable);
         verify(imageService).getBookCoverImages(1L);
         verify(imageService).getBookDetailImages(1L);
-        verify(categoryService).updateCategoryList(1L);
+        verify(categoryService).getCategoryListByBookId(1L);
         verify(bookCreatorService).bookCreatorList(1L);
         verify(tagService).getTagName(1L);
         verify(bookTypeService).getUpdateBookTypeList(1L);
