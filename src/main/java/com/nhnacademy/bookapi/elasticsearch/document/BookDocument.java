@@ -25,11 +25,13 @@ public class BookDocument {
     @Field(type = FieldType.Keyword)
     private String isbn13;
 
-    @Field(type = FieldType.Date, name = "publishDate")
+    @Field(type = FieldType.Date, name = "publishdate")
     private LocalDateTime publishDate;
 
+    @Field(name = "regularprice")
     private Integer regularPrice;
 
+    @Field(name = "saleprice")
     private Integer salePrice;
 
     @Field(type = FieldType.Long)
@@ -38,13 +40,13 @@ public class BookDocument {
     @Field(type = FieldType.Keyword)
     private List<String> categories;
 
-    @Field(type = FieldType.Keyword)
+    @Field(type = FieldType.Keyword, name = " bookcreator")
     private List<String> bookCreators;
 
-    @Field(type = FieldType.Keyword)
+    @Field(type = FieldType.Keyword, name = "publishername")
     private String publisherName;
 
-    @Field(type = FieldType.Keyword)
+    @Field(type = FieldType.Keyword, name = "coverurl")
     private String coverUrl;
 
 
