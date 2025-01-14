@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
+import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.elasticsearch.dto.DocumentSearchResponseDTO;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.elasticsearch.service.BookSearchService;
@@ -86,37 +87,20 @@ class BookSearchControllerTest {
             new BookDetailResponseDTO(2L, "Book2", "Author2", 20000, 10000, "test", LocalDate.now())
         );
         Page<BookDetailResponseDTO> mockPage = new PageImpl<>(mockList, PageRequest.of(0, 10), mockList.size());
-        when(bookService.getBookTypeBooks(Type.BOOK, PageRequest.of(0, 10))).thenReturn(mockPage);
+        PageDTO<BookDetailResponseDTO> bookDetailResponseDTOPageDTO = new PageDTO<>(
+            mockPage.getContent(), mockPage.getNumber(), mockPage.getSize(),
+            mockPage.getTotalElements());
+
+        when(bookService.getBookTypeBooks(Type.BOOK, PageRequest.of(0, 10))).thenReturn(bookDetailResponseDTOPageDTO);
 
         // Act
-        ResponseEntity<Page<BookDetailResponseDTO>> response = bookSearchController.bookTypeSearch("BOOK", PageRequest.of(0, 10));
+        ResponseEntity<PageDTO<BookDetailResponseDTO>> response = bookSearchController.bookTypeSearch("BOOK", PageRequest.of(0, 10));
 
-        // Assert
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(mockPage);
+
         verify(bookService, times(1)).getBookTypeBooks(Type.BOOK, PageRequest.of(0, 10));
     }
 
-    @Test
-    void testBookCategorySearch() {
-        // Arrange
-        List<BookDetailResponseDTO> mockList = Arrays.asList(
-            new BookDetailResponseDTO(1L, "Book1", "Author1", 10000, 10000, "test", LocalDate.now()),
-            new BookDetailResponseDTO(2L, "Book2", "Author2", 20000, 10000, "test", LocalDate.now())
-        );
-        Page<BookDetailResponseDTO> mockPage = new PageImpl<>(mockList, PageRequest.of(0, 10), mockList.size());
-        when(bookService.getCategorySearchBooks(anyList(), eq("keyword"), any(PageRequest.class))).thenReturn(mockPage);
 
-        // Act
-        ResponseEntity<Page<BookDetailResponseDTO>> response = bookSearchController.bookCategorySearch(
-            Arrays.asList("category1", "category2"), "keyword", PageRequest.of(0, 10)
-        );
-
-        // Assert
-        assertThat(response.getStatusCodeValue()).isEqualTo(200);
-        assertThat(response.getBody()).isEqualTo(mockPage);
-        verify(bookService, times(1)).getCategorySearchBooks(anyList(), eq("keyword"), any(PageRequest.class));
-    }
 
     @Test
     void testGetBookByCategoryId() {

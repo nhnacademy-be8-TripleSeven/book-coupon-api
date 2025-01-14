@@ -7,6 +7,7 @@ import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
+import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.*;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Objects;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -66,6 +68,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "bookDetails", key = "'book:detail:' + #id")
     @Override
     public SearchBookDetail searchBookDetailByBookId(Long id) {
         Book book = bookRepository.findBookWithPublisherById(id).orElseThrow(() -> new BookNotFoundException("book not found"));
@@ -166,25 +169,26 @@ public class BookServiceImpl implements BookService {
 
 
     // 이달의 베스트 페이징을 사용하지 않고 캐싱으로
+    @Override
+    @Cacheable(cacheNames = "books", key = "'books:monthly-best'")
     @Transactional(readOnly = true)
-    public Page<BookDetailResponseDTO> getMonthlyBestBooks() {
+    public PageDTO<BookDetailResponseDTO> getMonthlyBestBooks() {
+
         Pageable pageable = Pageable.ofSize(10);
-
         Page<BookDetailResponseDTO> bookTypeBestsellerByRankAsc = bookRepository.findBookTypeBestseller(pageable);
+        addCreatorsByBookDetailResponse(bookTypeBestsellerByRankAsc.getContent());
 
-        for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeBestsellerByRankAsc) {
-            long id = bookDetailResponseDTO.getId();
-            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.bookCreatorListByBookId(
-                    id);
-            bookDetailResponseDTO.setCreator(bookCreatorResponseDTO.getCreators());
-        }
-        return bookTypeBestsellerByRankAsc;
+        return new PageDTO<>(bookTypeBestsellerByRankAsc.getContent(), pageable.getPageNumber(), pageable.getPageSize(), bookTypeBestsellerByRankAsc.getTotalElements());
 
     }
 
     //type별 조회 이도서는 어때요? , 편집자의 선택, e북
-    @Transactional(readOnly = true)
-    public Page<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable) {
+    @Override
+    @Cacheable(
+        cacheNames = "books",
+        key = "'books:book-type:' + #bookType + ':' + #pageable.pageNumber + ':' + #pageable.pageSize + ':' + #pageable.sort.toString()"
+    )    @Transactional(readOnly = true)
+    public PageDTO<BookDetailResponseDTO> getBookTypeBooks(Type bookType, Pageable pageable) {
 
         if(bookType == Type.BESTSELLER && pageable.getSort().isUnsorted()){
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(Direction.ASC, "ranks"));
@@ -192,20 +196,18 @@ public class BookServiceImpl implements BookService {
 
         Page<BookDetailResponseDTO> bookTypeItemByType = bookRepository.findBookTypeItemByType(
                 bookType, pageable);
-        for (BookDetailResponseDTO bookDetailResponseDTO : bookTypeItemByType) {
-            long id = bookDetailResponseDTO.getId();
-            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.bookCreatorListByBookId(id);
+        addCreatorsByBookDetailResponse(bookTypeItemByType.getContent());
+        return new PageDTO<>(bookTypeItemByType.getContent(), pageable.getPageNumber(), pageable.getPageSize(), bookTypeItemByType.getTotalElements());
+    }
+
+    private void addCreatorsByBookDetailResponse(List<BookDetailResponseDTO> bookList){
+        for (BookDetailResponseDTO bookDetailResponseDTO : bookList) {
+            BookCreatorResponseDTO bookCreatorResponseDTO = bookCreatorService.bookCreatorListByBookId(
+                bookDetailResponseDTO.getId());
             bookDetailResponseDTO.setCreator(bookCreatorResponseDTO.getCreators());
         }
-        return bookTypeItemByType;
     }
 
-
-
-    public Page<BookDetailResponseDTO> getCategorySearchBooks(List<String> categories, String keyword, Pageable pageable) {
-        return bookRepository.findByCategoryAndTitle(
-                categories, keyword, pageable);
-    }
 
     @Override
     public boolean existsBookByIsbn(String isbn) {
@@ -218,12 +220,9 @@ public class BookServiceImpl implements BookService {
     }
 
 
-
-
     public Page<BookDTO> getBookList(String keyword, Pageable pageable) {
         return bookRepository.findBookByKeyword(keyword, pageable);
     }
-
 
     public Book getBook(Long id) {
         return bookRepository.findById(id).orElse(null);

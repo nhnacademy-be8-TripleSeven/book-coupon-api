@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.controller.book;
 
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
+import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
@@ -30,7 +31,7 @@ public class BookMainViewController {
     @GetMapping("/books/monthly")
     public ResponseEntity<List<BookDetailResponseDTO>> getMonthlyBooks() {
 
-        Page<BookDetailResponseDTO> monthlyBestBooks = bookService.getMonthlyBestBooks();
+        PageDTO<BookDetailResponseDTO> monthlyBestBooks = bookService.getMonthlyBestBooks();
         List<BookDetailResponseDTO> content = monthlyBestBooks.getContent();
         return ResponseEntity.ok(content);
     }
@@ -48,7 +49,7 @@ public class BookMainViewController {
     @GetMapping("/books/type/{type}")
     public ResponseEntity<List<BookDetailResponseDTO>> getBooksByType(@Valid @PathVariable String type){
         Pageable pageable = PageRequest.of(0, 15);
-        Page<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(
+        PageDTO<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(
             Type.valueOf(type.toUpperCase()), pageable);
         List<BookDetailResponseDTO> content = bookTypeBooks.getContent();
         return ResponseEntity.ok(content);

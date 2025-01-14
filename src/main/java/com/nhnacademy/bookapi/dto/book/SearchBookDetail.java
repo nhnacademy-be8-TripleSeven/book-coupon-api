@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.dto.book;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.entity.BookCreator;
 import com.nhnacademy.bookapi.entity.BookIndex;
@@ -17,6 +18,8 @@ public class SearchBookDetail {
 
     private String title;
     private String description;
+
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate publishedDate;
     private int regularPrice;
     private int salePrice;

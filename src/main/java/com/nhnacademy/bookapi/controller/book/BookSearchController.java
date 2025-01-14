@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.controller.book;
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
+import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.elasticsearch.dto.DocumentSearchResponseDTO;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.elasticsearch.service.BookSearchService;
@@ -62,26 +63,15 @@ public class BookSearchController {
         @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
     @GetMapping("/typeSearch/{type}")
-    public ResponseEntity<Page<BookDetailResponseDTO>> bookTypeSearch(@PathVariable(name = "type") String type, Pageable pageable) {
+    public ResponseEntity<PageDTO<BookDetailResponseDTO>> bookTypeSearch(@PathVariable(name = "type") String type, Pageable pageable) {
 
-        Page<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(Type.valueOf(type.toUpperCase()),
+        PageDTO<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(Type.valueOf(type.toUpperCase()),
             pageable);
 
 
         return ResponseEntity.ok(bookTypeBooks);
     }
 
-    @Operation(summary = "카테고리 별 검색", description = "특정 카테고리 검색 제공")
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "검색 성공"),
-        @ApiResponse(responseCode = "400", description = "잘못된 요청")
-    })
-    @GetMapping("/categories/{categories}/keyword/{keyword}")
-    public ResponseEntity<Page<BookDetailResponseDTO>> bookCategorySearch(@PathVariable(name = "categories") List<String> categories, @PathVariable("keyword") String keyword, Pageable pageable) {
-        Page<BookDetailResponseDTO> categorySearchBooks = bookService.getCategorySearchBooks(
-            categories, keyword, pageable);
-        return ResponseEntity.ok(categorySearchBooks);
-    }
 
     @GetMapping("/categorySearch")
     public ResponseEntity<Page<BookDetailResponseDTO>> getBookByCategoryId(@RequestParam long id, Pageable pageable) {
