@@ -96,11 +96,11 @@ class CategoryControllerTest {
     @Test
     void testGetCategoryLevel() {
         // Arrange
-        CategoryLevelDTO mockLevelDTO = new CategoryLevelDTO(Arrays.asList(mock(CategoryDTO.class)), Arrays.asList(mock(CategoryDTO.class)),Arrays.asList(mock(CategoryDTO.class)),Arrays.asList(mock(CategoryDTO.class)),Arrays.asList(mock(CategoryDTO.class)));
+        CategoryLevelDTO mockLevelDTO = new CategoryLevelDTO(Arrays.asList(mock(CategoryDTO.class)));
         when(categoryService.getCategoryLevelList()).thenReturn(mockLevelDTO);
 
         // Act
-        ResponseEntity<CategoryLevelDTO> response = categoryController.getCategoryLevel();
+        ResponseEntity<CategoryLevelDTO> response = categoryController.getCategoryLevel1();
 
         // Assert
         assertThat(response.getStatusCodeValue()).isEqualTo(200);

@@ -12,19 +12,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface CategoryService {
-    List<CategoryDTO> updateCategoryList(Long bookId);
+    List<CategoryDTO> getCategoryListByBookId(Long bookId);
 
     Category getCategoryById(Long categoryId);
 
     void categorySave(Category category, BookCategory bookCategory);
 
-    Category getCategoryByName(String categoryName);
-
-    void bookCategorySave(BookCategory bookCategory);
 
     void saveCategory(CategoryDTO categoryDTO);
 
-    void categorySaveList(List<CategoryDTO> categoryDTOList);
 
     Page<CategoryDTO> getCategoryByLevel(int level, Pageable pageable);
 
@@ -41,6 +37,8 @@ public interface CategoryService {
 
     CategoryLevelDTO getCategoryLevelList();
 
+
+    List<CategoryDTO> getCategoriesByParentAndLevel(Long parentId, int level);
 
 }
 

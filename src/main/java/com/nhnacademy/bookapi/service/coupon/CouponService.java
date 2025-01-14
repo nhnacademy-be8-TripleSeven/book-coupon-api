@@ -19,25 +19,13 @@ public interface CouponService {
 
     Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy);
 
-    void createCouponsInBulk(CouponBulkCreationRequestDTO request);
-
-    CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
-
-    void deleteCoupon(Long id);
+    BulkCouponCreationResponseDTO createCouponsInBulk(CouponBulkCreationRequestDTO request);
 
     void expireCoupons();
 
     CouponUseResponseDTO useCoupon(Long userId, Long couponId, Long bookId);
 
     CouponUseResponseDTO useBaseCoupon(Long couponId);
-
-    List<CouponDetailsDTO> getAllCouponsByMemberId(Long userId);
-
-    List<CouponDetailsDTO> getUnusedCouponsByMemberId(Long memberId);
-
-    List<CouponDetailsDTO> getUsedCouponsByMemberId(Long memberId);
-
-    List<CouponDetailsDTO> getCouponsByPolicyId(Long policyId);
 
     List<CouponDetailsDTO> getCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate);
 
@@ -50,4 +38,14 @@ public interface CouponService {
     CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId);
 
     List<CouponAssignResponseDTO> issueWelcomeCoupon(Long memberId);
+
+    List<AvailableCouponResponseDTO> getAvailableCoupons(Long userId, List<Long> bookIds, Long amount);
+
+    Long applyCoupon(Long couponId, Long paymentAmount);
+
+    // 사용 가능성이 있는 미사용 코드
+    void deleteCoupon(Long id);
+
+    CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request);
+
 }

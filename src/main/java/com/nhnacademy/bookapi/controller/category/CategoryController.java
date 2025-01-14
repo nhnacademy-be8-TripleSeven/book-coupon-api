@@ -56,7 +56,7 @@ public class CategoryController {
     }
 
     @GetMapping("/admin/books/categoryLevelList")
-    public ResponseEntity<CategoryLevelDTO> getCategoryLevel(){
+    public ResponseEntity<CategoryLevelDTO> getCategoryLevel1(){
         CategoryLevelDTO categoryLevelList = categoryService.getCategoryLevelList();
         return ResponseEntity.ok(categoryLevelList);
     }
@@ -65,6 +65,13 @@ public class CategoryController {
     public ResponseEntity<List<CategoryDTO>> getAdminCategoryByLevel(int level){
         List<CategoryDTO> categoryByLevel = categoryService.getCategoryByLevel(level);
         return ResponseEntity.ok(categoryByLevel);
+    }
+
+    @GetMapping("/admin/books/categoriesParentList")
+    public ResponseEntity<List<CategoryDTO>> getCategoryByParentAndLevel(@RequestParam Long parent,@RequestParam int level){
+        List<CategoryDTO> categoriesByParentAndLevel = categoryService.getCategoriesByParentAndLevel(
+            parent, level);
+        return ResponseEntity.ok(categoriesByParentAndLevel);
     }
 
 

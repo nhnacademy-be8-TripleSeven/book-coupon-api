@@ -43,7 +43,7 @@ class BookSearchServiceTest {
         List<BookDocument> mockBookDocuments = List.of(
             BookDocument.builder().title("Test Title")
                 .isbn13("1234567890123").coverUrl("http://cover.url").regularPrice(1000).salePrice(1000)
-                .bestSellerRank(0).searchCount(0).cartCount(0).build()
+                .build()
         );
 
         PageImpl page = new PageImpl(mockBookDocuments, pageable, mockBookDocuments.size());

@@ -15,6 +15,7 @@ import com.nhnacademy.bookapi.repository.TagRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -42,7 +43,7 @@ public class BookTagService {
         return book.get();
     }
 
-    private Tag getTag(Long tagId) {
+    public Tag getTag(Long tagId) {
         Optional<Tag> tag = tagRepository.findById(tagId);
         if (tag.isEmpty()) {
             throw new TagNotFoundException("Tag not found");
@@ -66,9 +67,17 @@ public class BookTagService {
         if (!bookTagRepository.existsByBookAndTag(book, tag)) {
             throw new BookTagNotFoundException("Not Exist");
         }
-        BookTag bookTag = bookTagRepository.findByBookAndTag(book, tag).get();
-        bookTagRepository.delete(bookTag);
+        Optional<BookTag> bookTag = bookTagRepository.findByBookAndTag(book, tag);
+        if (bookTag.isEmpty()) {
+            throw new BookTagNotFoundException("Not Exist");
+        }
+        bookTagRepository.delete(bookTag.get());
         return true;
+    }
+
+    public void deleteAllByBookId(Long bookId) {
+        Book book = getBook(bookId);
+        bookTagRepository.deleteAllByBook(book);
     }
 
 //    public boolean updateBookTag(BookTagRequestDTO bookTagRequestDTO, Tag newTag) { // 업데이트하고픈 컬럼을 찾고 태그 이름 업데이트
@@ -78,17 +87,17 @@ public class BookTagService {
 //        bookTag.setTag(newTag);
 //        return true;
 //    }
-    public boolean updateBookTag(BookTagRequestDTO bookTagRequestDTO, Long newTagId) {
-        Book book = getBook(bookTagRequestDTO.getBookId());
-        Tag oldTag = getTag(bookTagRequestDTO.getTagId());
-        Tag newTag = getTag(newTagId);
-
-        BookTag bookTag = bookTagRepository.findByBookAndTag(book, oldTag)
-                .orElseThrow(() -> new BookTagNotFoundException("Book tag not found"));
-
-        bookTag.updateTag(newTag);
-        return true;
-    }
+//    public boolean updateBookTag(BookTagRequestDTO bookTagRequestDTO, Long newTagId) {
+//        Book book = getBook(bookTagRequestDTO.getBookId());
+//        Tag oldTag = getTag(bookTagRequestDTO.getTagId());
+//        Tag newTag = getTag(newTagId);
+//
+//        BookTag bookTag = bookTagRepository.findByBookAndTag(book, oldTag)
+//                .orElseThrow(() -> new BookTagNotFoundException("Book tag not found"));
+//
+//        bookTag.updateTag(newTag);
+//        return true;
+//    }
 
     public List<BookTagResponseDTO> getBookTagsByBook(Long bookId) { // 특정 책의 모든 태그 조회
         Book book = getBook(bookId);

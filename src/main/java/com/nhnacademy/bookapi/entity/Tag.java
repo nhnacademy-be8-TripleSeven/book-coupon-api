@@ -8,6 +8,7 @@ import lombok.Setter;
 @Entity
 @NoArgsConstructor
 @Getter
+@Setter
 public class Tag {
 
     @Id

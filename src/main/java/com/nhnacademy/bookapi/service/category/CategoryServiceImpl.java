@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -32,9 +33,10 @@ public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
     private final BookCategoryRepository bookCategoryRepository;
+    private final List<CategoryDTO> categoryDTOS = new ArrayList<>();
 
     @Transactional(readOnly = true)
-    public List<CategoryDTO> updateCategoryList(Long bookId){
+    public List<CategoryDTO> getCategoryListByBookId(Long bookId){
         return categoryRepository.findByBookId(bookId).stream()
             .map(category -> new CategoryDTO(
                 category.getId(),
@@ -55,16 +57,7 @@ public class CategoryServiceImpl implements CategoryService {
         bookCategoryRepository.save(bookCategory);
     }
 
-    @Transactional(readOnly = true)
-    @Override
-    public Category getCategoryByName(String categoryName) {
-        return categoryRepository.findCategoryByName(categoryName).orElse(null);
-    }
 
-    @Override
-    public void bookCategorySave(BookCategory bookCategory) {
-        bookCategoryRepository.save(bookCategory);
-    }
 
     @Transactional
     @Override
@@ -82,6 +75,7 @@ public class CategoryServiceImpl implements CategoryService {
         categoryDTOList.forEach(categoryDTO -> categoryRepository.save(new Category(categoryDTO.getName(), categoryDTO.getLevel())));
     }
 
+    //관리자 페이지에서 카테고리 레벨별 조회
     @Transactional(readOnly = true)
     @Override
     public Page<CategoryDTO> getCategoryByLevel(int level, Pageable pageable) {
@@ -113,42 +107,21 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryDTO> getAllCategories() {
         List<Category> categoryAll = categoryRepository.findAllRootCategories();
-        List<CategoryDTO> list = new ArrayList<>();
-        for (Category category : categoryAll) {
-            if(category.getParent() != null) {
-                CategoryDTO categoryDTO = new CategoryDTO(
-                    category.getId(),
-                    category.getName(),
-                    category.getLevel(),
-                    new CategoryDTO(
-                        category.getParent().getId(),
-                        category.getParent().getName(),
-                        category.getParent().getLevel(),
-                        null
-                    ));
-                list.add(categoryDTO);
-            }else {
-                CategoryDTO categoryDTO = new CategoryDTO(
-                    category.getId(),
-                    category.getName(),
-                    category.getLevel(),
-                    null
-                );
-                list.add(categoryDTO);
-            }
-        }
-        return list;
-
+        return convertCategoriesToDTOs(categoryAll);
     }
 
     @Transactional(readOnly = true)
     @Override
     public List<CategoryDTO> getCategoryByLevel(int level) {
         List<Category> byLevel = categoryRepository.findByLevel(level);
-        List<CategoryDTO> list = new ArrayList<>();
-        for (Category category : byLevel) {
-            if(category.getParent() != null) {
-                CategoryDTO categoryDTO = new CategoryDTO(
+        return convertCategoriesToDTOs(byLevel);
+    }
+
+    private List<CategoryDTO> convertCategoriesToDTOs(List<Category> categories) {
+        for (Category category : categories) {
+            CategoryDTO categoryDTO;
+            if (category.getParent() != null) {
+                categoryDTO = new CategoryDTO(
                     category.getId(),
                     category.getName(),
                     category.getLevel(),
@@ -157,23 +130,24 @@ public class CategoryServiceImpl implements CategoryService {
                         category.getParent().getName(),
                         category.getParent().getLevel(),
                         null
-                    ));
-                list.add(categoryDTO);
-            }else {
-                CategoryDTO categoryDTO = new CategoryDTO(
+                    )
+                );
+            } else {
+                categoryDTO = new CategoryDTO(
                     category.getId(),
                     category.getName(),
                     category.getLevel(),
                     null
                 );
-                list.add(categoryDTO);
             }
+            categoryDTOS.add(categoryDTO);
         }
-        return list;
+        return categoryDTOS;
     }
 
 
     @Transactional(readOnly = true)
+    @Cacheable(cacheNames = "categories", key = "'category:all'")
     public List<CategoryResponseDTO> getAllCategoriesAsTree() {
         List<Category> rootCategories = categoryRepository.findAllRootCategories(); // 루트 카테고리 가져오기
         return buildCategoryTree(rootCategories);
@@ -181,39 +155,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryLevelDTO getCategoryLevelList() {
-        List<CategoryDTO> level1 = new ArrayList<>();
-        List<CategoryDTO> level2 = new ArrayList<>();
-        List<CategoryDTO> level3 = new ArrayList<>();
-        List<CategoryDTO> level4 = new ArrayList<>();
-        List<CategoryDTO> level5 = new ArrayList<>();
+        return new CategoryLevelDTO(categoryRepository.findByLevel(1).stream().map(category -> new CategoryDTO(category.getId(), category.getName(), category.getLevel())).toList());
+    }
 
-        List<Category> categoryRepositoryAll = categoryRepository.findAll();
-        for (Category category : categoryRepositoryAll) {
-            int level = category.getLevel(); // Category 객체에서 레벨을 가져온다고 가정
-            CategoryDTO categoryDTO = new CategoryDTO(category.getId(), category.getName(), level);
-
-            // 레벨에 따라 리스트에 추가
-            switch (level) {
-                case 1:
-                    level1.add(categoryDTO);
-                    break;
-                case 2:
-                    level2.add(categoryDTO);
-                    break;
-                case 3:
-                    level3.add(categoryDTO);
-                    break;
-                case 4:
-                    level4.add(categoryDTO);
-                    break;
-                case 5:
-                    level5.add(categoryDTO);
-                    break;
-                default:
-                    break;
-            }
-        }
-        return new CategoryLevelDTO(level1, level2, level3, level4, level5);
+    @Override
+    public List<CategoryDTO> getCategoriesByParentAndLevel(Long parentId, int level) {
+        return categoryRepository.findByParentIdAndLevel(parentId, level).stream().map(category -> new CategoryDTO(category.getId(), category.getName(), category.getLevel())).toList();
     }
 
     private List<CategoryResponseDTO> buildCategoryTree(List<Category> categories) {

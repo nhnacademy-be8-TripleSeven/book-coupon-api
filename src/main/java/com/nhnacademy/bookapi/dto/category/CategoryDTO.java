@@ -46,6 +46,11 @@ public class CategoryDTO {
         this.name = name;
     }
 
+    public CategoryDTO(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
 
 
 }

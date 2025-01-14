@@ -10,6 +10,8 @@ import com.nhnacademy.bookapi.exception.ReviewNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import com.nhnacademy.bookapi.service.object.ObjectService;
+import lombok.AllArgsConstructor;
+import lombok.Setter;
 import org.aspectj.apache.bcel.generic.LineNumberGen;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -25,17 +27,13 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
+@AllArgsConstructor
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
-    @Autowired
+    @Setter
     private ObjectService objectService;
-
-    public ReviewService(ReviewRepository reviewRepository, BookRepository bookRepository) {
-        this.reviewRepository = reviewRepository;
-        this.bookRepository = bookRepository;
-    }
 
     @Transactional
     public boolean addReview(Long userId, ReviewRequestDto reviewRequestDto, MultipartFile file) {
@@ -80,13 +78,13 @@ public class ReviewService {
         return true;
     }
 
-    @Transactional
-    public boolean deleteReview(Long userId, Long bookId) {
-        Book book = getBook(bookId);
-        Review review = getReview(book, userId);
-        reviewRepository.delete(review);
-        return true;
-    }
+//    @Transactional
+//    public boolean deleteReview(Long userId, Long bookId) {
+//        Book book = getBook(bookId);
+//        Review review = getReview(book, userId);
+//        reviewRepository.delete(review);
+//        return true;
+//    }
     // 도서 삭제 시 도서에 달려있는 리뷰들 삭제
     @Transactional
     public void deleteAllReviewsWithBook(Long bookId) {
@@ -129,17 +127,17 @@ public class ReviewService {
                 new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
     }
 
-    @Transactional
-    // 도서에 달려있는 모든 리뷰 조회
-    public List<ReviewResponseDto> getAllReviewsByBookId(Long bookId) {
-        Book book = getBook(bookId);
-        List<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book);
-        List<ReviewResponseDto> result = new ArrayList<>();
-        for (Review review : reviews) {
-            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
-        }
-        return result;
-    }
+//    @Transactional
+//    // 도서에 달려있는 모든 리뷰 조회
+//    public List<ReviewResponseDto> getAllReviewsByBookId(Long bookId) {
+//        Book book = getBook(bookId);
+//        List<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book);
+//        List<ReviewResponseDto> result = new ArrayList<>();
+//        for (Review review : reviews) {
+//            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
+//        }
+//        return result;
+//    }
 
     private Book getBook(Long bookId) {
         return bookRepository.findById(bookId)
@@ -150,4 +148,5 @@ public class ReviewService {
         return reviewRepository.findByBookAndUserId(book, userId)
                 .orElseThrow(() -> new ReviewNotFoundException("Review not found"));
     }
+
 }

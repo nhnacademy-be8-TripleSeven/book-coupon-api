@@ -6,9 +6,7 @@ import com.nhnacademy.bookapi.entity.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.expression.spel.ast.OpPlus;
-
-import javax.swing.text.html.Option;
+import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
@@ -23,7 +21,10 @@ public interface BookTagRepository extends JpaRepository<BookTag, Long> {
     @Query("delete from BookTag bt where bt.book.id = :bookId")
     void deleteBookTagByBookId(Long bookId);
 
-
     @Query("SELECT COUNT(bt) > 0 FROM BookTag bt WHERE bt.book.id = :bookId")
     boolean existsByBookId(Long bookId);
-    }
+
+    @Modifying
+    @Query("DELETE FROM BookTag bt WHERE bt.book = :book")
+    void deleteAllByBook(@Param("book") Book book);
+}
