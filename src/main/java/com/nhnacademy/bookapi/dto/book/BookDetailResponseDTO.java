@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.dto.book;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
@@ -8,8 +9,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@NoArgsConstructor
 @Getter
 public class BookDetailResponseDTO {
 
@@ -34,6 +37,7 @@ public class BookDetailResponseDTO {
     @Setter
     private List<String> creator;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate publishDate;
 
     public BookDetailResponseDTO(Long id, String title, String publisher, int regularPrice, int salePrice,

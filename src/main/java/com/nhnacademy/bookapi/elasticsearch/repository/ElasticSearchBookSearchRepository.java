@@ -12,14 +12,6 @@ import org.springframework.stereotype.Repository;
 public interface ElasticSearchBookSearchRepository extends ElasticsearchRepository<BookDocument, String>, CustomBookSearchRepository {
 
 
-    @Query("{\"bool\": {\"should\": [ " +
-        "{\"terms\": {\"categories\": ?0}}, " +
-        "{\"match\": {\"title\": ?1}}" +
-        "], " +
-        "\"must\": {\"exists\": {\"field\": \"publishDate\"}}" +
-        "}}")
-    Page<BookDocument> searchByCategoriesOrTitle(List<String> categories, String keyword, Pageable pageable);
-
     // 제목과 ISBN으로 검색
     @Query("{ " +
         "  \"function_score\": { " +
@@ -28,8 +20,8 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
         "        \"should\": [ " +
         "          { \"match\": { \"title\": { \"query\": \"?0\", \"boost\": 4 } } }, " +
         "          { \"match\": { \"isbn13\": { \"query\": \"?0\", \"boost\": 1 } } }, " +
-        "          { \"match\": { \"bookcreators\": { \"query\": \"?0\", \"boost\": 3 } } }, " + // 변경됨
-        "          { \"match\": { \"publishername\": { \"query\": \"?0\", \"boost\": 2 } } } " + // 변경됨
+        "          { \"match\": { \"bookcreators\": { \"query\": \"?0\", \"boost\": 3 } } }, " +
+        "          { \"match\": { \"publishername\": { \"query\": \"?0\", \"boost\": 2 } } } " +
         "        ] " +
         "      } " +
         "    }, " +
@@ -44,26 +36,4 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
     Page<BookDocument> searchWithPopularityAndWeights(String keyword, Pageable pageable);
 
 
-    @Query("{ " +
-        "  \"function_score\": { " +
-        "    \"query\": { " +
-        "      \"bool\": { " +
-        "        \"should\": [ " +
-        "          { \"match\": { \"title\": { \"query\": \"?0\", \"boost\": 4 } } }, " +
-        "          { \"match\": { \"isbn13\": { \"query\": \"?0\", \"boost\": 1 } } }, " +
-        "          { \"match\": { \"bookcreators\": { \"query\": \"?0\", \"boost\": 3 } } }, " +
-        "          { \"match\": { \"publishername\": { \"query\": \"?0\", \"boost\": 2 } } } " +
-        "          { \"match\": { \"categories\": { \"query\": \"?0\", \"boost\": 0 } } } " +
-        "        ] " +
-        "      } " +
-        "    }, " +
-        "    \"boost_mode\": \"sum\", " +
-        "    \"script_score\": { " +
-        "      \"script\": { " +
-        "        \"source\": \"_score + doc['popularity'].value\" " +
-        "      } " +
-        "    } " +
-        "  } " +
-        "}")
-    List<BookDocument> getBooksByTerm(String term, Pageable pageable);
 }

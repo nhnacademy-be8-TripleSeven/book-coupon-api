@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.controller.book;
 
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
+import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
@@ -48,7 +49,11 @@ class BookMainViewControllerTest {
             new BookDetailResponseDTO(2L, "Book2", "Author2", 20000, 10000, "test", LocalDate.now())
         );
         Page<BookDetailResponseDTO> mockPage = new PageImpl<>(bookList, PageRequest.of(0, 2), bookList.size());
-        when(bookService.getMonthlyBestBooks()).thenReturn(mockPage);
+        PageDTO<BookDetailResponseDTO> bookDetailResponseDTOPageDTO = new PageDTO<>(
+            mockPage.getContent(), mockPage.getNumber(), mockPage.getSize(),
+            mockPage.getTotalElements());
+
+        when(bookService.getMonthlyBestBooks()).thenReturn(bookDetailResponseDTOPageDTO);
 
         // Act
         ResponseEntity<List<BookDetailResponseDTO>> response = bookMainViewController.getMonthlyBooks();
@@ -77,7 +82,10 @@ class BookMainViewControllerTest {
             new BookDetailResponseDTO(2L, "Book2", "Author2", 20000,10000, "test", LocalDate.now())
         );
         Page<BookDetailResponseDTO> mockPage = new PageImpl<>(bookList, PageRequest.of(0, 15), bookList.size());
-        when(bookService.getBookTypeBooks(Type.BOOK, PageRequest.of(0, 15))).thenReturn(mockPage);
+        PageDTO<BookDetailResponseDTO> bookDetailResponseDTOPageDTO = new PageDTO<>(
+            mockPage.getContent(), mockPage.getNumber(), mockPage.getSize(),
+            mockPage.getTotalElements());
+        when(bookService.getBookTypeBooks(Type.BOOK, PageRequest.of(0, 15))).thenReturn(bookDetailResponseDTOPageDTO);
 
         // Act
         ResponseEntity<List<BookDetailResponseDTO>> response = bookMainViewController.getBooksByType("BOOK");

@@ -77,39 +77,4 @@ public class WrapperService {
         this.bookRepository = bookRepository;
     }
 
-    public boolean addWrappable(Long bookId, boolean wrappable) {
-        Book book = getBook(bookId);
-        if (wrapperRepository.existsByBook(book)) {
-            throw new WrapperAlreadyExistException("Book is already saved");
-        }
-        wrapperRepository.save(new Wrapper(book, wrappable));
-        return true;
-    }
-
-    public boolean updateWrappable(Long bookId, boolean newWrappable) {
-        Book book = getBook(bookId);
-        Wrapper wrapper = wrapperRepository.findByBook(book)
-                .orElseThrow(() -> new WrapperNotFoundException("Wrapper is not found"));
-        wrapper.updateWrappable(newWrappable);
-        return true;
-    }
-
-    public boolean deleteWrappable(Long bookId) {
-        Book book = getBook(bookId);
-        Wrapper wrapper = wrapperRepository.findByBook(book)
-                .orElseThrow(() -> new WrapperNotFoundException("Wrapper is not found"));
-        wrapperRepository.delete(wrapper);
-        return true;
-    }
-
-    public boolean getWrappable(Long bookId) {
-        Book book = getBook(bookId);
-        Wrapper wrapper = wrapperRepository.findByBook(book).orElseThrow(() -> new WrapperNotFoundException("Wrapper is not found"));
-        return wrapper.isWrappable();
-    }
-
-    private Book getBook(Long bookId) {
-        return bookRepository.findById(bookId)
-                .orElseThrow(() -> new BookNotFoundException("Book not found"));
-    }
 }
