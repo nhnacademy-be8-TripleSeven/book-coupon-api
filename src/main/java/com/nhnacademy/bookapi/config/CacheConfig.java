@@ -54,7 +54,7 @@ public class CacheConfig {
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
         cacheConfigurations.put("books", redisCacheConfiguration.entryTtl(Duration.ofMinutes(60))); // books 캐시 TTL 60분
         cacheConfigurations.put("categories", redisCacheConfiguration.entryTtl(Duration.ofMinutes(120))); // categories 캐시 TTL 15분
-        cacheConfigurations.put("bookDetail", redisCacheConfiguration.entryTtl(Duration.ofMinutes(10)));
+        cacheConfigurations.put("bookDetail", redisCacheConfiguration.entryTtl(Duration.ofMinutes(30)));
 
 
         return RedisCacheManager.RedisCacheManagerBuilder

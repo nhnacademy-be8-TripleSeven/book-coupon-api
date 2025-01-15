@@ -88,10 +88,8 @@ class ReviewServiceTest {
             doNothing().when(objectService).generateAuthToken();
             doNothing().when(objectService).uploadObject(anyString(), anyString(), any());
             when(objectService.getStorageUrl()).thenReturn("https://fake-storage.com");
-
             // when
             boolean result = reviewService.addReview(userId, reviewRequestDto, multipartFile);
-
             // then
             assertTrue(result);
             verify(bookRepository).findById(book.getId());

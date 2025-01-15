@@ -164,6 +164,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     private List<CategoryResponseDTO> buildCategoryTree(List<Category> categories) {
+        if (categories == null || categories.isEmpty()) { // null 체크 추가
+            return new ArrayList<>();
+        }
         List<CategoryResponseDTO> categoryTree = new ArrayList<>();
 
         for (Category category : categories) {

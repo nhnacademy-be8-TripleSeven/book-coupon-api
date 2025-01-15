@@ -352,7 +352,7 @@ public class BookMultiTableService {
             }
         }
     }
-    private void bookTypeUpdateOrCreate(List<BookType> bookTypeList,List<BookTypeDTO> bookTypeDTOList, Book book) {
+    protected void bookTypeUpdateOrCreate(List<BookType> bookTypeList,List<BookTypeDTO> bookTypeDTOList, Book book) {
 
         int index = 0;
         if(!bookTypeDTOList.isEmpty()) {
