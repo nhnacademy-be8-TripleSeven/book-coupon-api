@@ -1,7 +1,6 @@
 package com.nhnacademy.bookapi.controller.book;
 
 import com.nhnacademy.bookapi.book_api.BookApiSaveService;
-import com.nhnacademy.bookapi.controller.book.BookController;
 import com.nhnacademy.bookapi.dto.book.*;
 import com.nhnacademy.bookapi.service.book.BookMultiTableService;
 import com.nhnacademy.bookapi.service.book.BookService;
@@ -199,12 +198,12 @@ class BookControllerTest {
     void testGetCartItems() {
         // Given
         List<Long> bookIds = List.of(1L, 2L, 3L);
-        List<CartItemDTO> cartItems = Collections.emptyList();
+        List<OrderItemDTO> cartItems = Collections.emptyList();
 
         when(bookService.getCartItemsByIds(bookIds)).thenReturn(cartItems);
 
         // When
-        ResponseEntity<List<CartItemDTO>> response = bookController.getCartItems(bookIds);
+        ResponseEntity<List<OrderItemDTO>> response = bookController.getCartItems(bookIds);
 
         // Then
         assertEquals(200, response.getStatusCodeValue());
