@@ -53,7 +53,7 @@ class CouponPolicyServiceImplTest {
                     1000L,
                     5000L,
                     new BigDecimal("0.15"),
-                    0L,
+                    null,
                     30
             );
         });
@@ -75,7 +75,7 @@ class CouponPolicyServiceImplTest {
                 1000L,
                 5000L,
                 new BigDecimal("0.1"),
-                0L,
+                null,
                 30
         );
 
@@ -143,7 +143,7 @@ class CouponPolicyServiceImplTest {
                 "Updated Policy",
                 2000L,
                 6000L,
-                new BigDecimal("0"),
+                null,
                 1000L,
                 45
         );
@@ -168,7 +168,7 @@ class CouponPolicyServiceImplTest {
                 "Updated Policy",
                 2000L,
                 6000L,
-                BigDecimal.ZERO,
+                null,
                 1500L,
                 45
         );
@@ -208,7 +208,7 @@ class CouponPolicyServiceImplTest {
                 "Policy 1",
                 1000L,
                 5000L,
-                new BigDecimal("0.1"),
+                null,
                 100L,
                 30
         );
@@ -218,7 +218,7 @@ class CouponPolicyServiceImplTest {
                 2000L,
                 6000L,
                 new BigDecimal("0.2"),
-                200L,
+                null,
                 45
         );
 
@@ -249,7 +249,7 @@ class CouponPolicyServiceImplTest {
                 "Policy 1",
                 1000L,
                 5000L,
-                new BigDecimal("0.1"),
+                null,
                 100L,
                 30
         );
@@ -280,7 +280,7 @@ class CouponPolicyServiceImplTest {
                 "Policy 1",
                 1000L,
                 5000L,
-                new BigDecimal("0.1"),
+                null,
                 100L,
                 30
         );
@@ -313,7 +313,7 @@ class CouponPolicyServiceImplTest {
                 1000L,
                 5000L,
                 new BigDecimal("0.2"),
-                0L,
+                null,
                 30
         );
 
@@ -412,7 +412,7 @@ class CouponPolicyServiceImplTest {
                 "Policy A",
                 1000L,
                 5000L,
-                new BigDecimal("0.1"),
+                null,
                 100L,
                 30
         );
@@ -421,7 +421,7 @@ class CouponPolicyServiceImplTest {
                 2000L,
                 6000L,
                 new BigDecimal("0.2"),
-                200L,
+                null,
                 45
         );
 
