@@ -102,16 +102,16 @@ public class ReviewController {
         return ResponseEntity.ok(reviewResponseDtos);
     }
 
-//    @Operation(summary = "도서별 전체 리뷰", description = "특정 도서의 전체 리뷰 조회")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "조회 성공"),
-//            @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음")
-//    })
-//    @GetMapping("/api/reviews/{bookId}/all")
-//    public ResponseEntity<List<ReviewResponseDto>> getAllReviewsByBookId(@PathVariable Long bookId) {
-//        List<ReviewResponseDto> reviews = reviewService.getAllReviewsByBookId(bookId);
-//        return ResponseEntity.ok(reviews);
-//    }
+    @Operation(summary = "도서별 전체 리뷰", description = "특정 도서의 전체 리뷰 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음")
+    })
+    @GetMapping("/api/reviews/{bookId}/all")
+    public ResponseEntity<List<ReviewResponseDto>> getAllReviewsByBookId(@PathVariable Long bookId) {
+        List<ReviewResponseDto> reviews = reviewService.getAllReviewsByBookId(bookId);
+        return ResponseEntity.ok(reviews);
+    }
 
 //    @Operation(summary = "도서별 리뷰 정렬", description = "도서별 정렬")
 //    @ApiResponses({
