@@ -5,9 +5,9 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public class CartItemDTO {
+public class OrderItemDTO {
     Long bookId;
-    int amount;
-    int discountPrice;
-    int primePrice;
+    long amount;
+    long discountPrice;
+    long primePrice;
 }

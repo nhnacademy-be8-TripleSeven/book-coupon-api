@@ -6,7 +6,7 @@ import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
-import com.nhnacademy.bookapi.dto.book.CartItemDTO;
+import com.nhnacademy.bookapi.dto.book.OrderItemDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.book_api.BookApiSaveService;
 import com.nhnacademy.bookapi.service.book.BookMultiTableService;
@@ -142,9 +142,9 @@ public class BookController {
 
 
     @PostMapping("/books/cartItems")
-    public ResponseEntity<List<CartItemDTO>> getCartItems(@RequestBody List<Long> bookIds) {
-        List<CartItemDTO> cartItemDTOS = bookService.getCartItemsByIds(bookIds);
-        return ResponseEntity.ok(cartItemDTOS);
+    public ResponseEntity<List<OrderItemDTO>> getCartItems(@RequestBody List<Long> bookIds) {
+        List<OrderItemDTO> orderItemDTOS = bookService.getCartItemsByIds(bookIds);
+        return ResponseEntity.ok(orderItemDTOS);
     }
 
     @GetMapping("/books/{bookId}/name")

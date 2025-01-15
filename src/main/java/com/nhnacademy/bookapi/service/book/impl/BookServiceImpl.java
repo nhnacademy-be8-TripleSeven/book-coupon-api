@@ -243,17 +243,17 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<CartItemDTO> getCartItemsByIds(List<Long> bookIds) {
+    public List<OrderItemDTO> getCartItemsByIds(List<Long> bookIds) {
         List<Book> books = bookRepository.findAllById(bookIds);
-        List<CartItemDTO> cartItemDTOS = new ArrayList<>();
+        List<OrderItemDTO> orderItems = new ArrayList<>();
         for (Book book : books) {
-            cartItemDTOS.add(new CartItemDTO(
+            orderItems.add(new OrderItemDTO(
                     book.getId(),
                     book.getStock(),
                     book.getSalePrice(),
                     book.getRegularPrice()));
         }
-        return cartItemDTOS;
+        return orderItems;
     }
 
     @Override
