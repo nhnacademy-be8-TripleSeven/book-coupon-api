@@ -127,17 +127,17 @@ public class ReviewService {
                 new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
     }
 
-//    @Transactional
-//    // 도서에 달려있는 모든 리뷰 조회
-//    public List<ReviewResponseDto> getAllReviewsByBookId(Long bookId) {
-//        Book book = getBook(bookId);
-//        List<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book);
-//        List<ReviewResponseDto> result = new ArrayList<>();
-//        for (Review review : reviews) {
-//            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
-//        }
-//        return result;
-//    }
+    @Transactional
+    // 도서에 달려있는 모든 리뷰 조회
+    public List<ReviewResponseDto> getAllReviewsByBookId(Long bookId) {
+        Book book = getBook(bookId);
+        List<Review> reviews = reviewRepository.findAllByBookOrderByCreatedAtDesc(book);
+        List<ReviewResponseDto> result = new ArrayList<>();
+        for (Review review : reviews) {
+            result.add(new ReviewResponseDto(review.getUserId(), review.getText(), review.getRating(), review.getCreatedAt(), review.getImageUrl()));
+        }
+        return result;
+    }
 
     private Book getBook(Long bookId) {
         return bookRepository.findById(bookId)
