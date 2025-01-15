@@ -2,10 +2,12 @@ package com.nhnacademy.bookapi.dto.coupon;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
+@NoArgsConstructor
 @AllArgsConstructor
 public class BulkCouponCreationResponseDTO {
-    private final boolean success;
-    private final long createdCount;
+    private boolean success;
+    private long createdCount;
 }

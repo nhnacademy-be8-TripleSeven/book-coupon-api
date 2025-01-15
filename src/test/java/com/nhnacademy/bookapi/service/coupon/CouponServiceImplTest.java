@@ -27,7 +27,6 @@ import org.springframework.data.domain.PageRequest;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.Year;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -1584,58 +1583,30 @@ class CouponServiceImplTest {
     }
 
 
-//
-//    @Test
-//    void testAssignBirthdayCoupons_Failure() {
-//        // Arrange: Mock 설정
-//        CouponPolicy policy = CouponPolicy.builder()
-//                .id(1L)
-//                .name("생일 축하 쿠폰 정책")
-//                .couponValidTime(30)
-//                .build();
-//
-//        Coupon coupon = Coupon.builder()
-//                .id(1L)
-//                .name("생일 축하 쿠폰")
-//                .couponPolicy(policy)
-//                .build();
-//
-//        List<CouponAssignRequestDTO> requests = List.of(
-//                new CouponAssignRequestDTO(1L, 1L), // 사용자 ID: 1
-//                new CouponAssignRequestDTO(2L, 2L)  // 사용자 ID: 2
-//        );
-//
-//        // 정책이 없을 때 예외 발생 테스트
-//        when(couponPolicyRepository.findById(anyLong()))
-//                .thenReturn(Optional.empty());
-//
-//        assertThrows(CouponPolicyNotFoundException.class,
-//                () -> couponService.assignBirthdayCoupons(requests, policy));
-//
-//        // 정책이 있을 때 쿠폰 생성 실패 테스트
-//        when(couponPolicyRepository.findById(anyLong()))
-//                .thenReturn(Optional.of(policy));
-//        doThrow(new RuntimeException("Coupon creation failed"))
-//                .when(couponRepository).saveAll(anyList());
-//
-//        int issuedCount = couponService.assignBirthdayCoupons(requests, policy);
-//
-//        assertEquals(0, issuedCount, "쿠폰 생성 실패 시 발급된 쿠폰은 0이어야 합니다.");
-//
-//        // Verify: saveAll이 호출되었는지 확인
-//        verify(couponRepository, times(1)).saveAll(anyList());
-//    }
-//
+    @Test
+    void testAssignBirthdayCoupons_Failure_CouponSaveError() {
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("생일 축하 쿠폰 정책")
+                .couponValidTime(30)
+                .build();
+
+        List<CouponAssignRequestDTO> requests = List.of(
+                new CouponAssignRequestDTO(1L, 1L)
+        );
+
+        when(couponPolicyRepository.findById(anyLong()))
+                .thenReturn(Optional.of(policy));
+
+        doThrow(new RuntimeException("Coupon creation failed"))
+                .when(couponRepository).saveAll(anyList());
 
 
+        int issuedCount = couponService.assignBirthdayCoupons(requests, policy);
 
-
-
-
-
-
-
-
+        assertEquals(0, issuedCount, "쿠폰 생성 실패 시 발급된 쿠폰은 0이어야 합니다.");
+    }
 
 
 
