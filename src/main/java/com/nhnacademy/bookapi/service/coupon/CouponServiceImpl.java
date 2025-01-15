@@ -7,6 +7,7 @@ import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyResponseDTO;
 import com.nhnacademy.bookapi.dto.member.MemberDto;
+import com.nhnacademy.bookapi.dto.member.MemberNotFoundException;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.*;
 import com.nhnacademy.bookapi.repository.*;
@@ -99,45 +100,6 @@ public class CouponServiceImpl implements CouponService {
 
         return new CategoryCouponResponseDTO(savedCoupon.getId(), savedCoupon.getName(), savedCoupon.getCouponPolicy(), category.getName());
     }
-
-    // 쿠폰 단체 생성
-//    @Override
-//    @Transactional
-//    public void createCouponsInBulk(CouponBulkCreationRequestDTO request) {
-//
-//        CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
-//                .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found."));
-//
-//        for (long i = 0; i < request.getQuantity(); i++) {
-//
-//            if (request.getCategoryId() != null) {
-//                // Create category coupon
-//                CategoryCouponCreationRequestDTO categoryRequest = new CategoryCouponCreationRequestDTO(
-//                        request.getCategoryId(),
-//                        policy.getId(),
-//                        request.getName()
-//                );
-//                createCategoryCoupon(categoryRequest);
-//            } else if (request.getBookId() != null) {
-//                // Create book coupon
-//                BookCouponCreationRequestDTO bookRequest = new BookCouponCreationRequestDTO(
-//                        request.getBookId(),
-//                        policy.getId(),
-//                        request.getName()
-//                );
-//                createBookCoupon(bookRequest);
-//            } else {
-//                // Create general coupon
-//                CouponCreationRequestDTO generalRequest = new CouponCreationRequestDTO(
-//                        request.getName(),
-//                        policy.getId()
-//                );
-//                createCoupon(generalRequest);
-//            }
-//
-//        }
-//    }
-
 
 
     @Override
@@ -382,7 +344,7 @@ public class CouponServiceImpl implements CouponService {
         // 2. 발급 대상 조회
         List<Long> memberIds = getMemberIdsByRecipientType(request);
         if (memberIds.isEmpty()) {
-            throw new InvalidRecipientTypeException("발급 대상 회원이 없습니다.");
+            throw new MemberNotFoundException("발급 대상 회원이 없습니다.");
         }
 
         // 3. 쿠폰 생성 및 발급
@@ -487,7 +449,7 @@ public class CouponServiceImpl implements CouponService {
 
 
     // String - > MemberGrade
-    private MemberGrade convertGrade(String grade) {
+    public MemberGrade convertGrade(String grade) {
         try {
             return MemberGrade.valueOf(grade.toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -543,6 +505,8 @@ public class CouponServiceImpl implements CouponService {
     }
 
 
+
+
     @Transactional(readOnly = true)
     public boolean hasAvailableFirstComeWelcomeCoupon() {
         return couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰").isPresent();
@@ -571,7 +535,7 @@ public class CouponServiceImpl implements CouponService {
     // 생일 쿠폰 발급
     @Override
     @Transactional
-    public void assignMonthlyBirthdayCoupons() {
+    public BulkAssignResponseDTO assignMonthlyBirthdayCoupons() {
         LocalDate today = LocalDate.now();
         int currentMonth = today.getMonthValue();
         boolean isLeapYear = Year.now().isLeap();
@@ -582,17 +546,19 @@ public class CouponServiceImpl implements CouponService {
         List<MemberDto> membersWithBirthdays = fetchMembersByMonth(currentMonth);
         if (membersWithBirthdays.isEmpty()) {
             log.info("No members with birthdays in month: {}", currentMonth);
-            return;
+            return new BulkAssignResponseDTO(false, 0);
         }
 
         // 월별 생일 쿠폰 정책 조회 (윤년 여부 포함)
         List<CouponPolicy> birthdayPolicies = fetchBirthdayCouponPolicies(currentMonth, isLeapYear);
         if (birthdayPolicies.isEmpty()) {
             log.warn("No coupon policies found for month: {}, Leap Year: {}", currentMonth, isLeapYear);
-            return;
+            return new BulkAssignResponseDTO(false, 0);
         }
 
         log.info("Using coupon policies: {}", birthdayPolicies.stream().map(CouponPolicy::getName).toList());
+
+        int totalIssuedCoupons = 0;
 
         // 각 정책에 대해 쿠폰 발급
         for (CouponPolicy policy : birthdayPolicies) {
@@ -603,9 +569,13 @@ public class CouponServiceImpl implements CouponService {
                     .map(member -> new CouponAssignRequestDTO(null, member.getId()))
                     .toList();
 
-            assignBirthdayCoupons(couponRequests, policy);
+            int issuedCount = assignBirthdayCoupons(couponRequests, policy);
+            totalIssuedCoupons += issuedCount;
         }
+
+        return new BulkAssignResponseDTO(true, totalIssuedCoupons);
     }
+
 
 
     private List<MemberDto> fetchMembersByMonth(int month) {
@@ -639,7 +609,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
 
-    private void assignBirthdayCoupons(List<CouponAssignRequestDTO> requests, CouponPolicy policy) {
+    private int assignBirthdayCoupons(List<CouponAssignRequestDTO> requests, CouponPolicy policy) {
         CouponCreationAndAssignRequestDTO requestDTO = new CouponCreationAndAssignRequestDTO(
                 "생일 축하 쿠폰",
                 policy.getId(),
@@ -648,11 +618,15 @@ public class CouponServiceImpl implements CouponService {
         );
 
         try {
-            createAndAssignCoupons(requestDTO);
+            // 쿠폰 생성 및 발급
+            List<CouponAssignResponseDTO> responses = createAndAssignCoupons(requestDTO);
+            return responses.size(); // 발급된 쿠폰 개수 반환
         } catch (Exception e) {
-            log.error("Failed to assign birthday coupons.", e);
+            log.error("Failed to assign birthday coupons for policy: {}", policy.getName(), e);
+            return 0; // 실패 시 0 반환
         }
     }
+
 
     // 쿠폰 상세 정보 DTO 변환
     private CouponDetailsDTO mapToCouponDetailsDTO(Coupon coupon) {
