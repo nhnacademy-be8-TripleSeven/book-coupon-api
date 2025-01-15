@@ -29,8 +29,4 @@ public class BookCoupon {
         this.book = book;
         this.coupon = coupon;
     }
-
-    public void setTestId(Long id) {
-        this.id = id;
-    }
 }

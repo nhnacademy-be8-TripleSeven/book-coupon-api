@@ -46,10 +46,6 @@ public class Coupon {
         this.couponPolicy = policy;
     }
 
-    public void setTestId(Long id) {
-        this.id = id;
-    }
-
     public void updateCouponStatus(CouponStatus couponStatus) {
         this.couponStatus = couponStatus;
     }
