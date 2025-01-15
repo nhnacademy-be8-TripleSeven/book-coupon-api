@@ -646,7 +646,7 @@ class BookMultiTableServiceTest {
         doNothing().when(imageService).deleteBookCoverImageAndBookDetailImage(bookId);
         doNothing().when(bookTagService).deleteAllByBookId(bookId);
         doNothing().when(reviewService).deleteAllReviewsWithBook(bookId);
-        doNothing().when(bookCouponRepository).deleteByBookId(bookId);
+        lenient().doNothing().when(bookCouponRepository).deleteByBookId(bookId);
         doNothing().when(wrapperRepository).deleteByBookId(bookId);
         lenient().doNothing().when(bookPopularityRepository).deleteByBookId(bookId);
         doNothing().when(bookService).deleteBook(bookId);
