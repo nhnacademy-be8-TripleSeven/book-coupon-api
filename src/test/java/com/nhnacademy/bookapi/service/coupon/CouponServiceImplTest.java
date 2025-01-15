@@ -4,10 +4,14 @@ package com.nhnacademy.bookapi.service.coupon;
 import com.nhnacademy.bookapi.client.MemberFeignClient;
 import com.nhnacademy.bookapi.config.RabbitConfig;
 import com.nhnacademy.bookapi.dto.coupon.*;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
+import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyResponseDTO;
 import com.nhnacademy.bookapi.dto.member.MemberDto;
+import com.nhnacademy.bookapi.dto.member.MemberNotFoundException;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.*;
 import com.nhnacademy.bookapi.repository.*;
+import com.nhnacademy.bookapi.service.couponpolicy.CouponPolicyServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -20,9 +24,8 @@ import org.springframework.data.domain.PageImpl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Optional;
-import java.util.Date;
+import java.time.Year;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -32,6 +35,9 @@ class CouponServiceImplTest {
 
     @InjectMocks
     private CouponServiceImpl couponService;
+
+    @InjectMocks
+    private CouponPolicyServiceImpl couponPolicyService;
 
     @Mock
     private CouponRepository couponRepository;
@@ -43,6 +49,9 @@ class CouponServiceImplTest {
     private BookRepository bookRepository;
 
     @Mock
+    private BookCategoryRepository bookCategoryRepository;
+
+    @Mock
     private CategoryRepository categoryRepository;
 
     @Mock
@@ -50,6 +59,12 @@ class CouponServiceImplTest {
 
     @Mock
     private CategoryCouponRepository categoryCouponRepository;
+
+    @Mock
+    private MemberFeignClient memberFeignClient;
+
+    @Mock
+    private CouponPolicyOrderResponseDTO couponPolicyOrderResponseDTO;
 
     @Mock
     private RabbitTemplate rabbitTemplate;
@@ -167,6 +182,43 @@ class CouponServiceImplTest {
         assertThrows(CategoryNotFoundException.class, () ->
                 couponService.createCategoryCoupon(new CategoryCouponCreationRequestDTO(1L, 1L, "Category Coupon")));
     }
+
+
+    @Test
+    void testCreateCouponsInBulk_Success() {
+        CouponPolicy policy = CouponPolicy.builder().id(1L).name("Test Policy").couponValidTime(30).build();
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+
+        Coupon coupon = Coupon.builder().id(1L).name("Bulk Coupon").couponPolicy(policy).build();
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
+        CouponBulkCreationRequestDTO request = new CouponBulkCreationRequestDTO(
+                "Bulk Coupon", 1L, null, null, 5L
+        );
+
+        BulkCouponCreationResponseDTO response = couponService.createCouponsInBulk(request);
+
+        assertTrue(response.isSuccess());
+        assertEquals(5, response.getCreatedCount());
+    }
+
+    @Test
+    void testCreateCouponsInBulk_Failure_NoPolicy() {
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.empty());
+
+        CouponBulkCreationRequestDTO request = new CouponBulkCreationRequestDTO(
+                "Bulk Coupon", 1L, null, null, 5L
+        );
+
+        BulkCouponCreationResponseDTO response = couponService.createCouponsInBulk(request);
+
+        assertFalse(response.isSuccess());
+        assertEquals(0, response.getCreatedCount());
+    }
+
+
+
+
     @Test
     void testExpireCoupons_Success() {
         // Given
@@ -213,8 +265,7 @@ class CouponServiceImplTest {
 
         CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
 
-        Coupon coupon = Coupon.builder().id(couponId).name("Base Coupon").couponPolicy(policy).build();
-        coupon.setCouponAssignData(userId, LocalDate.now(), LocalDate.now().plusDays(30), CouponStatus.NOTUSED);
+        Coupon coupon = Coupon.builder().id(couponId).name("Base Coupon").couponPolicy(policy).memberId(userId).build();
 
         when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
         when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
@@ -228,138 +279,1087 @@ class CouponServiceImplTest {
         assertEquals("Base Coupon", response.getName());
     }
 
+    @Test
+    void testUseCoupon_NotAssigned() {
+        long userId = 123L;
+        long couponId = 1L;
+
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+
+        Coupon coupon = Coupon.builder().id(couponId).name("Base Coupon").couponPolicy(policy).couponStatus(CouponStatus.USED).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
+        assertThrows(CouponNotAssignedException.class, () -> couponService.useCoupon(userId, couponId, 1L));
+
+    }
+
+    @Test
+    void testUseCoupon_AlreadyUsed() {
+        long userId = 123L;
+        long couponId = 1L;
+
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+
+        Coupon coupon = Coupon.builder().id(couponId).name("Base Coupon").couponPolicy(policy).memberId(userId).couponStatus(CouponStatus.USED).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
+        assertThrows(CouponAlreadyUsedException.class, () ->  couponService.useCoupon(userId, couponId, 1L));
+
+    }
+
+    @Test
+    void testUseCoupon_Expired() {
+        long userId = 123L;
+        long couponId = 1L;
+
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+
+        Coupon coupon = Coupon.builder().id(couponId).name("Base Coupon").couponPolicy(policy).memberId(userId).couponStatus(CouponStatus.EXPIRED).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
+        assertThrows(CouponExpiredException.class, () ->  couponService.useCoupon(userId, couponId, 1L));
+
+    }
+
+
+    @Test
+    void testUseCoupon_Success_BookCoupon() {
+        // Given
+        long userId = 123L;
+        long couponId = 1L;
+        long bookId = 1L;
+
+        Book book = Book.builder().id(bookId).title("Test Book").build();
+
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+
+        Coupon coupon = Coupon.builder().id(couponId).name("Book Coupon").couponPolicy(policy).memberId(userId).build();
+
+        BookCoupon bookCoupon = BookCoupon.builder().book(book).coupon(coupon).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(bookCouponRepository.existsByCoupon(coupon)).thenReturn(true);
+        when(bookCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(bookCoupon));
+
+        // When
+        CouponUseResponseDTO response = couponService.useCoupon(userId, couponId, bookId);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(CouponStatus.USED, coupon.getCouponStatus());
+        assertEquals("Book Coupon", response.getName());
+    }
+
+
+    @Test
+    void testUseCoupon_CouponNotFound_BookCoupon() {
+
+        long userId = 123L;
+        long couponId = 1L;
+        long bookId = 1L;
+
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+
+        Coupon coupon = Coupon.builder().id(couponId).name("Book Coupon").couponPolicy(policy).memberId(userId).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(bookCouponRepository.existsByCoupon(coupon)).thenReturn(true);
+
+        assertThrows(CouponNotFoundException.class, () -> couponService.useCoupon(userId, couponId, bookId));
+
+    }
+
+
+    @Test
+    void testUseCoupon_InvalidCouponUse_BookCoupon() {
+
+        long userId = 123L;
+        long couponId = 1L;
+        long bookId = 1L;
+
+        Book book = Book.builder().id(bookId).title("Test Book").build();
+
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+
+        Coupon coupon = Coupon.builder().id(couponId).name("Book Coupon").couponPolicy(policy).memberId(userId).build();
+
+        BookCoupon bookCoupon = BookCoupon.builder().book(book).coupon(coupon).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(bookCouponRepository.existsByCoupon(coupon)).thenReturn(true);
+        when(bookCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(bookCoupon));
+
+        assertThrows(InvalidCouponUsageException.class, () -> couponService.useCoupon(userId, couponId, 2L));
+    }
+
+
+    @Test
+    void testUseCoupon_Success_CategoryCoupon() {
+        // Given
+        long userId = 123L;
+        long couponId = 2L;
+        long bookId = 1L;
+
+        Category category = Category.builder().id(10L).name("Test Category").build();
+
+        // 쿠폰과 정책 설정
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+        Coupon coupon = Coupon.builder().id(couponId).name("Category Coupon").couponPolicy(policy).memberId(userId).build();
+        CategoryCoupon categoryCoupon = CategoryCoupon.builder().category(category).coupon(coupon).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(bookCouponRepository.existsByCoupon(coupon)).thenReturn(false);
+        when(categoryCouponRepository.existsByCoupon(coupon)).thenReturn(true);
+        when(categoryCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(categoryCoupon));
+        when(bookCategoryRepository.findCategoriesByBookId(bookId)).thenReturn(List.of(category));
+
+        // When
+        CouponUseResponseDTO response = couponService.useCoupon(userId, couponId, bookId);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(CouponStatus.USED, coupon.getCouponStatus());
+        assertEquals("Category Coupon", response.getName());
+    }
+
+
+    @Test
+    void testUseCoupon_CouponNotFound_CategoryCoupon() {
+        // Given
+        long userId = 123L;
+        long couponId = 2L;
+        long bookId = 1L;
+
+        // 도서와 카테고리 설정
+        Category category = Category.builder().id(10L).name("Test Category").build();
+        Book book = Book.builder().id(bookId).title("Test Book").build();
+        BookCategory bookCategory = new BookCategory(book, category);
+
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+        Coupon coupon = Coupon.builder().id(couponId).name("Category Coupon").couponPolicy(policy).memberId(userId).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(bookCouponRepository.existsByCoupon(coupon)).thenReturn(false);
+        when(categoryCouponRepository.existsByCoupon(coupon)).thenReturn(true);
+
+        // When
+        assertThrows(CouponNotFoundException.class, () -> couponService.useCoupon(userId, couponId, bookId));
+    }
+
+
+    @Test
+    void testUseCoupon_InvalidUse_CategoryCoupon() {
+        // Given
+        long userId = 123L;
+        long couponId = 2L;
+        long bookId = 1L;
+
+        Category category = Category.builder().id(10L).name("Test Category").build();
+
+        Category category2 = Category.builder().id(11L).name("Test Category2").build();
+
+        // 쿠폰과 정책 설정
+        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
+        Coupon coupon = Coupon.builder().id(couponId).name("Category Coupon").couponPolicy(policy).memberId(userId).build();
+        CategoryCoupon categoryCoupon = CategoryCoupon.builder().category(category).coupon(coupon).build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(bookCouponRepository.existsByCoupon(coupon)).thenReturn(false);
+        when(categoryCouponRepository.existsByCoupon(coupon)).thenReturn(true);
+        when(categoryCouponRepository.findByCoupon(coupon)).thenReturn(Optional.of(categoryCoupon));
+        when(bookCategoryRepository.findCategoriesByBookId(bookId)).thenReturn(List.of(category2));
+
+
+        assertThrows(InvalidCouponUsageException.class, () ->  couponService.useCoupon(userId, couponId, bookId));
+    }
+
+    @Test
+    void testUseBaseCoupon_Success() {
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Base Policy")
+                .couponDiscountRate(BigDecimal.valueOf(0.1))
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Base Coupon")
+                .couponPolicy(policy)
+                .couponStatus(CouponStatus.NOTUSED)
+                .couponExpiryDate(LocalDate.now().plusDays(10))
+                .build();
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
+        CouponUseResponseDTO result = couponService.useBaseCoupon(1L);
+
+        assertNotNull(result);
+        assertEquals("Base Coupon", result.getName());
+        assertEquals(CouponStatus.USED, coupon.getCouponStatus());
+    }
+
+    @Test
+    void testUseBaseCoupon_Used() {
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Base Policy")
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Base Coupon")
+                .couponPolicy(policy)
+                .couponStatus(CouponStatus.USED)
+                .couponExpiryDate(LocalDate.now().minusDays(1))
+                .build();
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+        assertThrows(CouponAlreadyUsedException.class, () -> couponService.useBaseCoupon(1L));
+    }
+
+    @Test
+    void testUseBaseCoupon_Expired() {
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Base Policy")
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Base Coupon")
+                .couponPolicy(policy)
+                .couponStatus(CouponStatus.EXPIRED)
+                .couponExpiryDate(LocalDate.now().minusDays(1))
+                .build();
+
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+        assertThrows(CouponExpiredException.class, () -> couponService.useBaseCoupon(1L));
+    }
+
+    @Test
+    void testGetCouponsForUser() {
+        long userId = 123L;
+        String keyword = "Discount";
+        LocalDate startDate = LocalDate.now().minusDays(10);
+        LocalDate endDate = LocalDate.now();
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Base Policy")
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Discount Coupon")
+                .couponIssueDate(LocalDate.now().minusDays(5))
+                .couponStatus(CouponStatus.NOTUSED)
+                .couponPolicy(policy)
+                .build();
+
+        when(couponRepository.findByMemberIdAndCouponIssueDateAfterOrderByCouponIssueDateDesc(anyLong(), any(LocalDate.class)))
+                .thenReturn(List.of(coupon));
+
+        List<CouponDetailsDTO> result = couponService.getCouponsForUser(userId, keyword, startDate, endDate);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Discount Coupon", result.get(0).getName());
+    }
+
+
+
+    @Test
+    void testGetUsedCouponsForUser() {
+        long userId = 123L;
+        String keyword = "Used";
+        LocalDate startDate = LocalDate.now().minusDays(10);
+        LocalDate endDate = LocalDate.now();
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Base Policy")
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Used Coupon")
+                .couponStatus(CouponStatus.USED)
+                .couponIssueDate(LocalDate.now().minusDays(5))
+                .couponPolicy(policy)
+                .build();
+
+        when(couponRepository.findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(anyLong(), eq(CouponStatus.USED), any(LocalDate.class)))
+                .thenReturn(List.of(coupon));
+
+        List<CouponDetailsDTO> result = couponService.getUsedCouponsForUser(userId, keyword, startDate, endDate);
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("Used Coupon", result.get(0).getName());
+    }
+
+
+    @Test
+    void testGetCouponPolicyByCouponId_Success() {
+
+        long couponId = 1L;
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .couponMinAmount(1000L)
+                .couponMaxAmount(5000L)
+                .couponDiscountRate(new BigDecimal("0.10"))
+                .couponDiscountAmount(500L)
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(couponId)
+                .couponPolicy(policy)
+                .couponStatus(CouponStatus.NOTUSED)
+                .build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponPolicyRepository.findById(policy.getId())).thenReturn(Optional.of(policy));
+
+        CouponPolicyOrderResponseDTO response = couponService.getCouponPolicyByCouponId(couponId);
+
+        assertNotNull(response);
+        assertEquals(1000L, response.getCouponMinAmount());
+        assertEquals(5000L, response.getCouponMaxAmount());
+        assertEquals(new BigDecimal("0.10"), response.getCouponDiscountRate());
+        assertEquals(500L, response.getCouponDiscountAmount());
+        assertEquals(CouponStatus.NOTUSED, response.getCouponStatus());
+    }
+
+    @Test
+    void testGetCouponPolicyByCouponId_CouponNotFound() {
+
+        long couponId = 1L;
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.empty());
+
+        CouponNotFoundException exception = assertThrows(CouponNotFoundException.class,
+                () -> couponService.getCouponPolicyByCouponId(couponId));
+
+        assertEquals("No coupons found for ID: " + couponId, exception.getMessage());
+    }
+
+    @Test
+    void testGetCouponPolicyByCouponId_CouponPolicyNotFound() {
+
+        long couponId = 1L;
+
+        Coupon coupon = Coupon.builder()
+                .id(couponId)
+                .couponPolicy(CouponPolicy.builder().id(2L).build())
+                .build();
+
+        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        when(couponPolicyRepository.findById(2L)).thenReturn(Optional.empty());
+
+        CouponPolicyNotFoundException exception = assertThrows(CouponPolicyNotFoundException.class,
+                () -> couponService.getCouponPolicyByCouponId(couponId));
+
+        assertEquals("No coupons found for policy with ID: 2", exception.getMessage());
+    }
+
+
+
+    @Test
+    void testCreateAndAssignCoupons_Success() {
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Test Policy")
+                .couponValidTime(30)
+                .build();
+
+        MemberDto member = MemberDto.builder().id(1L).build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Test Coupon")
+                .couponPolicy(policy)
+                .build();
+
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(memberFeignClient.getMembers(null, null, 0, 100, null, "ASC"))
+                .thenReturn(new PageImpl<>(List.of(member)));
+        when(couponRepository.saveAll(anyList())).thenReturn(List.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                "Test Coupon",
+                1L,
+                null,
+                "전체"
+        );
+        List<CouponAssignResponseDTO> response = couponService.createAndAssignCoupons(request);
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(1L, response.get(0).getCouponId());
+    }
+
+
+    @Test
+    void testCreateAndAssignCoupons_Failure_CouponPolicyNotFound() {
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.empty());
+
+        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                "Test Coupon",
+                1L,
+                null,
+                "전체"
+        );
+
+        assertThrows(CouponPolicyNotFoundException.class, () -> couponService.createAndAssignCoupons(request));
+    }
+
+
+    @Test
+    void testCreateAndAssignCoupons_Failure_InvalidRecipientType() {
+
+        CouponPolicy policy = CouponPolicy.builder().id(1L).build();
+
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(memberFeignClient.getMembers(null, null, 0, 100, null, "ASC"))
+                .thenReturn(new PageImpl<>(List.of()));
+
+
+        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                "Test Coupon",
+                1L,
+                null,
+                "test"
+        );
+        assertThrows(InvalidRecipientTypeException.class, () -> couponService.createAndAssignCoupons(request));
+    }
+
+    @Test
+    void testCreateAndAssignCoupons_Failure_EmptyRecipients() {
+        CouponPolicy policy = CouponPolicy.builder().id(1L).build();
+
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(memberFeignClient.getMembers(null, null, 0, 100, null, "ASC"))
+                .thenReturn(new PageImpl<>(List.of())); // Empty list for members
+
+        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                "Test Coupon",
+                1L,
+                null,
+                "전체"
+        );
+
+        assertThrows(MemberNotFoundException.class, () -> couponService.createAndAssignCoupons(request));
+    }
+
+    @Test
+    void testCreateAndAssignCoupons_Success_GradeRecipient() {
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Test Policy")
+                .couponValidTime(30)
+                .build();
+
+        MemberDto member = MemberDto.builder().id(1L).build();
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .couponPolicy(policy)
+                .name("Test Coupon")
+                .build();
+
+        CouponCreationAndAssignRequestDTO request = CouponCreationAndAssignRequestDTO.builder().name("Test Coupon").
+                bookId(null).categoryId(null).couponPolicyId(1L).recipientType("등급별").grade("GOLD").build();
+
+        when(couponPolicyRepository.findById(request.getCouponPolicyId())).thenReturn(Optional.of(policy));
+        when(memberFeignClient.getMembers(null, MemberGrade.GOLD, 0, 100, null, "ASC"))
+                .thenReturn(new PageImpl<>(List.of(member)));
+        when(couponRepository.saveAll(anyList())).thenReturn(List.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+
+
+
+        List<CouponAssignResponseDTO> response = couponService.createAndAssignCoupons(request);
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(1L, response.get(0).getCouponId());
+    }
+
+    @Test
+    void testCreateAndAssignCoupons_Success_IndividualRecipient() {
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Test Policy")
+                .couponValidTime(30)
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Test Coupon")
+                .couponPolicy(policy)
+                .build();
+
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(couponRepository.saveAll(anyList())).thenReturn(List.of(coupon));
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
+        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                "Test Coupon",
+                1L,
+                List.of(1L),
+                "개인별"
+        );
+
+        List<CouponAssignResponseDTO> response = couponService.createAndAssignCoupons(request);
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(1L, response.get(0).getCouponId());
+    }
+
+
+    @Test
+    void testConvertGrade_InvalidGrade() {
+        String invalidGrade = "TestGrade";
+
+        InvalidRecipientTypeException exception = assertThrows(
+                InvalidRecipientTypeException.class,
+                () -> couponService.convertGrade(invalidGrade)
+        );
+
+        assertEquals("유효하지 않은 등급: " + invalidGrade, exception.getMessage());
+    }
+
+
+    @Test
+    void testIssueWelcomeCoupon_Success() {
+        Long memberId = 1L;
+
+        // Mocked 데이터 준비
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Welcome Policy")
+                .couponValidTime(30)
+                .build();
+
+        CouponPolicy policy2 = CouponPolicy.builder()
+                .id(1L)
+                .name("Base Policy")
+                .couponValidTime(30)
+                .build();
+
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("회원가입 축하 쿠폰")
+                .couponPolicy(policy)
+                .build();
+
+        Coupon coupon2 = Coupon.builder()
+                .id(2L)
+                .name("회원가입 선착순 쿠폰")
+                .couponPolicy(policy2)
+                .build();
+
+
+        // Mock 설정
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(couponPolicyRepository.findByNameContainingIgnoreCase("Welcome")).thenReturn(List.of(policy));
+        when(couponPolicyService.searchCouponPoliciesByName("Welcome"))
+                .thenReturn(List.of(CouponPolicyResponseDTO.builder().id(1L).name("Welcome Policy").build()));
+        when(couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰")).thenReturn(Optional.of(coupon2));
+
+        doNothing().when(rabbitTemplate).convertAndSend(anyString(), anyString(), any(CouponAssignRequestDTO.class));
+
+        // 메서드 호출
+        List<CouponAssignResponseDTO> results = couponService.issueWelcomeCoupon(memberId);
+
+        // 결과 검증
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals(2L, results.get(0).getCouponId());
+        assertEquals("Welcome coupon assigned successfully.", results.get(0).getStatusMessage());
+    }
+
+    @Test
+    void testIssueWelcomeCoupon_NoWelcomePolicies() {
+        Long memberId = 1L;
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Welcome Policy")
+                .couponValidTime(30)
+                .build();
+
+        when(couponPolicyRepository.findByNameContainingIgnoreCase("Welcome")).thenReturn(List.of(policy));
+        when(couponPolicyService.searchCouponPoliciesByName("Welcome")).thenReturn(Collections.emptyList());
+
+        // 메서드 호출
+        List<CouponAssignResponseDTO> results = couponService.issueWelcomeCoupon(memberId);
+
+        // 결과 검증
+        assertNotNull(results);
+        assertTrue(results.isEmpty());
+    }
 
 //    @Test
-//    void testCreateCouponsInBulk_Success() {
-//        // Given
-//        CouponPolicy policy = CouponPolicy.builder().id(1L).name("Test Policy").couponValidTime(30).build();
+//    void testIssueWelcomeCoupon_WithWelcomePolicies() {
+//        Long memberId = 1L;
 //
-//        Category category = Category.builder().id(10L).name("Test Category").level(0).build();
+//        // Mocked 데이터 준비
+//        CouponPolicy policy = CouponPolicy.builder()
+//                .id(1L)
+//                .name("Welcome Policy")
+//                .couponValidTime(30)
+//                .build();
 //
-//        Book book = Book.builder().id(1L).title("Test Book").build();
+//        Coupon coupon = Coupon.builder()
+//                .id(1L)
+//                .name("회원가입 축하 쿠폰")
+//                .couponPolicy(policy)
+//                .build();
+//
+//        CouponPolicyResponseDTO policyResponse = CouponPolicyResponseDTO.builder()
+//                .id(1L)
+//                .name("Welcome Policy")
+//                .build();
+//
+//        CouponAssignResponseDTO response = CouponAssignResponseDTO.builder()
+//                .couponId(1L)
+//                .statusMessage("Welcome coupon assigned successfully.")
+//                .build();
+//
+//        CouponCreationAndAssignRequestDTO request = CouponCreationAndAssignRequestDTO.builder()
+//                .couponPolicyId(1L)
+//                .recipientType("개인별")
+//                .memberIds(List.of(memberId))
+//                .build();
+//
+//        // Mock 설정
+//        when(couponPolicyRepository.findByNameContainingIgnoreCase("Welcome"))
+//                .thenReturn(List.of(policy));
+//        when(couponPolicyRepository.findById(1L))
+//                .thenReturn(Optional.of(policy));
+//        when(couponPolicyService.searchCouponPoliciesByName("Welcome"))
+//                .thenReturn(List.of(policyResponse));
+//        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+//        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+//        when(couponService.createAndAssignCoupons(request))
+//                .thenReturn(List.of(response));
+//
+//        // 메서드 호출
+//        List<CouponAssignResponseDTO> results = couponService.issueWelcomeCoupon(memberId);
+//
+//        // 결과 검증
+//        assertNotNull(results);
+//        assertEquals(1, results.size());
+//        assertEquals(1L, results.get(0).getCouponId());
+//        assertEquals("Welcome coupon assigned successfully.", results.get(0).getStatusMessage());
+//
+//    }
+
+//
+//    @Test
+//    void testIssueWelcomeCoupon_WithWelcomePolicies() {
+//        Long memberId = 1L;
+//
+//        CouponPolicy policy = CouponPolicy.builder()
+//                .id(1L)
+//                .name("Welcome Policy")
+//                .couponValidTime(30)
+//                .build();
+//
+//        CouponPolicyResponseDTO policyResponse = CouponPolicyResponseDTO.builder()
+//                .id(1L)
+//                .name("Welcome Policy")
+//                .build();
+//
+//        CouponAssignResponseDTO response = CouponAssignResponseDTO.builder()
+//                .couponId(1L)
+//                .statusMessage("Welcome coupon assigned successfully.")
+//                .build();
+//
+//        CouponCreationAndAssignRequestDTO request = CouponCreationAndAssignRequestDTO.builder()
+//                .couponPolicyId(1L)
+//                .recipientType("개인별")
+//                .memberIds(List.of(memberId))
+//                .build();
+//
+//        // Mock 설정
+//        when(couponPolicyService.searchCouponPoliciesByName("Welcome"))
+//                .thenReturn(List.of(policyResponse));
+//        when(couponRepository.save(any(Coupon.class)))
+//                .thenReturn(new Coupon()); // 가짜 Coupon 반환
+//        when(couponService.createAndAssignCoupons(request))
+//                .thenReturn(List.of(response));
+//        when(couponPolicyRepository.findByNameContainingIgnoreCase("Welcome")).
+//                thenReturn(List.of(policy));
+//        // 메서드 호출
+//        List<CouponAssignResponseDTO> results = couponService.issueWelcomeCoupon(memberId);
+//
+//        // 결과 검증
+//        assertNotNull(results);
+//        assertEquals(1, results.size());
+//        assertEquals(1L, results.get(0).getCouponId());
+//        assertEquals("Welcome coupon assigned successfully.", results.get(0).getStatusMessage());
+//
+//    }
+
+
+
+
+
+
+    @Test
+    void testCreateCouponBasedOnTarget_CategoryCoupon() {
+        // Mocked 데이터 준비
+
+        Category category = Category.builder().id(100L).build();
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Category Policy")
+                .couponValidTime(30)
+                .build();
+
+        CouponCreationAndAssignRequestDTO request = CouponCreationAndAssignRequestDTO.builder()
+                .couponPolicyId(1L)
+                .categoryId(100L) // 카테고리 ID 설정
+                .name("카테고리 할인 쿠폰")
+                .build();
+
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("카테고리 할인 쿠폰")
+                .couponPolicy(policy)
+                .build();
+
+
+        when(categoryRepository.findById(100L)).thenReturn(Optional.of(category));
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
+
+        // 메서드 호출
+        Coupon result = couponService.createCouponBasedOnTarget(request, policy);
+
+        // 결과 검증
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("카테고리 할인 쿠폰", result.getName());
+    }
+
+
+
+    @Test
+    void testCreateCouponBasedOnTarget_BookCoupon() {
+
+        Book book = Book.builder().id(1L).build();
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Book Policy")
+                .couponValidTime(30)
+                .build();
+
+        CouponCreationAndAssignRequestDTO request = CouponCreationAndAssignRequestDTO.builder()
+                .couponPolicyId(1L)
+                .bookId(1L)
+                .name("도서 할인 쿠폰")
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("도서 할인 쿠폰")
+                .couponPolicy(policy)
+                .build();
+
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
+
+        // 메서드 호출
+        Coupon result = couponService.createCouponBasedOnTarget(request, policy);
+
+        // 결과 검증
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("도서 할인 쿠폰", result.getName());
+    }
+
+
+
+
+
+    @Test
+    void testSearchCouponPoliciesByName_NotFound() {
+        // Mock 설정
+        when(couponPolicyRepository.findByNameContainingIgnoreCase("NonExistingPolicy")).thenReturn(List.of());
+
+        // 예외 검증
+        assertThrows(CouponPolicyNotFoundException.class, () -> {
+            couponPolicyService.searchCouponPoliciesByName("NonExistingPolicy");
+        });
+    }
+
+    @Test
+    void testSearchCouponPoliciesByName_Found() {
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Welcome Policy")
+                .build();
+
+        when(couponPolicyRepository.findByNameContainingIgnoreCase("Welcome")).thenReturn(List.of(policy));
+
+        // 메서드 호출
+        List<CouponPolicyResponseDTO> results = couponPolicyService.searchCouponPoliciesByName("Welcome");
+
+        // 결과 검증
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals(1L, results.get(0).getId());
+        assertEquals("Welcome Policy", results.get(0).getName());
+    }
+
+
+
+
+
+
+
+
+
+//
+//    @Test
+//    void testAssignMonthlyBirthdayCoupons_Success() {
+//        LocalDate today = LocalDate.now();
+//        int currentMonth = today.getMonthValue();
+//        boolean isLeapYear = Year.now().isLeap();
+//
+//        MemberDto member = MemberDto.builder().id(1L).birth(new Date()).build();
+//
+//        CouponPolicy policy = CouponPolicy.builder()
+//                .id(1L)
+//                .name("생일 축하 쿠폰 - " + currentMonth + "월")
+//                .build();
+//
+//        when(memberFeignClient.getMembers(any(), any(), anyInt(), anyInt(), any(), anyString()))
+//                .thenReturn(new PageImpl<>(List.of(member)));
+//
+//        when(couponPolicyRepository.findByNameContaining(anyString()))
+//                .thenReturn(List.of(policy));
 //
 //        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
-//        when(categoryRepository.findById(10L)).thenReturn(Optional.of(category));
-//        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
 //
-//        // When
-//        CouponBulkCreationRequestDTO request = new CouponBulkCreationRequestDTO(
-//                "Bulk Coupon",
-//                1L,
-//                10L,
-//                null,
-//                10L
-//        );
+//        when(couponRepository.saveAll(any()))
+//                .thenAnswer(invocation -> {
+//                    List<Coupon> coupons = invocation.getArgument(0);
+//                    assertEquals(1, coupons.size()); // 1명의 회원에게 1개의 정책으로 쿠폰 발급
+//                    assertEquals(member.getId(), coupons.get(0).getMemberId());
+//                    assertEquals(policy.getId(), coupons.get(0).getCouponPolicy().getId());
+//                    return coupons;
+//                });
 //
-//        couponService.createCouponsInBulk(request);
 //
-//        // Then
-//        verify(couponPolicyRepository, times(1)).findById(1L);
-//        verify(categoryRepository, times(1)).findById(1L);
-//        verify(couponRepository, times(10)).save(any(Coupon.class));
-//        verify(categoryCouponRepository, times(10)).save(any(CategoryCoupon.class));
+//        BulkAssignResponseDTO response = couponService.assignMonthlyBirthdayCoupons();
+//
+//        assertNotNull(response);
+//        assertTrue(response.isSuccess());
+//        assertEquals(1, response.getIssuedCount());
+//
 //    }
 
 
-//
-//    @Test
-//    void testCreateCouponsInBulk_Failure_PolicyNotFound() {
-//        // Given
-//        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.empty());
-//
-//        CouponBulkCreationRequestDTO request = new CouponBulkCreationRequestDTO(
-//                "Bulk Coupon",
-//                1L,
-//                10L,
-//                null, // bookId
-//                1L   // categoryId
-//        );
-//
-//        // When & Then
-//        assertThrows(CouponPolicyNotFoundException.class, () -> couponService.createCouponsInBulk(request));
-//        verify(couponPolicyRepository, times(1)).findById(1L);
-//        verifyNoMoreInteractions(couponRepository);
-//    }
+    @Test
+    void testAssignMonthlyBirthdayCoupons_NoBirthdays() {
+        when(memberFeignClient.getMembers(any(), any(), anyInt(), anyInt(), any(), anyString()))
+                .thenReturn(new PageImpl<>(List.of()));
 
+        couponService.assignMonthlyBirthdayCoupons();
 
-
-
-
+        verify(couponPolicyRepository, never()).findByNameContaining(anyString());
+    }
 
     @Test
-    void testUseCoupon_Failure_AlreadyUsed() {
-        // Given
-        long userId = 123L;
-        long couponId = 1L;
+    void testAssignMonthlyBirthdayCoupons_NoPolicies() {
+        MemberDto member = MemberDto.builder().id(1L).birth(new Date()).build();
 
-        CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").build();
-        Coupon coupon = Coupon.builder().id(couponId).build();
+        when(memberFeignClient.getMembers(any(), any(), anyInt(), anyInt(), any(), anyString()))
+                .thenReturn(new PageImpl<>(List.of(member)));
+        when(couponPolicyRepository.findByNameContaining(anyString())).thenReturn(List.of());
 
-        coupon.setCouponAssignData(userId, LocalDate.now(), LocalDate.now().plusDays(30), CouponStatus.USED);
+        couponService.assignMonthlyBirthdayCoupons();
 
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
-
-        // When & Then
-        assertThrows(CouponAlreadyUsedException.class, () -> couponService.useCoupon(userId, couponId, null));
-        verify(couponRepository, times(1)).findById(couponId);
+        verify(couponPolicyRepository, times(1)).findByNameContaining(anyString());
         verify(couponRepository, never()).save(any(Coupon.class));
     }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     @Test
-    void testUseCoupon_Failure_Expired() {
-        // Given
-        long userId = 123L;
-        long couponId = 1L;
+    void testGetAvailableCoupons() {
+        Long userId = 1L;
+        List<Long> bookIds = List.of(101L, 102L);
+        Long paymentAmount = 10000L;
 
-        CouponPolicy policy = new CouponPolicy("Policy Name", 1000L, 5000L, BigDecimal.TEN, 100L, 30);
-        Coupon coupon = new Coupon("Coupon Name", policy);
-        coupon.setTestId(couponId);
-        coupon.setCouponAssignData(userId, LocalDate.now().minusDays(60), LocalDate.now().minusDays(30), CouponStatus.EXPIRED);
+        // Mock 데이터 준비
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("10% 할인")
+                .couponDiscountRate(new BigDecimal("0.1"))
+                .couponDiscountAmount(null)
+                .couponMaxAmount(2000L)
+                .build();
 
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("회원 특별 쿠폰")
+                .couponPolicy(policy)
+                .couponExpiryDate(LocalDate.now().plusDays(5))
+                .build();
 
-        // When & Then
-        assertThrows(CouponExpiredException.class, () -> couponService.useCoupon(userId, couponId, null));
-        verify(couponRepository, times(1)).findById(couponId);
-        verify(couponRepository, never()).save(any(Coupon.class));
+        // Mock 설정
+        when(couponRepository.findAvailableCoupons(userId, paymentAmount, bookIds))
+                .thenReturn(List.of(coupon));
+
+        // 메서드 호출
+        List<AvailableCouponResponseDTO> result = couponService.getAvailableCoupons(userId, bookIds, paymentAmount);
+
+        // 결과 검증
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("회원 특별 쿠폰", result.get(0).getCouponName());
+        assertEquals(policy.getCouponDiscountRate(), result.get(0).getDiscountRate());
+        assertEquals(policy.getCouponMaxAmount(), result.get(0).getMaxDiscountAmount());
+    }
+
+
+    @Test
+    void testApplyCoupon_FixedDiscountAmount() {
+        Long couponId = 1L;
+        Long paymentAmount = 10000L;
+
+        // Mock 데이터 준비 (고정 할인 금액)
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("고정 할인")
+                .couponDiscountAmount(3000L)
+                .couponMaxAmount(2000L)
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(couponId)
+                .name("고정 할인 쿠폰")
+                .couponPolicy(policy)
+                .build();
+
+
+        when(couponRepository.findById(couponId))
+                .thenReturn(Optional.of(coupon));
+
+
+        Long discountAmount = couponService.applyCoupon(couponId, paymentAmount);
+
+
+        assertNotNull(discountAmount);
+        assertEquals(2000L, discountAmount);
     }
 
     @Test
-    void testUseCoupon_Failure_NotAssignedToUser() {
-        // Given
-        long userId = 123L;
-        long couponId = 1L;
+    void testApplyCoupon_DiscountRate() {
+        Long couponId = 1L;
+        Long paymentAmount = 10000L;
 
-        CouponPolicy policy = new CouponPolicy("Policy Name", 1000L, 5000L, BigDecimal.TEN, 100L, 30);
-        Coupon coupon = new Coupon("Coupon Name", policy);
-        coupon.setTestId(couponId);
-        coupon.setCouponAssignData(999L, LocalDate.now(), LocalDate.now().plusDays(30), CouponStatus.NOTUSED); // 다른 유저에게 할당됨
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(2L)
+                .name("10% 할인")
+                .couponDiscountRate(new BigDecimal("0.1"))
+                .couponMaxAmount(800L)
+                .build();
 
-        when(couponRepository.findById(couponId)).thenReturn(Optional.of(coupon));
+        Coupon coupon = Coupon.builder()
+                .id(couponId)
+                .name("할인율 쿠폰")
+                .couponPolicy(policy)
+                .build();
 
-        // When & Then
-        assertThrows(CouponNotAssignedException.class, () -> couponService.useCoupon(userId, couponId, null));
+
+        when(couponRepository.findById(couponId))
+                .thenReturn(Optional.of(coupon));
+
+
+        Long discountAmount = couponService.applyCoupon(couponId, paymentAmount);
+
+
+        assertNotNull(discountAmount);
+        assertEquals(800L, discountAmount);
     }
 
+    @Test
+    void testApplyCoupon_InvalidPolicy() {
+        Long couponId = 1L;
+        Long paymentAmount = 10000L;
 
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(3L)
+                .name("잘못된 정책")
+                .couponDiscountRate(null)
+                .couponDiscountAmount(null)
+                .build();
 
+        Coupon coupon = Coupon.builder()
+                .id(couponId)
+                .name("잘못된 정책 쿠폰")
+                .couponPolicy(policy)
+                .build();
 
+        when(couponRepository.findById(couponId))
+                .thenReturn(Optional.of(coupon));
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        assertThrows(IllegalArgumentException.class, () -> couponService.applyCoupon(couponId, paymentAmount));
+    }
 
 
 
