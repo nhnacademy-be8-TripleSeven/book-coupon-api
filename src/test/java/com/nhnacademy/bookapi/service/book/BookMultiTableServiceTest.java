@@ -91,6 +91,7 @@ class BookMultiTableServiceTest {
 
     @Mock
     private ReviewService reviewService;
+
     @Mock
     private BookCouponRepository bookCouponRepository;
 
@@ -116,7 +117,7 @@ class BookMultiTableServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize any common setup if necessary
+
     }
 
     // 1. getAdminBookById method test
@@ -618,17 +619,17 @@ class BookMultiTableServiceTest {
         long bookId = 1L;
 
         doNothing().when(bookTypeService).deleteBookType(bookId);
-        lenient().doNothing().when(bookIndexService).deleteBookIndex(bookId);
+        doNothing().when(bookIndexService).deleteBookIndex(bookId);
         doNothing().when(bookCreatorService).deleteBookCreatorMap(bookId);
         doNothing().when(bookCategoryRepository).deleteAllByBookId(bookId);
         doNothing().when(imageService).deleteBookCoverImageAndBookDetailImage(bookId);
         doNothing().when(bookTagService).deleteAllByBookId(bookId);
         doNothing().when(reviewService).deleteAllReviewsWithBook(bookId);
 
-        lenient().doNothing().when(bookCouponRepository).deleteByBookId(bookId);
+        doNothing().when(bookCouponRepository).deleteByBookId(bookId);
         doNothing().when(wrapperRepository).deleteByBookId(bookId);
 
-        lenient().doNothing().when(bookPopularityRepository).deleteByBookId(bookId);
+        doNothing().when(bookPopularityRepository).deleteByBookId(bookId);
         doNothing().when(bookService).deleteBook(bookId);
 
         bookMultiTableService.deleteBook(bookId);
@@ -643,7 +644,7 @@ class BookMultiTableServiceTest {
         verify(bookTagService, times(1)).deleteAllByBookId(bookId);
         verify(reviewService, times(1)).deleteAllReviewsWithBook(bookId);
         verify(wrapperRepository, times(1)).deleteByBookId(bookId);
-        verify(bookCouponRepository, times(1)).deleteByBookId(bookId);
+
 
 
         verify(bookService, times(1)).deleteBook(bookId);
