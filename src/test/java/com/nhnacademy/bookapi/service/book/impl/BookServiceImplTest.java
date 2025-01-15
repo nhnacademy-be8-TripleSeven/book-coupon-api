@@ -5,7 +5,6 @@ import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.*;
-import com.nhnacademy.bookapi.service.book.impl.BookServiceImpl;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -179,7 +178,7 @@ class BookServiceImplTest {
 
         when(bookRepository.findAllById(bookIds)).thenReturn(List.of(book));
 
-        List<CartItemDTO> result = bookService.getCartItemsByIds(bookIds);
+        List<OrderItemDTO> result = bookService.getCartItemsByIds(bookIds);
         List<Book> allById = bookRepository.findAllById(bookIds);
 
         assertNotNull(result);
