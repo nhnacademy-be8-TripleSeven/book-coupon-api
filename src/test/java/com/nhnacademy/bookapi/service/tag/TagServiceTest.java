@@ -42,9 +42,7 @@ class TagServiceTest {
 
         when(tagRepository.existsByName(tagRequestDto.getName())).thenReturn(false);
 
-        boolean result = tagService.addTag(tagRequestDto);
-
-        assertTrue(result);
+        tagService.addTag(tagRequestDto);
         verify(tagRepository, times(1)).save(any(Tag.class));
     }
 
@@ -62,8 +60,7 @@ class TagServiceTest {
     void testDeleteTagSuccess() {
         Long tagId = 1L;
         when(tagRepository.existsById(tagId)).thenReturn(true);
-        boolean result = tagService.deleteTag(tagId);
-        assertTrue(result);
+        tagService.deleteTag(tagId);
         verify(tagRepository, times(1)).deleteById(tagId);
     }
 

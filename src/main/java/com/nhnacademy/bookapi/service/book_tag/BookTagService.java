@@ -24,7 +24,7 @@ import java.util.Optional;
 @Service
 @Transactional
 public class BookTagService {
-//
+
     private final BookTagRepository bookTagRepository;
     private final BookRepository bookRepository;
     private final TagRepository tagRepository;
@@ -79,25 +79,6 @@ public class BookTagService {
         Book book = getBook(bookId);
         bookTagRepository.deleteAllByBook(book);
     }
-
-//    public boolean updateBookTag(BookTagRequestDTO bookTagRequestDTO, Tag newTag) { // 업데이트하고픈 컬럼을 찾고 태그 이름 업데이트
-//        Book book = getBook(bookTagRequestDTO.getBookId());
-//        Tag tag = getTag(bookTagRequestDTO.getTagId());
-//        BookTag bookTag = bookTagRepository.findByBookAndTag(book, tag).orElseThrow(() -> new BookTagNotFoundException("Not Exist"));
-//        bookTag.setTag(newTag);
-//        return true;
-//    }
-//    public boolean updateBookTag(BookTagRequestDTO bookTagRequestDTO, Long newTagId) {
-//        Book book = getBook(bookTagRequestDTO.getBookId());
-//        Tag oldTag = getTag(bookTagRequestDTO.getTagId());
-//        Tag newTag = getTag(newTagId);
-//
-//        BookTag bookTag = bookTagRepository.findByBookAndTag(book, oldTag)
-//                .orElseThrow(() -> new BookTagNotFoundException("Book tag not found"));
-//
-//        bookTag.updateTag(newTag);
-//        return true;
-//    }
 
     public List<BookTagResponseDTO> getBookTagsByBook(Long bookId) { // 특정 책의 모든 태그 조회
         Book book = getBook(bookId);
