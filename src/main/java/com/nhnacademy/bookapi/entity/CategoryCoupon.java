@@ -27,8 +27,5 @@ public class CategoryCoupon {
         this.category = category;
         this.coupon = savedCoupon;
     }
-    public void setTestId(Long id) {
-        this.id = id;
-    }
 }
 

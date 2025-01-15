@@ -1,11 +1,14 @@
 package com.nhnacademy.bookapi.dto.couponpolicy;
 
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.*;
 
 import java.math.BigDecimal;
 
+@ApiResponse
 @NoArgsConstructor
 @Getter
+@Builder
 public class CouponPolicyResponseDTO {
 
     private Long id;

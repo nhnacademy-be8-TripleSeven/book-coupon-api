@@ -55,11 +55,6 @@ public class Category {
         this.level = level;
         this.parent = parent;
     }
-
-
-    public void setTestId(Long id) {
-        this.id = id;
-    }
     
     public Category(String name) {
         this.name = name;

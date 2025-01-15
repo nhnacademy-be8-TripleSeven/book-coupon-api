@@ -39,7 +39,7 @@ public class CouponMessageListener {
         processingMessages.remove(messageId);
     }
 
-    @RabbitListener(queues = RabbitConfig.QUEUE_NAME)
+    @RabbitListener(queues = RabbitConfig.QUEUE_NAME, concurrency = "1")
     @Transactional
     public void handleCouponAssignRequest(CouponAssignRequestDTO request, Message message, Channel channel) {
         String messageId = getMessageId(message);
