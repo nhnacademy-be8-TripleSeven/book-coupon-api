@@ -68,4 +68,29 @@ class BookTypeServiceImplTest {
         // Then
         verify(bookTypeRepository, times(1)).save(mockBookType);
     }
+
+    @Test
+    void testGetUpdateBookTypeList() {
+        // Given
+        long bookId = 1L;
+
+        Book book = Book.builder().id(bookId).regularPrice(1).salePrice(1).stock(1).page(1).build();
+        BookType bookType1 = BookType.builder().id(1L).ranks(1).types(Type.BESTSELLER).book(book).build();
+        BookType bookType2 = BookType.builder().id(2L).ranks(2).types(Type.BOOK).book(book).build();
+
+        List<BookType> bookTypeList = List.of(bookType1, bookType2);
+
+        when(bookTypeRepository.findByBookId(bookId)).thenReturn(bookTypeList);
+
+        // When
+        List<BookTypeDTO> result = bookTypeService.getUpdateBookTypeList(bookId);
+
+        // Then
+        assertNotNull(result); // 결과가 null이 아닌지 확인
+        assertEquals(2, result.size()); // 반환된 리스트 크기 확인
+        assertEquals("BESTSELLER", result.get(0).getType()); // 첫 번째 항목의 타입 검증
+        assertEquals("BOOK", result.get(1).getType()); // 두 번째 항목의 타입 검증
+        verify(bookTypeRepository, times(1)).findByBookId(bookId); // 레포지토리 호출 검증
+    }
+
 }

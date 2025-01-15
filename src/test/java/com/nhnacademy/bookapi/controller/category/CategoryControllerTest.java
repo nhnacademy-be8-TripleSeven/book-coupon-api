@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.controller.category;
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryLevelDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryResponseDTO;
+import com.nhnacademy.bookapi.entity.Category;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -121,5 +122,19 @@ class CategoryControllerTest {
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody()).isEqualTo(mockList);
         verify(categoryService, times(1)).getCategoryByLevel(eq(1));
+    }
+
+    @Test
+    void testCategoryByParentAndLevel(){
+        List<CategoryDTO> mockList = Arrays.asList(new CategoryDTO(1L, "Category1", 1));
+        int level = 1;
+        Category parentCategory = Category.builder().name("parent").level(1).id(1l).build();
+        when(categoryService.getCategoriesByParentAndLevel(parentCategory.getId(), level)).thenReturn(mockList);
+
+        ResponseEntity<List<CategoryDTO>> response = categoryController.getCategoryByParentAndLevel(parentCategory.getId(), level);
+
+        assertThat(response.getStatusCodeValue()).isEqualTo(200);
+        assertThat(response.getBody()).isEqualTo(mockList);
+        verify(categoryService, times(1)).getCategoriesByParentAndLevel(parentCategory.getId(), level);
     }
 }
