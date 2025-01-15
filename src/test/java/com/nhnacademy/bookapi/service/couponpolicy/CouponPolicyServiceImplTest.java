@@ -306,6 +306,54 @@ class CouponPolicyServiceImplTest {
     }
 
     @Test
+    void testValidateCouponPolicyRequest_DiscountAmountZero_Valid() {
+        // Given
+        CouponPolicyRequestDTO request = new CouponPolicyRequestDTO(
+                "Valid Policy with Zero Discount Amount",
+                1000L,
+                5000L,
+                new BigDecimal("0.2"),
+                0L,
+                30
+        );
+
+        // Mock
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Valid Policy with Zero Discount Amount", response.getName());
+    }
+
+    @Test
+    void testValidateCouponPolicyRequest_DiscountAmountNonZero_Valid() {
+        // Given
+        CouponPolicyRequestDTO request = new CouponPolicyRequestDTO(
+                "Valid Policy with Non-Zero Discount Amount",
+                1000L,
+                5000L,
+                null,
+                2000L,
+                30
+        );
+
+        // Mock
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Valid Policy with Non-Zero Discount Amount", response.getName());
+        assertEquals(2000L, response.getCouponDiscountAmount());
+    }
+
+
+    @Test
     void testValidateCouponPolicyRequest_MinGreaterThanMax_ExceptionThrown() {
         // Given
         CouponPolicyRequestDTO request = new CouponPolicyRequestDTO(
