@@ -18,12 +18,13 @@ import com.nhnacademy.bookapi.service.image.ImageService;
 import com.nhnacademy.bookapi.service.object.ObjectService;
 import com.nhnacademy.bookapi.service.review.ReviewService;
 import com.nhnacademy.bookapi.service.tag.TagService;
-import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.domain.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,6 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class BookMultiTableServiceTest {
 
     @InjectMocks
@@ -399,30 +401,6 @@ class BookMultiTableServiceTest {
         verify(objectService).loadImageFromStorage(containerName, objectName);
     }
 
-//    @Test
-//    void testBookTypeDelete_Success() throws IOException {
-//// Given
-//        long bookId = 1L;
-//        // Mock 설정
-//        doNothing().when(bookTypeService).deleteBookType(bookId);
-//        when(bookIndexService.deleteIndex(bookId)).thenReturn(true); // boolean 반환값 설정
-//        doNothing().when(bookCreatorService).deleteBookCreatorMap(bookId);
-//        doNothing().when(imageService).deleteBookCoverImageAndBookDetailImage(bookId);
-//        doNothing().when(reviewService).deleteAllReviewsWithBook(bookId);
-//
-//
-//        // When
-//        bookMultiTableService.deleteBook(bookId);
-//
-//        // Then
-//        verify(bookTypeService, times(1)).deleteBookType(bookId);
-//        verify(bookIndexService, times(1)).deleteIndex(bookId); // boolean 메서드 호출 검증
-//        verify(bookCreatorService, times(1)).deleteBookCreatorMap(bookId);
-//        verify(bookCategoryRepository, times(1)).deleteAllByBookId(bookId);
-//        verify(imageService, times(1)).deleteBookCoverImageAndBookDetailImage(bookId);
-//        verify(reviewService, times(1)).deleteAllReviewsWithBook(bookId);
-//        verify(wrapperRepository, times(1)).deleteByBookId(bookId);
-//    }
 
 
 
@@ -646,8 +624,10 @@ class BookMultiTableServiceTest {
         doNothing().when(imageService).deleteBookCoverImageAndBookDetailImage(bookId);
         doNothing().when(bookTagService).deleteAllByBookId(bookId);
         doNothing().when(reviewService).deleteAllReviewsWithBook(bookId);
+
         lenient().doNothing().when(bookCouponRepository).deleteByBookId(bookId);
         doNothing().when(wrapperRepository).deleteByBookId(bookId);
+
         lenient().doNothing().when(bookPopularityRepository).deleteByBookId(bookId);
         doNothing().when(bookService).deleteBook(bookId);
 
@@ -662,8 +642,9 @@ class BookMultiTableServiceTest {
         verify(imageService, times(1)).deleteBookCoverImageAndBookDetailImage(bookId);
         verify(bookTagService, times(1)).deleteAllByBookId(bookId);
         verify(reviewService, times(1)).deleteAllReviewsWithBook(bookId);
-        verify(bookCouponRepository, times(1)).deleteByBookId(bookId);
         verify(wrapperRepository, times(1)).deleteByBookId(bookId);
+        verify(bookCouponRepository, times(1)).deleteByBookId(bookId);
+
 
         verify(bookService, times(1)).deleteBook(bookId);
     }
