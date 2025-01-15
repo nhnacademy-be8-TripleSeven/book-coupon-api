@@ -265,42 +265,36 @@ public class CouponServiceImpl implements CouponService {
 
 
 
+    private boolean isValidCoupon(Coupon coupon, String keyword, LocalDate startDate, LocalDate endDate) {
+        return (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
+                (startDate == null || !coupon.getCouponIssueDate().isBefore(startDate)) &&
+                (endDate == null || !coupon.getCouponIssueDate().isAfter(endDate));
+    }
 
     // 5년 이내 발급된 쿠폰 목록 조회
     @Override
     @Transactional(readOnly = true)
     public List<CouponDetailsDTO> getCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate) {
         LocalDate fiveYearsAgo = LocalDate.now().minusYears(5);
-
-        // 쿠폰 조회 (발급일자 5년 이내)
         List<Coupon> coupons = couponRepository.findByMemberIdAndCouponIssueDateAfterOrderByCouponIssueDateDesc(userId, fiveYearsAgo);
 
-        // 필터 적용
         return coupons.stream()
-                .filter(coupon -> (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
-                        (startDate == null || !coupon.getCouponIssueDate().isBefore(startDate)) &&
-                        (endDate == null || !coupon.getCouponIssueDate().isAfter(endDate)))
+                .filter(coupon -> isValidCoupon(coupon, keyword, startDate, endDate))
                 .map(this::mapToCouponDetailsDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    // 5년 이내 사용된 쿠폰 조회
     @Override
     @Transactional(readOnly = true)
     public List<CouponDetailsDTO> getUsedCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate) {
         LocalDate fiveYearsAgo = LocalDate.now().minusYears(5);
-
-        // 사용된 쿠폰 조회 (발급일자 5년 이내)
         List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(
                 userId, CouponStatus.USED, fiveYearsAgo);
 
-        // 필터 적용
         return coupons.stream()
-                .filter(coupon -> (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
-                        (startDate == null || !coupon.getCouponIssueDate().isBefore(startDate)) &&
-                        (endDate == null || !coupon.getCouponIssueDate().isAfter(endDate)))
+                .filter(coupon -> isValidCoupon(coupon, keyword, startDate, endDate))
                 .map(this::mapToCouponDetailsDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // 쿠폰 아이디 기반 쿠폰 정책 조회

@@ -29,6 +29,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -42,9 +43,6 @@ class CouponServiceImplTest {
 
     @InjectMocks
     private CouponPolicyServiceImpl couponPolicyServiceImpl;
-
-    @Mock
-    private CouponService couponServiceMock;
 
     @Mock
     private CouponPolicyService couponPolicyService;
@@ -786,6 +784,72 @@ class CouponServiceImplTest {
     }
 
     @Test
+    void testGetCouponsForUser_ValidConditions() {
+        // Given
+        long userId = 123L;
+        String keyword = "Discount";
+        LocalDate startDate = LocalDate.now().minusDays(10);
+        LocalDate endDate = LocalDate.now();
+
+        CouponPolicy couponPolicy = CouponPolicy.builder()
+                .couponDiscountRate(BigDecimal.valueOf(0.2))
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Discount Coupon")
+                .couponIssueDate(LocalDate.now().minusDays(5))
+                .couponStatus(CouponStatus.NOTUSED)
+                .couponPolicy(couponPolicy)
+                .build();
+
+        when(couponRepository.findByMemberIdAndCouponIssueDateAfterOrderByCouponIssueDateDesc(
+                anyLong(), any(LocalDate.class)))
+                .thenReturn(List.of(coupon));
+
+        // When
+        List<CouponDetailsDTO> results = couponService.getCouponsForUser(userId, keyword, startDate, endDate);
+
+        // Then
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("Discount Coupon", results.get(0).getName());
+        assertEquals(BigDecimal.valueOf(0.2), results.get(0).getDiscountRate()); // 할인율 검증 추가
+    }
+
+    @Test
+    void testGetUsedCouponsForUser_ValidConditions() {
+        // Given
+        long userId = 123L;
+        String keyword = "Special";
+        LocalDate fiveYearsAgo = LocalDate.now().minusYears(5);
+
+        CouponPolicy couponPolicy = CouponPolicy.builder()
+                .couponDiscountRate(BigDecimal.valueOf(0.2))
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Special Coupon")
+                .couponIssueDate(LocalDate.now().minusDays(5))
+                .couponStatus(CouponStatus.USED)
+                .couponPolicy(couponPolicy)
+                .build();
+
+        when(couponRepository.findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(
+                eq(userId), eq(CouponStatus.USED), eq(fiveYearsAgo)))
+                .thenReturn(List.of(coupon));
+
+        // When
+        List<CouponDetailsDTO> results = couponService.getUsedCouponsForUser(userId, keyword, null, null);
+
+        // Then
+        assertNotNull(results);
+        assertEquals(1, results.size());
+        assertEquals("Special Coupon", results.get(0).getName());
+    }
+
+    @Test
     void testGetUsedCouponsForUser_WithKeywordFilter() {
         long userId = 123L;
         String keyword = "Exclusive";
@@ -1163,6 +1227,72 @@ class CouponServiceImplTest {
         );
     }
 
+    @Test
+    void testIssueWelcomeCoupon_FullCoverage() {
+        // Given
+        Long memberId = 1L;
+
+        // Welcome 정책 설정
+        CouponPolicyResponseDTO welcomePolicy = CouponPolicyResponseDTO.builder()
+                .id(1L)
+                .name("Welcome Policy")
+                .couponValidTime(30)
+                .build();
+
+        // CouponPolicy Mock 설정
+        CouponPolicy couponPolicyEntity = CouponPolicy.builder()
+                .id(1L)
+                .name("Welcome Policy")
+                .couponValidTime(30)
+                .build();
+
+        when(couponPolicyService.searchCouponPoliciesByName("Welcome"))
+                .thenReturn(List.of(welcomePolicy));
+
+        when(couponPolicyRepository.findById(1L))
+                .thenReturn(Optional.of(couponPolicyEntity));
+
+        // Welcome 쿠폰 생성 및 저장 Mock
+        Coupon welcomeCoupon = Coupon.builder()
+                .id(1L)
+                .name("Welcome Coupon")
+                .couponPolicy(couponPolicyEntity)
+                .build();
+
+        when(couponRepository.saveAll(anyList()))
+                .thenReturn(List.of(welcomeCoupon)); // 쿠폰 저장 Mock
+
+        Coupon firstComeCoupon = Coupon.builder()
+                .id(2L)
+                .name("First Come Coupon")
+                .couponPolicy(CouponPolicy.builder()
+                        .id(2L)
+                        .name("First Come Policy")
+                        .couponValidTime(30)
+                        .build())
+                .build();
+
+        when(couponRepository.save(any(Coupon.class)))
+                .thenReturn(firstComeCoupon);
+
+        when(couponRepository.findById(anyLong())).thenReturn(Optional.of(welcomeCoupon));
+
+        when(couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰"))
+                .thenReturn(Optional.of(firstComeCoupon));
+
+        doNothing().when(rabbitTemplate)
+                .convertAndSend(eq(RabbitConfig.EXCHANGE_NAME), eq(RabbitConfig.ROUTING_KEY), any(CouponAssignRequestDTO.class)); // RabbitMQ Mock
+
+        // When
+        List<CouponAssignResponseDTO> responses = couponService.issueWelcomeCoupon(memberId);
+
+        // Then
+        assertNotNull(responses);
+        assertEquals(2, responses.size());
+
+    }
+
+
 
     @Test
     void testIssueWelcomeCoupon_NoFirstComeCoupon() {
@@ -1425,6 +1555,76 @@ class CouponServiceImplTest {
         // Assert: 결과 검증
         assertTrue(response.isSuccess());
     }
+
+    @Test
+    void testAssignMonthlyBirthdayCoupons_FullCoverage() {
+        // Arrange
+        LocalDate currentDate = LocalDate.of(2024, 2, 1);
+        Date birthDate = Date.from(currentDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+        MemberDto member = MemberDto.builder()
+                .id(1L)
+                .birth(birthDate)
+                .build();
+
+        Page<MemberDto> memberPage = new PageImpl<>(List.of(member));
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("생일 축하 쿠폰 - 2월 (윤년)")
+                .couponValidTime(30)
+                .build();
+
+        AtomicReference<Coupon> savedCouponRef = new AtomicReference<>();
+
+        when(memberFeignClient.getMembers(any(), any(), anyInt(), anyInt(), any(), anyString()))
+                .thenReturn(memberPage);
+        when(couponPolicyRepository.findByNameContaining("생일 축하 쿠폰 - 2월 (윤년)"))
+                .thenReturn(List.of(policy));
+        when(couponPolicyRepository.findById(anyLong()))
+                .thenReturn(Optional.of(policy));
+        when(couponRepository.save(any(Coupon.class)))
+                .thenAnswer(invocation -> {
+                    Coupon coupon = invocation.getArgument(0);
+                    Coupon savedCoupon = Coupon.builder()
+                            .id(1L)
+                            .name(coupon.getName())
+                            .couponPolicy(policy)
+                            .build();
+                    savedCouponRef.set(savedCoupon);
+                    return savedCoupon;
+                });
+        when(couponRepository.findById(anyLong()))
+                .thenAnswer(invocation -> {
+                    Long id = invocation.getArgument(0);
+                    Coupon savedCoupon = savedCouponRef.get();
+                    return (savedCoupon != null && savedCoupon.getId().equals(id)) ? Optional.of(savedCoupon) : Optional.empty();
+                });
+
+        // Spy 객체 생성 및 날짜 Mock
+        CouponServiceImpl couponService = spy(new CouponServiceImpl(
+                couponRepository,
+                couponPolicyRepository,
+                bookRepository,
+                categoryRepository,
+                bookCouponRepository,
+                bookCategoryRepository,
+                categoryCouponRepository,
+                rabbitTemplate,
+                memberFeignClient,
+                couponPolicyService
+        ));
+        doReturn(LocalDate.of(2024, 2, 1)) // 테스트용 고정된 날짜
+                .when(couponService).getCurrentDate();
+
+        // Act
+        BulkAssignResponseDTO response = couponService.assignMonthlyBirthdayCoupons();
+
+        // Assert
+        assertTrue(response.isSuccess());
+    }
+
+
 
     @Test
     void testAssignMonthlyBirthdayCoupons_FebruaryLeapYear() {
