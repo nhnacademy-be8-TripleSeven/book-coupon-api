@@ -46,7 +46,6 @@ public class CouponServiceImpl implements CouponService {
 
     // 쿠폰 생성 (이름, 정책)
     @Override
-    @Transactional
     public BaseCouponResponseDTO createCoupon(CouponCreationRequestDTO request) {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                 .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
@@ -60,7 +59,6 @@ public class CouponServiceImpl implements CouponService {
 
     // 도서 쿠폰 생성 (이름, 정책 아이디, 도서 아이디)
     @Override
-    @Transactional
     public BookCouponResponseDTO createBookCoupon(BookCouponCreationRequestDTO request) {
         Book book = bookRepository.findById(request.getBookId())
                 .orElseThrow(() -> new BookNotFoundException("Book not found"));
@@ -81,7 +79,6 @@ public class CouponServiceImpl implements CouponService {
 
     // 카테고리 쿠폰 생성 (이름, 정책 아이디, 카테고리 아이디)
     @Override
-    @Transactional
     public CategoryCouponResponseDTO createCategoryCoupon(CategoryCouponCreationRequestDTO request) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
@@ -202,8 +199,8 @@ public class CouponServiceImpl implements CouponService {
         }
     }
 
-    @Transactional
-    public CouponUseResponseDTO handleBaseCoupon(Coupon coupon) {
+
+    private CouponUseResponseDTO handleBaseCoupon(Coupon coupon) {
         // 쿠폰 상태 업데이트
         coupon.updateCouponStatus(CouponStatus.USED);
         coupon.updateCouponUseAt(LocalDateTime.now());
@@ -211,8 +208,7 @@ public class CouponServiceImpl implements CouponService {
         return new CouponUseResponseDTO(coupon);
     }
 
-    @Transactional
-    public CouponUseResponseDTO handleBookCoupon(Coupon coupon, Long bookId) {
+    private CouponUseResponseDTO handleBookCoupon(Coupon coupon, Long bookId) {
         BookCoupon bookCoupon = bookCouponRepository.findByCoupon(coupon)
                 .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a book"));
 
@@ -224,8 +220,7 @@ public class CouponServiceImpl implements CouponService {
         return handleBaseCoupon(coupon);
     }
 
-    @Transactional
-    public CouponUseResponseDTO handleCategoryCoupon(Coupon coupon, Long bookId) {
+    private CouponUseResponseDTO handleCategoryCoupon(Coupon coupon, Long bookId) {
         CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
                 .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a category"));
 
@@ -261,9 +256,6 @@ public class CouponServiceImpl implements CouponService {
 
         return new CouponUseResponseDTO(coupon);
     }
-
-
-
 
     private boolean isValidCoupon(Coupon coupon, String keyword, LocalDate startDate, LocalDate endDate) {
         return (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
@@ -366,7 +358,6 @@ public class CouponServiceImpl implements CouponService {
 
     // 타겟별 쿠폰 생성
     @Override
-    @Transactional
     public Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy) {
         // 기본 쿠폰 생성
         Coupon coupon;
@@ -479,9 +470,6 @@ public class CouponServiceImpl implements CouponService {
         return responses;
     }
 
-
-
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void processWelcomePolicies(Long memberId, List<CouponAssignResponseDTO> responses) {
         try {
             List<CouponPolicyResponseDTO> couponPolicies = couponPolicyService.searchCouponPoliciesByName("Welcome");
@@ -500,7 +488,7 @@ public class CouponServiceImpl implements CouponService {
         }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+
     public void processFirstComeCoupon(Long memberId, List<CouponAssignResponseDTO> responses) {
         try {
             Optional<Coupon> optionalCoupon = couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰");
