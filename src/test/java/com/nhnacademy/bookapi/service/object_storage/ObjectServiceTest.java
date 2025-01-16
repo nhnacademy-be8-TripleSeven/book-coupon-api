@@ -104,21 +104,19 @@ class ObjectServiceTest {
     class UploadObjectTests {
 
         @Test
-        @DisplayName("성공 케이스 - 201 Created")
+        @DisplayName("성공 케이스 - 200 OK 또는 201 Created")
         void testUploadObjectSuccessCreated() throws Exception {
             // given
             String containerName = "test-container";
             String objectName = "test-file.png";
             String url = "http://fake-storage.local/test-container/test-file.png";
-            // 토큰 값 설정
             objectService.setTokenId("valid-token");
 
-            // Mock 서버: 201 응답
+            // Mock 서버: 201 Created 또는 200 OK 응답
             mockServer.expect(once(), requestTo(url))
                     .andExpect(method(HttpMethod.PUT))
-                    .andRespond(withStatus(HttpStatus.CREATED));
+                    .andRespond(withStatus(HttpStatus.CREATED));  // 또는 HttpStatus.OK
 
-            // 바이트 배열로 만든 테스트용 InputStream
             byte[] data = "dummy-image-content".getBytes(StandardCharsets.UTF_8);
             InputStream inputStream = new ByteArrayInputStream(data);
 
