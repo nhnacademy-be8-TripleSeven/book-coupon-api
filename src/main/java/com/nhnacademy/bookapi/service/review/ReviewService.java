@@ -69,12 +69,43 @@ public class ReviewService {
     }
 
     @Transactional
-    public boolean updateReview(Long userId, ReviewRequestDto reviewRequestDto) {
+    public boolean updateReview(Long userId, ReviewRequestDto reviewRequestDto, MultipartFile file, boolean isRemoveImage) {
         Book book = getBook(reviewRequestDto.getBookId());
         Review review = getReview(book, userId);
+        //기존 이미지를 삭제하기를 클릭하는 경우 - 1. 기존이미지를 삭제하고 새로운 이미지를 업로드, 2. 기존이미지를삭제하고 아예 이미지를 삭제하고싶은 경우
+        //기존 이미지 삭제하기를 클릭하지 않는 경우 1. 리뷰 내용만 수정하고 이미지는 그대로 둔다.(isRemoveImage는 false이고 file도 empty)
+        String imageUrl = null;
+        objectService.generateAuthToken();
+        if (isRemoveImage) { // 일단 기존 이미지를 삭제하는 것은 확정
+            if (file != null && !file.isEmpty()) { // 기존 이미지를 삭제하고 새로운 이미지를 업로드
+                try (InputStream inputStream = file.getInputStream()) {
+                    String objectName = "reviews/" + "review" + "_" + userId + "_" + reviewRequestDto.getBookId();
+                    objectService.uploadObject("triple-seven", objectName, inputStream);
+                    imageUrl = objectService.getStorageUrl() + "/triple-seven/" + objectName;
+                } catch (IOException e) {
+                    throw new RuntimeException("이미지 수정 실패: " + e.getMessage());
+                }
+            } else { // 아예 리뷰에 이미지를 삭제
+                String objectName = "reviews/"+ "review" + "_" + userId + "_" + reviewRequestDto.getBookId();
+                objectService.deleteObject("triple-seven", objectName);
+            }
+        } else {
+            if (file != null && !file.isEmpty()) { // 기존 이미지가 없었고 수정할 때 이미지를 업로드
+                try (InputStream inputStream = file.getInputStream()) {
+                    String objectName = "reviews/" + "review" + "_" + userId + "_" + reviewRequestDto.getBookId();
+                    objectService.uploadObject("triple-seven", objectName, inputStream);
+                    imageUrl = objectService.getStorageUrl() + "/triple-seven/" + objectName;
+                } catch (IOException e) {
+                    throw new RuntimeException("이미지 수정 실패: " + e.getMessage());
+                }
+            } else {
+                imageUrl = review.getImageUrl();
+            }
+        }
         review.updateText(reviewRequestDto.getText());
         review.updateRating(reviewRequestDto.getRating());
         review.updateCreatedAT(LocalDateTime.now());
+        review.updateImageUrl(imageUrl);
         return true;
     }
 

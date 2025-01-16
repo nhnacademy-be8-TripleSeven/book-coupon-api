@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -190,47 +191,235 @@ class ReviewServiceTest {
     @Nested
     @DisplayName("updateReview 메소드 테스트")
     class UpdateReviewTest {
-        @Test
-        @DisplayName("성공적으로 리뷰 수정")
-        void testUpdateReviewSuccess() {
-            // given
-            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
-            when(reviewRepository.findByBookAndUserId(book, userId)).thenReturn(Optional.of(review));
-
-            // when
-            boolean result = reviewService.updateReview(userId, reviewRequestDto);
-
-            // then
-            assertTrue(result);
-            verify(bookRepository).findById(book.getId());
-            verify(reviewRepository).findByBookAndUserId(book, userId);
-        }
 
         @Test
-        @DisplayName("책이 없어 BookNotFoundException 발생")
-        void testUpdateReviewBookNotFound() {
+        @DisplayName("책이 없어서 BookNotFoundException 발생")
+        void testUpdateReview_BookNotFound() {
             // given
             when(bookRepository.findById(book.getId())).thenReturn(Optional.empty());
 
             // when & then
-            assertThrows(BookNotFoundException.class, () ->
-                    reviewService.updateReview(userId, reviewRequestDto)
+            assertThrows(BookNotFoundException.class,
+                    () -> reviewService.updateReview(userId, reviewRequestDto, multipartFile, true)
             );
+
+            verify(bookRepository).findById(book.getId());
+            verifyNoMoreInteractions(bookRepository, reviewRepository, objectService);
         }
 
         @Test
-        @DisplayName("리뷰가 없어 ReviewNotFoundException 발생")
-        void testUpdateReviewNotFound() {
+        @DisplayName("리뷰가 없어서 ReviewNotFoundException 발생")
+        void testUpdateReview_ReviewNotFound() {
             // given
             when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
             when(reviewRepository.findByBookAndUserId(book, userId)).thenReturn(Optional.empty());
 
             // when & then
-            assertThrows(ReviewNotFoundException.class, () ->
-                    reviewService.updateReview(userId, reviewRequestDto)
+            assertThrows(ReviewNotFoundException.class,
+                    () -> reviewService.updateReview(userId, reviewRequestDto, multipartFile, true)
             );
+
+            verify(bookRepository).findById(book.getId());
+            verify(reviewRepository).findByBookAndUserId(book, userId);
+            verifyNoMoreInteractions(reviewRepository, objectService);
         }
+
+        @Test
+        @DisplayName("isRemoveImage=true && 파일 존재 (새 이미지 업로드) - 기존 이미지 삭제 후 업로드 시나리오")
+        void testUpdateReview_RemoveImage_True_WithNewFile() throws IOException {
+            // given
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
+            when(reviewRepository.findByBookAndUserId(book, userId)).thenReturn(Optional.of(review));
+
+            // file mock
+            when(multipartFile.isEmpty()).thenReturn(false);
+            when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("fake data".getBytes()));
+
+            doNothing().when(objectService).generateAuthToken();
+            // 업로드 과정을 검증하기 위해 doNothing 설정
+            doNothing().when(objectService).uploadObject(eq("triple-seven"), anyString(), any(InputStream.class));
+            // 이미지는 삭제되지 않고 "새 업로드"만 될 것이므로 deleteObject는 호출되지 않음
+
+            // when
+            boolean result = reviewService.updateReview(userId, reviewRequestDto, multipartFile, true);
+
+            // then
+            assertTrue(result);
+            verify(bookRepository).findById(book.getId());
+            verify(reviewRepository).findByBookAndUserId(book, userId);
+
+            // generateAuthToken 호출
+            verify(objectService).generateAuthToken();
+            // 새로운 파일 업로드
+            verify(objectService).uploadObject(eq("triple-seven"), contains("review_" + userId + "_" + book.getId()), any(InputStream.class));
+            // 기존 이미지 삭제는 호출되지 않음 (여기 로직상 '기존 이미지 삭제' → '새 파일 업로드'가 아닌,
+            // "기존 오브젝트"를 overwrite한다고 가정. 아래 줄 참고)
+            verify(objectService, never()).deleteObject(eq("triple-seven"), anyString());
+
+            // 리뷰 엔티티 수정 여부 확인
+            assertEquals(reviewRequestDto.getText(), review.getText());
+            assertEquals(reviewRequestDto.getRating(), review.getRating());
+            assertNotNull(review.getImageUrl());
+        }
+
+        @Test
+        @DisplayName("isRemoveImage=true && 파일이 null or empty (기존 이미지 삭제만)")
+        void testUpdateReview_RemoveImage_True_NoFile() {
+            // given
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
+            when(reviewRepository.findByBookAndUserId(book, userId)).thenReturn(Optional.of(review));
+
+            doNothing().when(objectService).generateAuthToken();
+            doNothing().when(objectService).deleteObject(eq("triple-seven"), anyString());
+
+            // multipartFile이 null이거나 empty이므로 업로드 로직은 실행되지 않음
+            // --> 여기서는 null로 가정
+            // (empty 파일인 경우에도 로직 동일하게 delete만 실행)
+            MultipartFile emptyFile = null;
+
+            // when
+            boolean result = reviewService.updateReview(userId, reviewRequestDto, emptyFile, true);
+
+            // then
+            assertTrue(result);
+            verify(bookRepository).findById(book.getId());
+            verify(reviewRepository).findByBookAndUserId(book, userId);
+
+            verify(objectService).generateAuthToken();
+            // 기존 이미지 삭제만
+            verify(objectService).deleteObject(eq("triple-seven"), contains("review_" + userId + "_" + book.getId()));
+            // 업로드는 호출되지 않음
+            verify(objectService, never()).uploadObject(anyString(), anyString(), any(InputStream.class));
+
+            // 리뷰 엔티티 수정 여부
+            assertEquals(reviewRequestDto.getText(), review.getText());
+            assertEquals(reviewRequestDto.getRating(), review.getRating());
+            // imageUrl가 null로 업데이트되었는지 확인 가능 (review.updateImageUrl(imageUrl))
+            assertNull(review.getImageUrl());
+        }
+
+        @Test
+        @DisplayName("isRemoveImage=false && 새 파일 존재 (새 이미지 업로드 - 기존 이미지는 없거나 덮어씀)")
+        void testUpdateReview_RemoveImage_False_WithNewFile() throws IOException {
+            // given
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
+            when(reviewRepository.findByBookAndUserId(book, userId)).thenReturn(Optional.of(review));
+
+            when(multipartFile.isEmpty()).thenReturn(false);
+            when(multipartFile.getInputStream()).thenReturn(new ByteArrayInputStream("fake data".getBytes()));
+
+            doNothing().when(objectService).generateAuthToken();
+            doNothing().when(objectService).uploadObject(eq("triple-seven"), anyString(), any(InputStream.class));
+
+            // when
+            boolean result = reviewService.updateReview(userId, reviewRequestDto, multipartFile, false);
+
+            // then
+            assertTrue(result);
+            verify(bookRepository).findById(book.getId());
+            verify(reviewRepository).findByBookAndUserId(book, userId);
+
+            verify(objectService).generateAuthToken();
+            verify(objectService).uploadObject(eq("triple-seven"), contains("review_" + userId + "_" + book.getId()), any(InputStream.class));
+            // 기존 이미지 삭제는 호출되지 않음
+            verify(objectService, never()).deleteObject(eq("triple-seven"), anyString());
+
+            assertEquals(reviewRequestDto.getText(), review.getText());
+            assertEquals(reviewRequestDto.getRating(), review.getRating());
+            assertNotNull(review.getImageUrl());
+        }
+
+        @Test
+        @DisplayName("isRemoveImage=false && 파일이 null -> 기존 이미지 유지")
+        void testUpdateReview_RemoveImageFalse_FileNull() {
+            // given
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
+            when(reviewRepository.findByBookAndUserId(book, userId)).thenReturn(Optional.of(review));
+
+            // file is null
+            MultipartFile nullFile = null;
+
+            // when
+            boolean result = reviewService.updateReview(userId, reviewRequestDto, nullFile, false);
+
+            // then
+            assertTrue(result); // 메서드 결과 확인
+            verify(bookRepository).findById(book.getId()); // 도서 조회 확인
+            verify(reviewRepository).findByBookAndUserId(book, userId); // 리뷰 조회 확인
+            verify(objectService).generateAuthToken(); // 인증 토큰 호출 확인
+
+            // 업로드/삭제가 호출되지 않았는지 확인
+            verify(objectService, never()).uploadObject(anyString(), anyString(), any(InputStream.class));
+            verify(objectService, never()).deleteObject(anyString(), anyString());
+
+            // 리뷰 엔티티의 텍스트와 평점이 업데이트되었는지 확인
+            assertEquals(reviewRequestDto.getText(), review.getText());
+            assertEquals(reviewRequestDto.getRating(), review.getRating());
+
+            // 기존 이미지 URL이 유지되었는지 확인
+            assertEquals("testImageUrl", review.getImageUrl());
+        }
+
+        @Test
+        @DisplayName("isRemoveImage=false && 파일이 empty -> 기존 이미지 유지")
+        void testUpdateReview_RemoveImageFalse_FileEmpty() {
+            // given
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
+            when(reviewRepository.findByBookAndUserId(book, userId)).thenReturn(Optional.of(review));
+
+            // file is empty
+            when(multipartFile.isEmpty()).thenReturn(true);
+
+            // when
+            boolean result = reviewService.updateReview(userId, reviewRequestDto, multipartFile, false);
+
+            // then
+            assertTrue(result); // 메서드 결과 확인
+            verify(bookRepository).findById(book.getId()); // 도서 조회 확인
+            verify(reviewRepository).findByBookAndUserId(book, userId); // 리뷰 조회 확인
+            verify(objectService).generateAuthToken(); // 인증 토큰 호출 확인
+
+            // 업로드/삭제가 호출되지 않았는지 확인
+            verify(objectService, never()).uploadObject(anyString(), anyString(), any(InputStream.class));
+            verify(objectService, never()).deleteObject(anyString(), anyString());
+
+            // 리뷰 엔티티의 텍스트와 평점이 업데이트되었는지 확인
+            assertEquals(reviewRequestDto.getText(), review.getText());
+            assertEquals(reviewRequestDto.getRating(), review.getRating());
+
+            // 기존 이미지 URL이 유지되었는지 확인
+            assertEquals("testImageUrl", review.getImageUrl());
+        }
+
+
+        @Test
+        @DisplayName("파일 getInputStream()에서 IOException 발생 -> RuntimeException 변환")
+        void testUpdateReview_FileUploadIOException() throws IOException {
+            // given
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
+            when(reviewRepository.findByBookAndUserId(book, userId)).thenReturn(Optional.of(review));
+
+            // 시나리오: removeImage=false + 파일 존재 → 업로드 시도 중 IOException
+            when(multipartFile.isEmpty()).thenReturn(false);
+            when(multipartFile.getInputStream()).thenThrow(new IOException("Test IOException"));
+
+            doNothing().when(objectService).generateAuthToken();
+
+            // when & then
+            RuntimeException ex = assertThrows(RuntimeException.class,
+                    () -> reviewService.updateReview(userId, reviewRequestDto, multipartFile, false)
+            );
+            assertTrue(ex.getMessage().contains("이미지 수정 실패"));
+
+            verify(objectService).generateAuthToken();
+            // 업로드가 시도되다가 실패
+            verify(objectService, never()).uploadObject(anyString(), anyString(), any(InputStream.class));
+            // deleteObject도 호출되지 않음
+            verify(objectService, never()).deleteObject(anyString(), anyString());
+        }
+
     }
+
 
     @Nested
     @DisplayName("deleteAllReviewsWithBook 메소드 테스트")
@@ -357,6 +546,63 @@ class ReviewServiceTest {
             assertThrows(BookNotFoundException.class, () ->
                     reviewService.getPagedReviewsByBookId(book.getId(), pageable)
             );
+        }
+    }
+    @Nested
+    @DisplayName("getAllReviewsByBookId 메소드 테스트")
+    class GetAllReviewsByBookIdTest {
+
+        @Test
+        @DisplayName("성공적으로 모든 리뷰 조회")
+        void testGetAllReviewsByBookId_Success() {
+            // given
+            List<Review> reviews = Arrays.asList(review, review, review);
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
+            when(reviewRepository.findAllByBookOrderByCreatedAtDesc(book)).thenReturn(reviews);
+
+            // when
+            List<ReviewResponseDto> result = reviewService.getAllReviewsByBookId(book.getId());
+
+            // then
+            assertNotNull(result);
+            assertEquals(3, result.size());
+            for (ReviewResponseDto responseDto : result) {
+                assertEquals(review.getUserId(), responseDto.getUserId());
+                assertEquals(review.getText(), responseDto.getText());
+                assertEquals(review.getRating(), responseDto.getRating());
+                assertEquals(review.getCreatedAt(), responseDto.getCreatedAt());
+                assertEquals(review.getImageUrl(), responseDto.getImageUrl());
+            }
+            verify(bookRepository).findById(book.getId());
+            verify(reviewRepository).findAllByBookOrderByCreatedAtDesc(book);
+        }
+
+        @Test
+        @DisplayName("책이 존재하지 않아 BookNotFoundException 발생")
+        void testGetAllReviewsByBookId_BookNotFound() {
+            // given
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.empty());
+
+            // when & then
+            assertThrows(BookNotFoundException.class, () -> reviewService.getAllReviewsByBookId(book.getId()));
+            verify(reviewRepository, never()).findAllByBookOrderByCreatedAtDesc(any());
+        }
+
+        @Test
+        @DisplayName("책은 존재하나 리뷰가 없는 경우 빈 리스트 반환")
+        void testGetAllReviewsByBookId_NoReviews() {
+            // given
+            when(bookRepository.findById(book.getId())).thenReturn(Optional.of(book));
+            when(reviewRepository.findAllByBookOrderByCreatedAtDesc(book)).thenReturn(Collections.emptyList());
+
+            // when
+            List<ReviewResponseDto> result = reviewService.getAllReviewsByBookId(book.getId());
+
+            // then
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            verify(bookRepository).findById(book.getId());
+            verify(reviewRepository).findAllByBookOrderByCreatedAtDesc(book);
         }
     }
 }

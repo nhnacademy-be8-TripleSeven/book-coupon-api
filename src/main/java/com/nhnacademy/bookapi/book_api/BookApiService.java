@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.book_api;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -10,6 +11,8 @@ import org.springframework.web.client.RestTemplate;
 public class BookApiService {
 
     private final RestTemplate restTemplate = new RestTemplate();
+
+
     private final ObjectMapper objectMapper;
 
     @Value("${aladin.api.key}")

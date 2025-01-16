@@ -23,7 +23,7 @@ import org.mockito.stubbing.Answer;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
+
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -70,9 +70,6 @@ class CouponServiceImplTest {
 
     @Mock
     private MemberFeignClient memberFeignClient;
-
-    @Mock
-    private CouponPolicyOrderResponseDTO couponPolicyOrderResponseDTO;
 
     @Mock
     private RabbitTemplate rabbitTemplate;
@@ -980,7 +977,7 @@ class CouponServiceImplTest {
         CouponNotFoundException exception = assertThrows(CouponNotFoundException.class,
                 () -> couponService.getCouponPolicyByCouponId(couponId));
 
-        assertEquals("No coupons found for ID: " + couponId, exception.getMessage());
+        assertEquals("Coupon not found",  exception.getMessage());
     }
 
     @Test

@@ -15,9 +15,9 @@ import com.nhnacademy.bookapi.service.couponpolicy.CouponPolicyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -29,6 +29,11 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class CouponServiceImpl implements CouponService {
+    private static final String COUPON_NOT_FOUND_MESSAGE = "Coupon not found";
+    private static final String COUPON_ALREADY_ASSIGNED_MESSAGE = "이미 할당된 쿠폰입니다.";
+    private static final String COUPON_POLICY_NOT_FOUND = "쿠폰 정책을 찾을 수 없습니다.";
+
+
     private final CouponRepository couponRepository;
     private final CouponPolicyRepository couponPolicyRepository;
     private final BookRepository bookRepository;
@@ -48,7 +53,7 @@ public class CouponServiceImpl implements CouponService {
     @Override
     public BaseCouponResponseDTO createCoupon(CouponCreationRequestDTO request) {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
-                .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
+                .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
 
         Coupon coupon = new Coupon(request.getName(), policy);
 
@@ -64,7 +69,7 @@ public class CouponServiceImpl implements CouponService {
                 .orElseThrow(() -> new BookNotFoundException("Book not found"));
 
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
-                .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
+                .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
 
         Coupon coupon = new Coupon(request.getName(), policy);
 
@@ -84,7 +89,7 @@ public class CouponServiceImpl implements CouponService {
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
 
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
-                .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
+                .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
 
         Coupon coupon = new Coupon(request.getName(), policy);
 
@@ -105,7 +110,7 @@ public class CouponServiceImpl implements CouponService {
 
         try {
             CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
-                    .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found."));
+                    .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
 
             for (long i = 0; i < request.getQuantity(); i++) {
                 try {
@@ -169,7 +174,7 @@ public class CouponServiceImpl implements CouponService {
     public CouponUseResponseDTO useCoupon(Long userId, Long couponId, Long bookId) {
         // 1. 쿠폰 조회 및 기본 검증
         Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+                .orElseThrow(() -> new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE));
 
         // 2. 쿠폰 소유자 검증
         if (!Objects.equals(coupon.getMemberId(), userId)) {
@@ -222,7 +227,7 @@ public class CouponServiceImpl implements CouponService {
 
     private CouponUseResponseDTO handleCategoryCoupon(Coupon coupon, Long bookId) {
         CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
-                .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a category"));
+                .orElseThrow(() -> new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE));
 
         // 도서의 카테고리 목록 조회
         List<Category> bookCategories = bookCategoryRepository.findCategoriesByBookId(bookId);
@@ -241,7 +246,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public CouponUseResponseDTO useBaseCoupon(Long couponId) {
         Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+                .orElseThrow(() -> new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE));
 
         if (coupon.getCouponStatus() == CouponStatus.USED) {
             throw new CouponAlreadyUsedException("Coupon is already used");
@@ -295,7 +300,7 @@ public class CouponServiceImpl implements CouponService {
     public CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId) {
         Optional<Coupon> optionalCoupon = couponRepository.findById(couponId);
         if (optionalCoupon.isEmpty()) {
-            throw new CouponNotFoundException("No coupons found for ID: " + couponId);
+            throw new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE);
         }
 
         Coupon coupon = optionalCoupon.get();
@@ -315,16 +320,18 @@ public class CouponServiceImpl implements CouponService {
                 coupon.getCouponStatus());
     }
 
-
-
+    @Transactional
+    @Override
+    public List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request) {
+        // 트랜잭션 시작
+        return createAndAssignCouponsLogic(request);
+    }
 
     // 생성 및 발급
-    @Override
-    @Transactional
-    public List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request) {
+    private List<CouponAssignResponseDTO> createAndAssignCouponsLogic(CouponCreationAndAssignRequestDTO request) {
         // 1. 쿠폰 정책 조회
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
-                .orElseThrow(() -> new CouponPolicyNotFoundException("쿠폰 정책을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
 
         // 2. 발급 대상 조회
         List<Long> memberIds = getMemberIdsByRecipientType(request);
@@ -356,6 +363,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
 
+
     // 타겟별 쿠폰 생성
     @Override
     public Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy) {
@@ -371,7 +379,7 @@ public class CouponServiceImpl implements CouponService {
             );
             CategoryCouponResponseDTO response = createCategoryCoupon(categoryRequest);
             coupon = couponRepository.findById(response.getId())
-                    .orElseThrow(() -> new CouponNotFoundException("생성된 쿠폰을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE));
         } else if (request.getBookId() != null) {
             // 도서 쿠폰 생성 로직 호출
             BookCouponCreationRequestDTO bookRequest = new BookCouponCreationRequestDTO(
@@ -381,7 +389,7 @@ public class CouponServiceImpl implements CouponService {
             );
             BookCouponResponseDTO response = createBookCoupon(bookRequest);
             coupon = couponRepository.findById(response.getId())
-                    .orElseThrow(() -> new CouponNotFoundException("생성된 쿠폰을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE));
         } else {
             // 기본 쿠폰 생성 로직 호출
             CouponCreationRequestDTO baseRequest = new CouponCreationRequestDTO(
@@ -390,7 +398,7 @@ public class CouponServiceImpl implements CouponService {
             );
             BaseCouponResponseDTO response = createCoupon(baseRequest);
             coupon = couponRepository.findById(response.getId())
-                    .orElseThrow(() -> new CouponNotFoundException("생성된 쿠폰을 찾을 수 없습니다."));
+                    .orElseThrow(() -> new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE));
         }
 
         return coupon;
@@ -398,7 +406,8 @@ public class CouponServiceImpl implements CouponService {
 
 
     // 조건별 멤버 가져오기
-    private List<Long> getMemberIdsByRecipientType(CouponCreationAndAssignRequestDTO request) {
+    @Override
+    public List<Long> getMemberIdsByRecipientType(CouponCreationAndAssignRequestDTO request) {
         List<Long> memberIds = new ArrayList<>();
         int page = 0, size = 100;
         Page<MemberDto> memberPage;
@@ -479,7 +488,7 @@ public class CouponServiceImpl implements CouponService {
                 for (CouponPolicyResponseDTO policy : couponPolicies) {
                     CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
                             "회원가입" + policy.getName(), policy.getId(), Collections.singletonList(memberId), "개인별");
-                    responses.addAll(createAndAssignCoupons(request));
+                    responses.addAll(createAndAssignCouponsLogic(request));
                 }
             }
         } catch (Exception e) {
@@ -609,7 +618,7 @@ public class CouponServiceImpl implements CouponService {
 
         try {
             // 쿠폰 생성 및 발급
-            List<CouponAssignResponseDTO> responses = createAndAssignCoupons(requestDTO);
+            List<CouponAssignResponseDTO> responses = createAndAssignCouponsLogic(requestDTO);
             return responses.size(); // 발급된 쿠폰 개수 반환
         } catch (Exception e) {
             log.error("Failed to assign birthday coupons for policy: {}", policy.getName(), e);
@@ -666,7 +675,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional(readOnly = true)
     public Long applyCoupon(Long couponId, Long paymentAmount) {
         Coupon coupon = couponRepository.findById(couponId)
-                .orElseThrow(() -> new CouponNotFoundException("Coupon not found"));
+                .orElseThrow(() -> new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE));
 
         CouponPolicy policy = coupon.getCouponPolicy();
 
@@ -705,7 +714,7 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public void deleteCoupon(Long id) {
         if (!couponRepository.existsById(id)) {
-            throw new CouponNotFoundException("Coupon not found");
+            throw new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE);
         }
         if (couponRepository.getReferenceById(id).getMemberId() != null) {
             throw new CouponAlreadyAssignedException("Coupon is already assigned");
@@ -720,10 +729,10 @@ public class CouponServiceImpl implements CouponService {
     public CouponAssignResponseDTO assignCoupon(CouponAssignRequestDTO request) {
         // 1. 쿠폰 조회
         Coupon coupon = couponRepository.findById(request.getCouponId())
-                .orElseThrow(() -> new CouponNotFoundException("쿠폰을 찾을 수 없습니다."));
+                .orElseThrow(() -> new CouponNotFoundException(COUPON_NOT_FOUND_MESSAGE));
 
         if (coupon.getMemberId() != null) {
-            throw new CouponAlreadyAssignedException("이미 할당된 쿠폰입니다.");
+            throw new CouponAlreadyAssignedException(COUPON_ALREADY_ASSIGNED_MESSAGE);
         }
 
         // 2. 회원 ID와 연관지어 발급 데이터 설정
