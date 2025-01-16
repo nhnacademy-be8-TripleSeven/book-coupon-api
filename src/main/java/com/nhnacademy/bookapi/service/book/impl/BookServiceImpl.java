@@ -123,7 +123,9 @@ public class BookServiceImpl implements BookService {
         for (BookType bookType : bookTypes) {
             types.append(bookType.getTypes()).append(",");
         }
-        types.deleteCharAt(types.lastIndexOf(","));
+        if (!types.isEmpty()) {
+            types.deleteCharAt(types.lastIndexOf(","));
+        }
         return types;
     }
 
@@ -141,16 +143,6 @@ public class BookServiceImpl implements BookService {
         }
         return tags;
     }
-
-    private StringBuilder getCategoryResult(List<String> categoryHierarchies) {
-        StringBuilder categoryResult = new StringBuilder();
-        for (String categoryName : categoryHierarchies) {
-            categoryResult.append(categoryName).append(">");
-        }
-        categoryResult.deleteCharAt(categoryResult.length() - 1);
-        return categoryResult;
-    }
-
     private List<String> getCategoryHierarchy(Category category) {
         List<String> hierarchy = new ArrayList<>();
         while (category != null) {
@@ -243,17 +235,17 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<CartItemDTO> getCartItemsByIds(List<Long> bookIds) {
+    public List<OrderItemDTO> getCartItemsByIds(List<Long> bookIds) {
         List<Book> books = bookRepository.findAllById(bookIds);
-        List<CartItemDTO> cartItemDTOS = new ArrayList<>();
+        List<OrderItemDTO> cartItems = new ArrayList<>();
         for (Book book : books) {
-            cartItemDTOS.add(new CartItemDTO(
+            cartItems.add(new OrderItemDTO(
                     book.getId(),
                     book.getStock(),
                     book.getSalePrice(),
                     book.getRegularPrice()));
         }
-        return cartItemDTOS;
+        return cartItems;
     }
 
     @Override

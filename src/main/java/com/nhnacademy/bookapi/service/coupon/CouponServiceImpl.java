@@ -7,6 +7,7 @@ import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyResponseDTO;
 import com.nhnacademy.bookapi.dto.member.MemberDto;
+import com.nhnacademy.bookapi.dto.member.MemberNotFoundException;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.*;
 import com.nhnacademy.bookapi.repository.*;
@@ -16,13 +17,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Year;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -44,9 +43,9 @@ public class CouponServiceImpl implements CouponService {
     private final CouponPolicyService couponPolicyService;
 
 
+
     // 쿠폰 생성 (이름, 정책)
     @Override
-    @Transactional
     public BaseCouponResponseDTO createCoupon(CouponCreationRequestDTO request) {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                 .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found"));
@@ -60,7 +59,6 @@ public class CouponServiceImpl implements CouponService {
 
     // 도서 쿠폰 생성 (이름, 정책 아이디, 도서 아이디)
     @Override
-    @Transactional
     public BookCouponResponseDTO createBookCoupon(BookCouponCreationRequestDTO request) {
         Book book = bookRepository.findById(request.getBookId())
                 .orElseThrow(() -> new BookNotFoundException("Book not found"));
@@ -81,7 +79,6 @@ public class CouponServiceImpl implements CouponService {
 
     // 카테고리 쿠폰 생성 (이름, 정책 아이디, 카테고리 아이디)
     @Override
-    @Transactional
     public CategoryCouponResponseDTO createCategoryCoupon(CategoryCouponCreationRequestDTO request) {
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new CategoryNotFoundException("Category not found"));
@@ -99,45 +96,6 @@ public class CouponServiceImpl implements CouponService {
 
         return new CategoryCouponResponseDTO(savedCoupon.getId(), savedCoupon.getName(), savedCoupon.getCouponPolicy(), category.getName());
     }
-
-    // 쿠폰 단체 생성
-//    @Override
-//    @Transactional
-//    public void createCouponsInBulk(CouponBulkCreationRequestDTO request) {
-//
-//        CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
-//                .orElseThrow(() -> new CouponPolicyNotFoundException("Coupon policy not found."));
-//
-//        for (long i = 0; i < request.getQuantity(); i++) {
-//
-//            if (request.getCategoryId() != null) {
-//                // Create category coupon
-//                CategoryCouponCreationRequestDTO categoryRequest = new CategoryCouponCreationRequestDTO(
-//                        request.getCategoryId(),
-//                        policy.getId(),
-//                        request.getName()
-//                );
-//                createCategoryCoupon(categoryRequest);
-//            } else if (request.getBookId() != null) {
-//                // Create book coupon
-//                BookCouponCreationRequestDTO bookRequest = new BookCouponCreationRequestDTO(
-//                        request.getBookId(),
-//                        policy.getId(),
-//                        request.getName()
-//                );
-//                createBookCoupon(bookRequest);
-//            } else {
-//                // Create general coupon
-//                CouponCreationRequestDTO generalRequest = new CouponCreationRequestDTO(
-//                        request.getName(),
-//                        policy.getId()
-//                );
-//                createCoupon(generalRequest);
-//            }
-//
-//        }
-//    }
-
 
 
     @Override
@@ -241,8 +199,8 @@ public class CouponServiceImpl implements CouponService {
         }
     }
 
-    @Transactional
-    public CouponUseResponseDTO handleBaseCoupon(Coupon coupon) {
+
+    private CouponUseResponseDTO handleBaseCoupon(Coupon coupon) {
         // 쿠폰 상태 업데이트
         coupon.updateCouponStatus(CouponStatus.USED);
         coupon.updateCouponUseAt(LocalDateTime.now());
@@ -250,8 +208,7 @@ public class CouponServiceImpl implements CouponService {
         return new CouponUseResponseDTO(coupon);
     }
 
-    @Transactional
-    public CouponUseResponseDTO handleBookCoupon(Coupon coupon, Long bookId) {
+    private CouponUseResponseDTO handleBookCoupon(Coupon coupon, Long bookId) {
         BookCoupon bookCoupon = bookCouponRepository.findByCoupon(coupon)
                 .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a book"));
 
@@ -263,8 +220,7 @@ public class CouponServiceImpl implements CouponService {
         return handleBaseCoupon(coupon);
     }
 
-    @Transactional
-    public CouponUseResponseDTO handleCategoryCoupon(Coupon coupon, Long bookId) {
+    private CouponUseResponseDTO handleCategoryCoupon(Coupon coupon, Long bookId) {
         CategoryCoupon categoryCoupon = categoryCouponRepository.findByCoupon(coupon)
                 .orElseThrow(() -> new CouponNotFoundException("This coupon is not associated with a category"));
 
@@ -301,45 +257,36 @@ public class CouponServiceImpl implements CouponService {
         return new CouponUseResponseDTO(coupon);
     }
 
-
-
-
+    private boolean isValidCoupon(Coupon coupon, String keyword, LocalDate startDate, LocalDate endDate) {
+        return (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
+                (startDate == null || !coupon.getCouponIssueDate().isBefore(startDate)) &&
+                (endDate == null || !coupon.getCouponIssueDate().isAfter(endDate));
+    }
 
     // 5년 이내 발급된 쿠폰 목록 조회
     @Override
     @Transactional(readOnly = true)
     public List<CouponDetailsDTO> getCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate) {
         LocalDate fiveYearsAgo = LocalDate.now().minusYears(5);
-
-        // 쿠폰 조회 (발급일자 5년 이내)
         List<Coupon> coupons = couponRepository.findByMemberIdAndCouponIssueDateAfterOrderByCouponIssueDateDesc(userId, fiveYearsAgo);
 
-        // 필터 적용
         return coupons.stream()
-                .filter(coupon -> (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
-                        (startDate == null || !coupon.getCouponIssueDate().isBefore(startDate)) &&
-                        (endDate == null || !coupon.getCouponIssueDate().isAfter(endDate)))
+                .filter(coupon -> isValidCoupon(coupon, keyword, startDate, endDate))
                 .map(this::mapToCouponDetailsDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
-    // 5년 이내 사용된 쿠폰 조회
     @Override
     @Transactional(readOnly = true)
     public List<CouponDetailsDTO> getUsedCouponsForUser(Long userId, String keyword, LocalDate startDate, LocalDate endDate) {
         LocalDate fiveYearsAgo = LocalDate.now().minusYears(5);
-
-        // 사용된 쿠폰 조회 (발급일자 5년 이내)
         List<Coupon> coupons = couponRepository.findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(
                 userId, CouponStatus.USED, fiveYearsAgo);
 
-        // 필터 적용
         return coupons.stream()
-                .filter(coupon -> (keyword == null || coupon.getName().toLowerCase().contains(keyword.toLowerCase())) &&
-                        (startDate == null || !coupon.getCouponIssueDate().isBefore(startDate)) &&
-                        (endDate == null || !coupon.getCouponIssueDate().isAfter(endDate)))
+                .filter(coupon -> isValidCoupon(coupon, keyword, startDate, endDate))
                 .map(this::mapToCouponDetailsDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // 쿠폰 아이디 기반 쿠폰 정책 조회
@@ -382,7 +329,7 @@ public class CouponServiceImpl implements CouponService {
         // 2. 발급 대상 조회
         List<Long> memberIds = getMemberIdsByRecipientType(request);
         if (memberIds.isEmpty()) {
-            throw new InvalidRecipientTypeException("발급 대상 회원이 없습니다.");
+            throw new MemberNotFoundException("발급 대상 회원이 없습니다.");
         }
 
         // 3. 쿠폰 생성 및 발급
@@ -411,7 +358,6 @@ public class CouponServiceImpl implements CouponService {
 
     // 타겟별 쿠폰 생성
     @Override
-    @Transactional
     public Coupon createCouponBasedOnTarget(CouponCreationAndAssignRequestDTO request, CouponPolicy policy) {
         // 기본 쿠폰 생성
         Coupon coupon;
@@ -487,7 +433,7 @@ public class CouponServiceImpl implements CouponService {
 
 
     // String - > MemberGrade
-    private MemberGrade convertGrade(String grade) {
+    public MemberGrade convertGrade(String grade) {
         try {
             return MemberGrade.valueOf(grade.toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -501,111 +447,115 @@ public class CouponServiceImpl implements CouponService {
     @Transactional
     public List<CouponAssignResponseDTO> issueWelcomeCoupon(Long memberId) {
         List<CouponAssignResponseDTO> responses = new ArrayList<>();
+        boolean hasError = false;
 
         try {
-            // 1. "Welcome"이 포함된 모든 쿠폰 정책 검색 및 처리
-            try {
-                List<CouponPolicyResponseDTO> couponPolicies = couponPolicyService.searchCouponPoliciesByName("Welcome");
-                if (couponPolicies.isEmpty()) {
-                    log.warn("No 'Welcome' coupon policies found.");
-                } else {
-                    for (CouponPolicyResponseDTO policy : couponPolicies) {
-                        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
-                                policy.getName(), // 쿠폰 이름
-                                policy.getId(),   // 정책 ID
-                                Collections.singletonList(memberId), // 대상 회원
-                                "개인별"           // 발급 대상 유형
-                        );
-                        responses.addAll(createAndAssignCoupons(request));
-                    }
-                }
-            } catch (Exception e) {
-                log.error("Error while processing 'Welcome' coupon policies for member ID: {}", memberId, e);
-            }
-
-            // 2. "회원가입 선착순 쿠폰" 발급 처리
-            try {
-                if (hasAvailableFirstComeWelcomeCoupon()) {
-                    CouponAssignResponseDTO response = assignFirstComeWelcomeCoupon(memberId);
-                    responses.add(response);
-                } else {
-                    log.info("No available '회원가입 선착순 쿠폰' for member ID: {}", memberId);
-                }
-            } catch (Exception e) {
-                log.error("Error while assigning '회원가입 선착순 쿠폰' for member ID: {}", memberId, e);
-            }
+            processWelcomePolicies(memberId, responses);
         } catch (Exception e) {
-            log.error("Unexpected error occurred during welcome coupon assignment for member ID: {}", memberId, e);
-            throw new CouponIssueWelcomeException("Failed to process welcome coupons.");
+            log.error("Error during 'Welcome' policies processing for member ID: {}", memberId, e);
+            hasError = true;
+        }
+
+        try {
+            processFirstComeCoupon(memberId, responses);
+        } catch (Exception e) {
+            log.error("Error during 'First Come' coupon processing for member ID: {}", memberId, e);
+            hasError = true;
+        }
+
+        if (hasError) {
+            throw new CouponIssueWelcomeException("Some policies failed during coupon issuance.");
         }
 
         return responses;
     }
 
-
-    @Transactional(readOnly = true)
-    public boolean hasAvailableFirstComeWelcomeCoupon() {
-        return couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰").isPresent();
+    public void processWelcomePolicies(Long memberId, List<CouponAssignResponseDTO> responses) {
+        try {
+            List<CouponPolicyResponseDTO> couponPolicies = couponPolicyService.searchCouponPoliciesByName("Welcome");
+            if (couponPolicies.isEmpty()) {
+                log.warn("No 'Welcome' coupon policies found.");
+            } else {
+                for (CouponPolicyResponseDTO policy : couponPolicies) {
+                    CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                            "회원가입" + policy.getName(), policy.getId(), Collections.singletonList(memberId), "개인별");
+                    responses.addAll(createAndAssignCoupons(request));
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error during 'Welcome' policies processing for member ID: {}", memberId, e);
+            throw new RuntimeException("Error in processWelcomePolicies", e);
+        }
     }
 
-    @Transactional(readOnly = true)
-    public CouponAssignResponseDTO assignFirstComeWelcomeCoupon(Long memberId) {
-        Coupon coupon = couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰")
-                .orElseThrow(() -> new CouponNotFoundException("No available welcome coupons."));
 
-        // 쿠폰 발급 요청 생성 및 전송
-        CouponAssignRequestDTO request = new CouponAssignRequestDTO(coupon.getId(), memberId);
-        rabbitTemplate.convertAndSend(
-                RabbitConfig.EXCHANGE_NAME,
-                RabbitConfig.ROUTING_KEY,
-                request
-        );
-
-        log.info("Welcome coupon assign request sent to MQ for coupon ID: {}, member ID: {}", coupon.getId(), memberId);
-
-        return new CouponAssignResponseDTO(coupon.getId(), "Welcome coupon assigned successfully.");
+    public void processFirstComeCoupon(Long memberId, List<CouponAssignResponseDTO> responses) {
+        try {
+            Optional<Coupon> optionalCoupon = couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰");
+            if (optionalCoupon.isPresent()) {
+                Coupon coupon = optionalCoupon.get();
+                CouponAssignRequestDTO request = new CouponAssignRequestDTO(coupon.getId(), memberId);
+                rabbitTemplate.convertAndSend(
+                        RabbitConfig.EXCHANGE_NAME,
+                        RabbitConfig.ROUTING_KEY,
+                        request
+                );
+                log.info("Welcome coupon assign request sent to MQ for coupon ID: {}, member ID: {}", coupon.getId(), memberId);
+                responses.add(new CouponAssignResponseDTO(coupon.getId(), "Welcome coupon assigned successfully."));
+            } else {
+                log.info("No available '회원가입 선착순 쿠폰' for member ID: {}", memberId);
+            }
+        } catch (Exception e) {
+            log.error("Error during 'First Come' coupon processing for member ID: {}", memberId, e);
+            throw new RuntimeException("Error in processFirstComeCoupon", e);
+        }
     }
-
 
 
     // 생일 쿠폰 발급
     @Override
     @Transactional
-    public void assignMonthlyBirthdayCoupons() {
-        LocalDate today = LocalDate.now();
+    public BulkAssignResponseDTO assignMonthlyBirthdayCoupons() {
+        LocalDate today = getCurrentDate();
         int currentMonth = today.getMonthValue();
-        boolean isLeapYear = Year.now().isLeap();
+        boolean isLeapYear = Year.from(today).isLeap();
 
         log.info("Checking for members with birthdays in month: {}", currentMonth);
 
-        // 해당 월 생일 회원 조회
         List<MemberDto> membersWithBirthdays = fetchMembersByMonth(currentMonth);
+        log.info("{} members with birthdays found.", membersWithBirthdays.size());
+
         if (membersWithBirthdays.isEmpty()) {
             log.info("No members with birthdays in month: {}", currentMonth);
-            return;
+            return new BulkAssignResponseDTO(false, 0);
         }
 
-        // 월별 생일 쿠폰 정책 조회 (윤년 여부 포함)
         List<CouponPolicy> birthdayPolicies = fetchBirthdayCouponPolicies(currentMonth, isLeapYear);
         if (birthdayPolicies.isEmpty()) {
             log.warn("No coupon policies found for month: {}, Leap Year: {}", currentMonth, isLeapYear);
-            return;
+            return new BulkAssignResponseDTO(false, 0);
         }
 
         log.info("Using coupon policies: {}", birthdayPolicies.stream().map(CouponPolicy::getName).toList());
 
-        // 각 정책에 대해 쿠폰 발급
+        int totalIssuedCoupons = 0;
         for (CouponPolicy policy : birthdayPolicies) {
             log.info("Processing coupon policy: {}", policy.getName());
-
-            // 쿠폰 발급 요청 생성
             List<CouponAssignRequestDTO> couponRequests = membersWithBirthdays.stream()
                     .map(member -> new CouponAssignRequestDTO(null, member.getId()))
                     .toList();
-
-            assignBirthdayCoupons(couponRequests, policy);
+            int issuedCount = assignBirthdayCoupons(couponRequests, policy);
+            totalIssuedCoupons += issuedCount;
         }
+
+        return new BulkAssignResponseDTO(true, totalIssuedCoupons);
     }
+
+    // 현재 날짜를 반환하는 메서드
+    protected LocalDate getCurrentDate() {
+        return LocalDate.now();
+    }
+
 
 
     private List<MemberDto> fetchMembersByMonth(int month) {
@@ -618,11 +568,15 @@ public class CouponServiceImpl implements CouponService {
             members.addAll(memberPage.getContent().stream()
                     .filter(member -> {
                         LocalDate birthDate = member.getBirth().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+                        log.info("Member ID: {}, Birth Date: {}, Month Value: {}", member.getId(), birthDate, birthDate.getMonthValue());
                         return birthDate.getMonthValue() == month;
                     })
                     .toList());
             page++;
         } while (memberPage.hasNext());
+
+        log.info("Fetched {} members in page {}.", memberPage.getContent().size(), page);
+        log.info("Filtered members with birthdays in month {}: {}", month, members.size());
 
         return members;
     }
@@ -630,16 +584,22 @@ public class CouponServiceImpl implements CouponService {
 
     private List<CouponPolicy> fetchBirthdayCouponPolicies(int month, boolean isLeapYear) {
         String basePattern = "생일 축하 쿠폰 - " + month + "월";
-        String yearType = (month == 2) ? (isLeapYear ? "윤년" : "평년") : "";
+        String namePattern;
 
-        // 정책 이름 필터링
-        String namePattern = basePattern + " " + yearType;
+        if (month == 2) { // 2월일 경우 윤년/평년 추가
+            String yearType = isLeapYear ? "(윤년)" : "(평년)";
+            namePattern = basePattern + " " + yearType;
+        } else {
+            namePattern = basePattern; // 일반 월은 추가 텍스트 없음
+        }
 
+        log.info("Fetching coupon policies with name pattern: {}", namePattern);
         return couponPolicyRepository.findByNameContaining(namePattern);
     }
 
 
-    private void assignBirthdayCoupons(List<CouponAssignRequestDTO> requests, CouponPolicy policy) {
+
+    public int assignBirthdayCoupons(List<CouponAssignRequestDTO> requests, CouponPolicy policy) {
         CouponCreationAndAssignRequestDTO requestDTO = new CouponCreationAndAssignRequestDTO(
                 "생일 축하 쿠폰",
                 policy.getId(),
@@ -648,11 +608,15 @@ public class CouponServiceImpl implements CouponService {
         );
 
         try {
-            createAndAssignCoupons(requestDTO);
+            // 쿠폰 생성 및 발급
+            List<CouponAssignResponseDTO> responses = createAndAssignCoupons(requestDTO);
+            return responses.size(); // 발급된 쿠폰 개수 반환
         } catch (Exception e) {
-            log.error("Failed to assign birthday coupons.", e);
+            log.error("Failed to assign birthday coupons for policy: {}", policy.getName(), e);
+            return 0; // 실패 시 0 반환
         }
     }
+
 
     // 쿠폰 상세 정보 DTO 변환
     private CouponDetailsDTO mapToCouponDetailsDTO(Coupon coupon) {

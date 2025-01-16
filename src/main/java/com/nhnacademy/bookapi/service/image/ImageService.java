@@ -1,6 +1,5 @@
 package com.nhnacademy.bookapi.service.image;
 
-import com.netflix.discovery.converters.Auto;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCoverImage;
 import com.nhnacademy.bookapi.entity.BookImage;
@@ -14,7 +13,6 @@ import java.util.List;
 
 import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +24,7 @@ public class ImageService {
     private final BookCoverImageRepository bookCoverImageRepository;
     private final BookImageRepository bookImageRepository;
     private final BookRepository bookRepository;
-    @Autowired
-    private ObjectService objectService;
+    private final ObjectService objectService;
 
     public void bookCoverSave(Image image, BookCoverImage bookCoverImage) {
         imageRepository.save(image);
@@ -65,10 +62,9 @@ public class ImageService {
         List<Image> coverImages = bookCoverImageRepository.findImageByBookId(bookId);
 
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException("book not found"));
-      
-   
+
         objectService.generateAuthToken();
-      
+
               // 2. BookImage 삭제
         if (detailImages != null && !detailImages.isEmpty()) {
             bookImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리

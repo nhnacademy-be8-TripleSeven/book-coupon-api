@@ -53,7 +53,7 @@ class CouponPolicyServiceImplTest {
                     1000L,
                     5000L,
                     new BigDecimal("0.15"),
-                    0L,
+                    null,
                     30
             );
         });
@@ -75,7 +75,7 @@ class CouponPolicyServiceImplTest {
                 1000L,
                 5000L,
                 new BigDecimal("0.1"),
-                0L,
+                null,
                 30
         );
 
@@ -143,7 +143,7 @@ class CouponPolicyServiceImplTest {
                 "Updated Policy",
                 2000L,
                 6000L,
-                new BigDecimal("0"),
+                null,
                 1000L,
                 45
         );
@@ -168,7 +168,7 @@ class CouponPolicyServiceImplTest {
                 "Updated Policy",
                 2000L,
                 6000L,
-                BigDecimal.ZERO,
+                null,
                 1500L,
                 45
         );
@@ -208,7 +208,7 @@ class CouponPolicyServiceImplTest {
                 "Policy 1",
                 1000L,
                 5000L,
-                new BigDecimal("0.1"),
+                null,
                 100L,
                 30
         );
@@ -218,7 +218,7 @@ class CouponPolicyServiceImplTest {
                 2000L,
                 6000L,
                 new BigDecimal("0.2"),
-                200L,
+                null,
                 45
         );
 
@@ -249,7 +249,7 @@ class CouponPolicyServiceImplTest {
                 "Policy 1",
                 1000L,
                 5000L,
-                new BigDecimal("0.1"),
+                null,
                 100L,
                 30
         );
@@ -280,7 +280,7 @@ class CouponPolicyServiceImplTest {
                 "Policy 1",
                 1000L,
                 5000L,
-                new BigDecimal("0.1"),
+                null,
                 100L,
                 30
         );
@@ -304,6 +304,54 @@ class CouponPolicyServiceImplTest {
                 couponPolicyService.getCouponPolicyByName("Policy 1"));
         verify(couponPolicyRepository, times(1)).findByName("Policy 1");
     }
+
+    @Test
+    void testValidateCouponPolicyRequest_DiscountAmountZero_Valid() {
+        // Given
+        CouponPolicyRequestDTO request = new CouponPolicyRequestDTO(
+                "Valid Policy with Zero Discount Amount",
+                1000L,
+                5000L,
+                new BigDecimal("0.2"),
+                null,
+                30
+        );
+
+        // Mock
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Valid Policy with Zero Discount Amount", response.getName());
+    }
+
+    @Test
+    void testValidateCouponPolicyRequest_DiscountAmountNonZero_Valid() {
+        // Given
+        CouponPolicyRequestDTO request = new CouponPolicyRequestDTO(
+                "Valid Policy with Non-Zero Discount Amount",
+                1000L,
+                5000L,
+                null,
+                2000L,
+                30
+        );
+
+        // Mock
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // When
+        CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);
+
+        // Then
+        assertNotNull(response);
+        assertEquals("Valid Policy with Non-Zero Discount Amount", response.getName());
+        assertEquals(2000L, response.getCouponDiscountAmount());
+    }
+
 
     @Test
     void testValidateCouponPolicyRequest_MinGreaterThanMax_ExceptionThrown() {
@@ -364,7 +412,7 @@ class CouponPolicyServiceImplTest {
                 "Policy A",
                 1000L,
                 5000L,
-                new BigDecimal("0.1"),
+                null,
                 100L,
                 30
         );
@@ -373,7 +421,7 @@ class CouponPolicyServiceImplTest {
                 2000L,
                 6000L,
                 new BigDecimal("0.2"),
-                200L,
+                null,
                 45
         );
 

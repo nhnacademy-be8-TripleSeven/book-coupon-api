@@ -3,7 +3,6 @@ package com.nhnacademy.bookapi.service.book;
 
 import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
-import com.nhnacademy.bookapi.dto.book.CreateBookRequestDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 
 import com.nhnacademy.bookapi.dto.book.*;
@@ -43,7 +42,7 @@ public interface BookService {
 
 
 
-    List<CartItemDTO> getCartItemsByIds(List<Long> bookIds);
+    List<OrderItemDTO> getCartItemsByIds(List<Long> bookIds);
 
     Page<BookDetailResponseDTO> searchBookByCategoryId(Long categoryId, Pageable pageable);
 

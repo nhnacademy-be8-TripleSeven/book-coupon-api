@@ -14,9 +14,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StreamUtils;
-import org.springframework.web.client.RequestCallback;
-import org.springframework.web.client.ResponseExtractor;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -64,38 +62,52 @@ public class ObjectService {
 
         HttpEntity<String> requestEntity = new HttpEntity<>(payload, headers);
 
-        // API 요청 및 응답 처리
-        ResponseEntity<String> response = restTemplate.exchange(
-                this.authUrl, HttpMethod.POST, requestEntity, String.class
-        );
+//        // API 요청 및 응답 처리
+//        ResponseEntity<String> response = restTemplate.exchange(
+//                this.authUrl, HttpMethod.POST, requestEntity, String.class
+//        );
+//
+//        if (response.getStatusCode() == HttpStatus.OK) {
+//            String responseBody = response.getBody();
+//
+//            // 응답에서 토큰 추출 - 토큰 저장
+//            this.tokenId = responseBody.split("\"id\":\"")[1].split("\"")[0];
+//            System.out.println("New token issued: " + this.tokenId);
+//        } else {
+//            throw new RuntimeException("Failed to get auth token: " + response.getStatusCode());
+//        }
+        try {
+            ResponseEntity<String> response = restTemplate.exchange(
+                    this.authUrl, HttpMethod.POST, requestEntity, String.class
+            );
 
-        if (response.getStatusCode() == HttpStatus.OK) {
-            String responseBody = response.getBody();
-
-            // 응답에서 토큰 추출 - 토큰 저장
-            this.tokenId = responseBody.split("\"id\":\"")[1].split("\"")[0];
-            System.out.println("New token issued: " + this.tokenId);
-        } else {
-            throw new RuntimeException("Failed to get auth token: " + response.getStatusCode());
+            if (response.getStatusCode() == HttpStatus.OK) {
+                String responseBody = response.getBody();
+                this.tokenId = responseBody.split("\"id\":\"")[1].split("\"")[0];
+            } else {
+                throw new RuntimeException("Failed to get auth token: " + response.getStatusCode());
+            }
+        } catch (HttpClientErrorException | HttpServerErrorException ex) {
+            throw new RuntimeException("Failed to get auth token: " + ex.getStatusCode(), ex);
         }
     }
     // cloud object storage에 올라가 있는 이미지를 개인 컴퓨터에 다운로드하는 메소드
-    public File downloadObject(String containerName, String objectName, String downloadPath) {
-        String url = this.getUrl(containerName, objectName);
-
-        RequestCallback callback = (request) -> {
-            HttpHeaders headers = new HttpHeaders();
-            headers.add("X-Auth-Token", this.tokenId);
-            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
-
-        };
-        ResponseExtractor<File> extractor = (clientHttpResponse) -> {
-            File ret = new File(downloadPath + "/" + objectName);
-            StreamUtils.copy(clientHttpResponse.getBody(), Files.newOutputStream(ret.toPath()));
-            return ret;
-        };
-        return this.restTemplate.execute(url, HttpMethod.GET, callback, extractor);
-    }
+//    public File downloadObject(String containerName, String objectName, String downloadPath) {
+//        String url = this.getUrl(containerName, objectName);
+//
+//        RequestCallback callback = (request) -> {
+//            HttpHeaders headers = new HttpHeaders();
+//            headers.add("X-Auth-Token", this.tokenId);
+//            headers.setAccept(Collections.singletonList(MediaType.APPLICATION_OCTET_STREAM));
+//
+//        };
+//        ResponseExtractor<File> extractor = (clientHttpResponse) -> {
+//            File ret = new File(downloadPath + "/" + objectName);
+//            StreamUtils.copy(clientHttpResponse.getBody(), Files.newOutputStream(ret.toPath()));
+//            return ret;
+//        };
+//        return this.restTemplate.execute(url, HttpMethod.GET, callback, extractor);
+//    }
     //nhn cloud object storage에 업로드
     public void uploadObject(String containerName, String objectName, final InputStream inputStream) {
         if (this.tokenId == null) {
@@ -133,8 +145,8 @@ public class ObjectService {
             } else {
                 throw new RuntimeException("Upload failed with status: " + response.getStatusCode());
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Error reading InputStream for upload", e);
+        } catch (HttpClientErrorException | HttpServerErrorException ex) {
+            throw new RuntimeException("Upload failed with status: " + ex.getStatusCode());
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error during upload", e);
         }

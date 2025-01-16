@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CouponMessageListener {
     private final CouponRepository couponRepository;
     private final RetryStateService retryStateService;
-    private static final int MAX_RETRY_COUNT = 3;
+    private static int MAX_RETRY_COUNT = 3;
     private final Set<String> processingMessages = ConcurrentHashMap.newKeySet();
     private boolean isAlreadyProcessing(String messageId) {
         return !processingMessages.add(messageId);
@@ -39,7 +39,7 @@ public class CouponMessageListener {
         processingMessages.remove(messageId);
     }
 
-    @RabbitListener(queues = RabbitConfig.QUEUE_NAME)
+    @RabbitListener(queues = RabbitConfig.QUEUE_NAME, concurrency = "1")
     @Transactional
     public void handleCouponAssignRequest(CouponAssignRequestDTO request, Message message, Channel channel) {
         String messageId = getMessageId(message);

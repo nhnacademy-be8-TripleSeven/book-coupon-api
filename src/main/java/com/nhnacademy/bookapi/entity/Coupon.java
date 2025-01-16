@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Entity
-@Builder
+@Builder(toBuilder = true)
 public class Coupon {
 
     @Id
@@ -44,10 +44,6 @@ public class Coupon {
     public Coupon(String name, CouponPolicy policy) {
         this.name = name;
         this.couponPolicy = policy;
-    }
-
-    public void setTestId(Long id) {
-        this.id = id;
     }
 
     public void updateCouponStatus(CouponStatus couponStatus) {

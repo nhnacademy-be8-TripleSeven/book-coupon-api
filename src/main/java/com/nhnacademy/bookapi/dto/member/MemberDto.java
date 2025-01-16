@@ -1,12 +1,14 @@
 package com.nhnacademy.bookapi.dto.member;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import java.util.Date;
 
 
 @AllArgsConstructor
 @Getter
+@Builder
 public class MemberDto {
 
     private Long id;

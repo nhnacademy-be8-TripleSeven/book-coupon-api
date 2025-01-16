@@ -31,7 +31,7 @@ public class ReviewController {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "리뷰 추가 성공"),
             @ApiResponse(responseCode = "404", description = "도서를 찾을 수 없음"),
-            @ApiResponse(responseCode = "400", description = "이미 리뷰가 존재함")
+            @ApiResponse(responseCode = "409", description = "이미 리뷰가 존재함")
     })
     @PostMapping(value = "/api/reviews", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> addReview(
@@ -53,17 +53,6 @@ public class ReviewController {
         return ResponseEntity.ok().build();
     }
 
-//    @Operation(summary = "리뷰 삭제", description = "특정 도서에 작성된 리뷰를 삭제합니다.")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "204", description = "리뷰 삭제 성공"),
-//            @ApiResponse(responseCode = "404", description = "도서 또는 리뷰를 찾을 수 없음")
-//    })
-//    @DeleteMapping("/api/reviews/{bookId}")
-//    public ResponseEntity<Void> deleteReview(@RequestHeader("X-User") Long userId, @PathVariable Long bookId) {
-//        reviewService.deleteReview(userId, bookId);
-//        return ResponseEntity.noContent().build();
-//    }
-
     @Operation(summary = "유저가 작성한 모든 리뷰 조회", description = "특정 사용자가 작성한 모든 리뷰를 조회합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "리뷰 조회 성공"),
@@ -77,8 +66,6 @@ public class ReviewController {
         }
         return ResponseEntity.ok(reviews);
     }
-
-    // 미구현
 
     @Operation(summary = "특정 도서별 내 리뷰", description = "특정 도서에 대한 내 리뷰 조회")
     @ApiResponses({
@@ -102,25 +89,14 @@ public class ReviewController {
         return ResponseEntity.ok(reviewResponseDtos);
     }
 
-//    @Operation(summary = "도서별 전체 리뷰", description = "특정 도서의 전체 리뷰 조회")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "조회 성공"),
-//            @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음")
-//    })
-//    @GetMapping("/api/reviews/{bookId}/all")
-//    public ResponseEntity<List<ReviewResponseDto>> getAllReviewsByBookId(@PathVariable Long bookId) {
-//        List<ReviewResponseDto> reviews = reviewService.getAllReviewsByBookId(bookId);
-//        return ResponseEntity.ok(reviews);
-//    }
-
-//    @Operation(summary = "도서별 리뷰 정렬", description = "도서별 정렬")
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "정렬 성공"),
-//            @ApiResponse(responseCode = "400", description = "잘못된 요청")
-//    })
-//    @GetMapping("/reviews/{bookId}/sort")
-//    public ResponseEntity<Void> sortReviews(@PathVariable Long bookId, @RequestParam String sortType) {
-//        return ResponseEntity.ok().build();
-//    }
-
+    @Operation(summary = "도서별 전체 리뷰", description = "특정 도서의 전체 리뷰 조회")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "404", description = "리뷰를 찾을 수 없음")
+    })
+    @GetMapping("/api/reviews/{bookId}/all")
+    public ResponseEntity<List<ReviewResponseDto>> getAllReviewsByBookId(@PathVariable Long bookId) {
+        List<ReviewResponseDto> reviews = reviewService.getAllReviewsByBookId(bookId);
+        return ResponseEntity.ok(reviews);
+    }
 }

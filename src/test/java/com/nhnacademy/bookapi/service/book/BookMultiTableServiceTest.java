@@ -3,12 +3,14 @@ package com.nhnacademy.bookapi.service.book;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
+import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book_type.BookTypeDTO;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book_index.BookIndexService;
+import com.nhnacademy.bookapi.service.book_tag.BookTagService;
 import com.nhnacademy.bookapi.service.book_type.BookTypeService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
@@ -20,6 +22,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.data.domain.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,7 +37,8 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-@ExtendWith(org.mockito.junit.jupiter.MockitoExtension.class)
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class BookMultiTableServiceTest {
 
     @InjectMocks
@@ -85,13 +91,25 @@ class BookMultiTableServiceTest {
 
     @Mock
     private ReviewService reviewService;
+
     @Mock
     private BookCouponRepository bookCouponRepository;
+
     @Mock
     private BookRepository bookRepository;
 
     @Mock
     private CategoryRepository categoryRepository;
+
+
+    @Mock
+    private BookTypeRepository bookTypeRepository;
+
+    @Mock
+    private BookTagService bookTagService;
+
+
+
 
     // Constants
     private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
@@ -99,7 +117,7 @@ class BookMultiTableServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Initialize any common setup if necessary
+
     }
 
     // 1. getAdminBookById method test
@@ -255,8 +273,8 @@ class BookMultiTableServiceTest {
                 CategoryDTO.builder().name("Thriller").level(2).build()
             ))
             .bookTypes(Arrays.asList(
-                BookTypeDTO.builder().type("FICTION").ranks(1).build(),
-                BookTypeDTO.builder().type("THRILLER").ranks(2).build()
+                BookTypeDTO.builder().type("BOOK").ranks(1).build(),
+                BookTypeDTO.builder().type("BESTSELLER").ranks(2).build()
             ))
             .authors(Arrays.asList(
                 BookCreatorDTO.builder().name("Author One").role("AUTHOR").build(),
@@ -315,79 +333,6 @@ class BookMultiTableServiceTest {
         verify(imageService, never()).bookDetailSave(any(Image.class), any(BookImage.class));
     }
 
-    // 4. updateBook method tests
-
-    // 4.1. Test updateBook successfully updates existing fields and creates/updates images
-//    @Test
-//    void testUpdateBook_Success() throws IOException {
-//        // Given
-//        BookUpdateDTO bookUpdateDTO = BookUpdateDTO.builder()
-//            .id(3L)
-//            .title("Updated Book Title")
-//            .isbn("1122334455")
-//            .publishedDate(LocalDate.of(2024, 1, 1))
-//            .regularPrice(2500)
-//            .salePrice(2000)
-//            .description("Updated book description.")
-//            .coverImage(Collections.emptyList())
-//            .detailImage(Collections.emptyList())
-//            .categories(Collections.singletonList(
-//                CategoryDTO.builder().id(1L).name("Updated Category").level(1)
-//                    .build()
-//            ))
-//            .authors(Collections.singletonList(
-//                BookCreatorDTO.builder().id(1L).name("Updated Author").role("AUTHOR")
-//                    .build()
-//            ))
-//            .index("Updated Index Text")
-//            .bookTypes(Collections.singletonList(
-//                BookTypeDTO.builder().type("SCIENCE").ranks(1).build()
-//            ))
-//
-//            .stock(100).page(100).build();
-//
-//        // Mock existing book
-//        Book existingBook = Book.builder()
-//            .id(3L)
-//            .title("Old Book Title")
-//            .isbn13("1122334455")
-//            .publishDate(LocalDate.of(2023, 1, 1))
-//            .regularPrice(2000)
-//            .salePrice(1800)
-//            .description("Old description.")
-//            .stock(100).page(100).build();
-//
-//        when(bookService.getBook(bookUpdateDTO.getId())).thenReturn(existingBook);
-//
-//
-//        // Mock category service
-//        when(categoryService.getCategoryById(1L)).thenReturn(null);
-//        when(categoryService.getCategoryByName("Updated Category")).thenReturn(null);
-//
-//
-//        // Mock book type service
-//        List<BookType> existingBookTypes = new ArrayList<>();
-//        when(bookTypeService.getBookTypeByBookId(3L)).thenReturn(existingBookTypes);
-//
-//        // When
-//        bookMultiTableService.updateBook(bookUpdateDTO);
-//
-//        // Then
-//        verify(bookService).getBook(bookUpdateDTO.getId());
-//
-//        // Verify image uploads (none in this case as images are empty)
-//        verify(imageService, never()).getCoverImage(anyLong());
-//        verify(imageService, never()).getDetailImage(anyLong());
-//
-//        // Verify category updates/creation
-//        verify(categoryService).getCategoryById(1L);
-//        verify(categoryService).getCategoryByName("Updated Category");
-//
-//        verify(bookCreatorService).saveBookCreator(any(BookCreator.class), any(BookCreatorMap.class));
-//
-//
-//    }
-//
 
 
     // 6.1. Test uploadCoverImageToStorage successfully uploads and returns URL
@@ -457,30 +402,6 @@ class BookMultiTableServiceTest {
         verify(objectService).loadImageFromStorage(containerName, objectName);
     }
 
-//    @Test
-//    void testBookTypeDelete_Success() throws IOException {
-//// Given
-//        long bookId = 1L;
-//        // Mock 설정
-//        doNothing().when(bookTypeService).deleteBookType(bookId);
-//        when(bookIndexService.deleteIndex(bookId)).thenReturn(true); // boolean 반환값 설정
-//        doNothing().when(bookCreatorService).deleteBookCreatorMap(bookId);
-//        doNothing().when(imageService).deleteBookCoverImageAndBookDetailImage(bookId);
-//        doNothing().when(reviewService).deleteAllReviewsWithBook(bookId);
-//
-//
-//        // When
-//        bookMultiTableService.deleteBook(bookId);
-//
-//        // Then
-//        verify(bookTypeService, times(1)).deleteBookType(bookId);
-//        verify(bookIndexService, times(1)).deleteIndex(bookId); // boolean 메서드 호출 검증
-//        verify(bookCreatorService, times(1)).deleteBookCreatorMap(bookId);
-//        verify(bookCategoryRepository, times(1)).deleteAllByBookId(bookId);
-//        verify(imageService, times(1)).deleteBookCoverImageAndBookDetailImage(bookId);
-//        verify(reviewService, times(1)).deleteAllReviewsWithBook(bookId);
-//        verify(wrapperRepository, times(1)).deleteByBookId(bookId);
-//    }
 
 
 
@@ -632,6 +553,105 @@ class BookMultiTableServiceTest {
         verify(imageService, times(1)).bookDetailSave(any(Image.class), any(BookImage.class));
         verifyNoMoreInteractions(imageService);
     }
+
+    @Test
+    void testUpdateBook_service_layer() throws IOException {
+        // Given
+        Long bookId = 1L; // Ensure consistent ID
+        Book book = Book.builder() // Use spy to allow method calls
+            .id(bookId)
+            .title("Test Book")
+            .isbn13("1234567890")
+            .publishDate(LocalDate.now())
+            .description("Test Description")
+            .regularPrice(1)
+            .salePrice(1)
+            .stock(1)
+            .page(1)
+            .build();
+
+        BookTypeDTO bookTypeDTO = BookTypeDTO.builder().ranks(0).type("BOOK").build();
+        BookType bookType = BookType.builder().id(1L).ranks(0).types(Type.BESTSELLER).build();
+
+        BookCreatorDTO bookCreatorDTO = BookCreatorDTO.builder().name("test").role("AUTHOR").build();
+
+        List<MultipartFile> bookCoverImages = Collections.singletonList(mock(MultipartFile.class));
+        List<MultipartFile> detailImages = Collections.singletonList(mock(MultipartFile.class));
+        List<CategoryDTO> categoryDTOS = Collections.singletonList(mock(CategoryDTO.class));
+        List<BookCreatorDTO> bookCreatorDTOS = List.of(bookCreatorDTO);
+        String index = "testIndex";
+        List<BookType> bookTypes = List.of(bookType);
+        List<BookTypeDTO> bookTypeDTOS = List.of(bookTypeDTO);
+
+        BookUpdateDTO bookUpdateDTO = BookUpdateDTO.builder()
+            .id(bookId)
+            .title("Test")
+            .isbn("1234567890")
+            .index(index)
+            .publishedDate(LocalDate.now())
+            .regularPrice(1)
+            .salePrice(1)
+            .description("description")
+            .stock(1)
+            .page(1)
+            .coverImage(bookCoverImages)
+            .detailImage(detailImages)
+            .bookTypes(bookTypeDTOS)
+            .categories(categoryDTOS)
+            .authors(bookCreatorDTOS)
+            .build();
+        // Mock Repository and Service
+        when(bookService.getBook(bookId)).thenReturn(book);
+        when(bookTypeRepository.findById(anyLong())).thenReturn(Optional.of(mock(BookType.class)));
+        when(bookTypeService.getBookTypeByBookId(bookId)).thenReturn(bookTypes);
+
+        // When
+        bookMultiTableService.updateBook(bookUpdateDTO);
+
+        // Then
+        verify(bookService, times(1)).getBook(bookId);
+        verify(bookTypeService, times(1)).getBookTypeByBookId(bookId);
+
+    }
+
+    @Test
+    void testDeleteBook_service_layer() {
+        long bookId = 1L;
+
+        doNothing().when(bookTypeService).deleteBookType(bookId);
+        doNothing().when(bookIndexService).deleteBookIndex(bookId);
+        doNothing().when(bookCreatorService).deleteBookCreatorMap(bookId);
+        doNothing().when(bookCategoryRepository).deleteAllByBookId(bookId);
+        doNothing().when(imageService).deleteBookCoverImageAndBookDetailImage(bookId);
+        doNothing().when(bookTagService).deleteAllByBookId(bookId);
+        doNothing().when(reviewService).deleteAllReviewsWithBook(bookId);
+
+        doNothing().when(bookCouponRepository).deleteByBookId(bookId);
+        doNothing().when(wrapperRepository).deleteByBookId(bookId);
+
+        doNothing().when(bookPopularityRepository).deleteByBookId(bookId);
+        doNothing().when(bookService).deleteBook(bookId);
+
+        bookMultiTableService.deleteBook(bookId);
+
+        // Then
+        // 각 서비스 및 레포지토리가 올바르게 호출되었는지 검증
+        verify(bookTypeService, times(1)).deleteBookType(bookId);
+
+        verify(bookCreatorService, times(1)).deleteBookCreatorMap(bookId);
+        verify(bookCategoryRepository, times(1)).deleteAllByBookId(bookId);
+        verify(imageService, times(1)).deleteBookCoverImageAndBookDetailImage(bookId);
+        verify(bookTagService, times(1)).deleteAllByBookId(bookId);
+        verify(reviewService, times(1)).deleteAllReviewsWithBook(bookId);
+        verify(wrapperRepository, times(1)).deleteByBookId(bookId);
+
+
+
+        verify(bookService, times(1)).deleteBook(bookId);
+    }
+
+
+
 
 
 

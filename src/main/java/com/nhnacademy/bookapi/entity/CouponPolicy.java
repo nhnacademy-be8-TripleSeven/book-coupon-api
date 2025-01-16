@@ -52,9 +52,4 @@ public class CouponPolicy {
         this.couponValidTime = couponValidTime;
     }
 
-    // Test 전용 메서드
-    public void setTestId(Long id) {
-        this.id = id;
-    }
-
 }

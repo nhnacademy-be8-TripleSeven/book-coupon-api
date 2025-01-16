@@ -17,6 +17,8 @@ import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.entity.Wrapper;
+import com.nhnacademy.bookapi.exception.AladinApiException;
+import com.nhnacademy.bookapi.exception.BookAlreadyExistsException;
 import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCoverImageRepository;
@@ -54,34 +56,39 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class BookApiSaveService {
 
-    private final BookApiService bookApiService;
-    private final BookIndexRepository bookIndexRepository;
-    private final ImageService imageService;
+      private final BookApiService bookApiService;
+//    private final BookIndexRepository bookIndexRepository;
+//    private final ImageService imageService;
     private final BookRepository bookRepository;
-    private final BookCreatorRepository bookCreatorRepository;
-    private final BookPopularityRepository bookPopularRepository;
-    private final BookImageRepository bookImageRepository;
-    private final ImageRepository imageRepository;
-    private final BookTypeRepository bookTypeRepository;
-    private final PublisherRepository publisherRepository;
-    private final CategoryRepository categoryRepository;
-    private final BookCategoryRepository bookCategoryRepository;
-    private final BookCreatorMapRepository bookCreatorMapRepository;
-    private final BookCoverImageRepository bookCoverImageRepository;
+//    private final BookCreatorRepository bookCreatorRepository;
+//    private final BookPopularityRepository bookPopularRepository;
+//    private final BookImageRepository bookImageRepository;
+//    private final ImageRepository imageRepository;
+//    private final BookTypeRepository bookTypeRepository;
+//    private final PublisherRepository publisherRepository;
+//    private final CategoryRepository categoryRepository;
+//    private final BookCategoryRepository bookCategoryRepository;
+//    private final BookCreatorMapRepository bookCreatorMapRepository;
+//    private final BookCoverImageRepository bookCoverImageRepository;
 
-    private final ObjectService objectService;
+//    private final ObjectService objectService;
   //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
-    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
-    private final String containerName = "triple-seven";
-    private final WrapperRepository wrapperRepository;
+//    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
+//    private final String containerName = "triple-seven";
+//    private final WrapperRepository wrapperRepository;
 
 
-    public BookApiDTO getAladinBookByIsbn(String isbn) throws Exception {
+    public BookApiDTO getAladinBookByIsbn(String isbn){
+        JsonNode book = null;
+        try {
+            book = bookApiService.getBook(isbn).get(0);
+        }catch (Exception e){
+            throw new AladinApiException(e.getMessage());
+        }
 
-        JsonNode book = bookApiService.getBook(isbn).get(0);
         String isbn13 = book.path("isbn13").asText();
         if(!isbn13.equals(isbn)) {
-            return new BookApiDTO();
+            throw new BookAlreadyExistsException("이미 존재하는 isbn 입니다.");
         }
         boolean findIsbn = bookRepository.existsByIsbn13(isbn);
 
@@ -329,100 +336,100 @@ public class BookApiSaveService {
 
 
   
-    public List<BookCreator> authorParseSave(String author, Book book) {
-
-
-        List<BookCreator> bookCreatorList = new ArrayList<>();
-
-        BookCreator bookCreator;
-        BookCreatorMap bookCreatorMap;
-
-        // "지은이)", "그림)", "엮은이)", "원작)", "옮긴이)" 로 끝나는 구분자를 기준으로 분리
-        String[] split = author.split("\\),");
-        for (String s : split) {
-            s = s.trim();
-            Role role = null;
-            String roleName = null;
-            if(s.contains("(") && s.contains(")")) {
-                roleName = s.substring(s.indexOf("(") + 1, s.indexOf(")")).trim();
-            }
-            role = RoleMapper.getRole(roleName);
-
-            String[] nameList = s.split(", ");
-            for (String name : nameList) {
-                if(name.contains("(")) {
-                    name = name.substring(0, name.indexOf("(")).trim();
-                }
-                bookCreator = bookCreatorRepository.existByNameAndRole(name, role);
-                if(bookCreator == null){
-                    bookCreatorMap = new BookCreatorMap();
-                    bookCreator = new BookCreator();
-                    bookCreator.create(name.trim(), role);
-
-                    bookCreatorMap.create(book, bookCreator);
-                    BookCreator saveBookCreator = bookCreatorRepository.save(bookCreator);
-                    bookCreatorList.add(saveBookCreator);
-                    bookCreatorMapRepository.save(bookCreatorMap);
-                }else {
-                    bookCreatorMap = new BookCreatorMap();
-                    bookCreatorMap.create(book, bookCreator);
-                    bookCreatorMapRepository.save(bookCreatorMap);
-                }
-            }
-        }
-        return bookCreatorList;
-    }
-
-    @Transactional
-    public void categoryParseSave(String category, Book book, int level)  {
-
-        String[] categories = category.split(">");
-        Category parentCategory = null; // 초기화
-
-        for (String categoryName : categories) {
-            categoryName = categoryName.trim();
-
-            // 중복 확인 및 기존 카테고리 조회
-            Category categoryByName = categoryRepository.findCategoryByName(categoryName).orElse(null);
-            Category saveCategory;
-
-            if (categoryByName != null) {
-                saveCategory = categoryByName;
-            } else {
-                Category newCategory = new Category();
-                newCategory.create(categoryName, level, parentCategory); // parentCategory 설정
-
-                // 저장 후 saveCategory에 할당
-                saveCategory = categoryRepository.save(newCategory);
-            }
-
-            // 상위 카테고리로 설정
-            parentCategory = saveCategory;
-            level++;
-
-            // 도서와 카테고리 매핑 저장
-            BookCategory bookCategory = new BookCategory();
-            bookCategory.create(book, saveCategory);
-            bookCategoryRepository.save(bookCategory);
-        }
-    }
+//    public List<BookCreator> authorParseSave(String author, Book book) {
+//
+//
+//        List<BookCreator> bookCreatorList = new ArrayList<>();
+//
+//        BookCreator bookCreator;
+//        BookCreatorMap bookCreatorMap;
+//
+//        // "지은이)", "그림)", "엮은이)", "원작)", "옮긴이)" 로 끝나는 구분자를 기준으로 분리
+//        String[] split = author.split("\\),");
+//        for (String s : split) {
+//            s = s.trim();
+//            Role role = null;
+//            String roleName = null;
+//            if(s.contains("(") && s.contains(")")) {
+//                roleName = s.substring(s.indexOf("(") + 1, s.indexOf(")")).trim();
+//            }
+//            role = RoleMapper.getRole(roleName);
+//
+//            String[] nameList = s.split(", ");
+//            for (String name : nameList) {
+//                if(name.contains("(")) {
+//                    name = name.substring(0, name.indexOf("(")).trim();
+//                }
+//                bookCreator = bookCreatorRepository.existByNameAndRole(name, role);
+//                if(bookCreator == null){
+//                    bookCreatorMap = new BookCreatorMap();
+//                    bookCreator = new BookCreator();
+//                    bookCreator.create(name.trim(), role);
+//
+//                    bookCreatorMap.create(book, bookCreator);
+//                    BookCreator saveBookCreator = bookCreatorRepository.save(bookCreator);
+//                    bookCreatorList.add(saveBookCreator);
+//                    bookCreatorMapRepository.save(bookCreatorMap);
+//                }else {
+//                    bookCreatorMap = new BookCreatorMap();
+//                    bookCreatorMap.create(book, bookCreator);
+//                    bookCreatorMapRepository.save(bookCreatorMap);
+//                }
+//            }
+//        }
+//        return bookCreatorList;
+//    }
+//
+//    @Transactional
+//    public void categoryParseSave(String category, Book book, int level)  {
+//
+//        String[] categories = category.split(">");
+//        Category parentCategory = null; // 초기화
+//
+//        for (String categoryName : categories) {
+//            categoryName = categoryName.trim();
+//
+//            // 중복 확인 및 기존 카테고리 조회
+//            Category categoryByName = categoryRepository.findCategoryByName(categoryName).orElse(null);
+//            Category saveCategory;
+//
+//            if (categoryByName != null) {
+//                saveCategory = categoryByName;
+//            } else {
+//                Category newCategory = new Category();
+//                newCategory.create(categoryName, level, parentCategory); // parentCategory 설정
+//
+//                // 저장 후 saveCategory에 할당
+//                saveCategory = categoryRepository.save(newCategory);
+//            }
+//
+//            // 상위 카테고리로 설정
+//            parentCategory = saveCategory;
+//            level++;
+//
+//            // 도서와 카테고리 매핑 저장
+//            BookCategory bookCategory = new BookCategory();
+//            bookCategory.create(book, saveCategory);
+//            bookCategoryRepository.save(bookCategory);
+//        }
+//    }
   
-    //object storage에 이미지 업로드 메소드
-    public String uploadCoverImageToStorage(ObjectService objectService, String imageUrl, String objectName) {
-        try {
-            URL url = new URL(imageUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-
-            try (InputStream inputStream = connection.getInputStream()) {
-                objectService.uploadObject(containerName, objectName, inputStream);
-                return storageUrl + "/" + containerName + "/" + objectName;
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
+//    //object storage에 이미지 업로드 메소드
+//    public String uploadCoverImageToStorage(ObjectService objectService, String imageUrl, String objectName) {
+//        try {
+//            URL url = new URL(imageUrl);
+//            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+//            connection.setRequestMethod("GET");
+//
+//            try (InputStream inputStream = connection.getInputStream()) {
+//                objectService.uploadObject(containerName, objectName, inputStream);
+//                return storageUrl + "/" + containerName + "/" + objectName;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return null;
+//    }
 
 
 }

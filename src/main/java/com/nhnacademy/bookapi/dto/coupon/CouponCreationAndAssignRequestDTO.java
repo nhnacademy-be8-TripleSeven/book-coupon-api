@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.dto.coupon;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -9,6 +10,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class CouponCreationAndAssignRequestDTO {
     private String name;                 // 쿠폰 이름
     private Long couponPolicyId;         // 쿠폰 정책 ID

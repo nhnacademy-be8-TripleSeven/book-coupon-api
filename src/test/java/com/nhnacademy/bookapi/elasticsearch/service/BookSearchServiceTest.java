@@ -1,6 +1,8 @@
 package com.nhnacademy.bookapi.elasticsearch.service;
 
 
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
+import co.elastic.clients.elasticsearch._types.ErrorResponse;
 import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 import com.nhnacademy.bookapi.elasticsearch.dto.DocumentSearchResponseDTO;
 import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
@@ -77,4 +79,6 @@ class BookSearchServiceTest {
 
         verify(repository, times(1)).searchWithPopularityAndWeights(eq("noresult"), eq(pageable));
     }
+
+
 }

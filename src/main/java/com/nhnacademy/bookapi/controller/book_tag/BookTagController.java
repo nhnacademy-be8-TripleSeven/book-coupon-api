@@ -49,24 +49,6 @@ public class BookTagController {
         return ResponseEntity.ok().build();
     }
 
-//    @Operation(
-//            summary = "책-태그 관계 업데이트",
-//            description = "책과 태그 간의 관계를 업데이트합니다."
-//    )
-//    @ApiResponses({
-//            @ApiResponse(responseCode = "200", description = "책-태그 관계 업데이트 성공"),
-//            @ApiResponse(responseCode = "404", description = "책-태그 관계를 찾을 수 없음"),
-//            @ApiResponse(responseCode = "400", description = "잘못된 요청 데이터")
-//    })
-//    @PutMapping("/admin/book-tags")
-//    public ResponseEntity<Void> updateBookTag(
-//            @Valid @RequestBody BookTagRequestDTO bookTagRequestDTO,
-//            @RequestParam Long newTagId
-//    ) {
-//        bookTagService.updateBookTag(bookTagRequestDTO, newTagId);
-//        return ResponseEntity.ok().build();
-//    }
-
     @Operation(
             summary = "책의 태그 조회",
             description = "특정 책에 연결된 모든 태그를 조회합니다."
@@ -79,5 +61,5 @@ public class BookTagController {
     public ResponseEntity<List<BookTagResponseDTO>> getBookTagsByBook(@PathVariable Long bookId) {
         List<BookTagResponseDTO> tags = bookTagService.getBookTagsByBook(bookId);
         return ResponseEntity.ok(tags);
-    }//
+    }
 }

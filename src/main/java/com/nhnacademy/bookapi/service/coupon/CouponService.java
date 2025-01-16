@@ -33,7 +33,7 @@ public interface CouponService {
 
     List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request);
 
-    void assignMonthlyBirthdayCoupons();
+    BulkAssignResponseDTO assignMonthlyBirthdayCoupons();
 
     CouponPolicyOrderResponseDTO getCouponPolicyByCouponId(Long couponId);
 
