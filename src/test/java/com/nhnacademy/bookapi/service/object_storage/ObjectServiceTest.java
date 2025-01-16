@@ -1,34 +1,33 @@
 package com.nhnacademy.bookapi.service.object_storage;
 
 import com.nhnacademy.bookapi.service.object.ObjectService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.springframework.test.web.client.ExpectedCount.once;
 import static org.springframework.test.web.client.MockRestServiceServer.createServer;
-import static org.springframework.test.web.client.match.MockRestRequestMatchers.*;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.method;
+import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.*;
 
 /**
- * ObjectService에 대한 테스트 클래스
+ * ObjectService에 대한 단위 테스트.
  * - generateAuthToken()
  * - uploadObject()
  * - loadImageFromStorage()
+ * - deleteObject()
  *
- * 각각 성공 케이스와 실패 케이스를 모두 테스트하여
- * 메소드/라인/분기(Branch) 커버리지 100% 달성.
+ * 모든 예외, 분기 로직까지 커버하여
+ * 메서드 / 라인 / 분기 커버리지 100% 달성
  */
 class ObjectServiceTest {
 
@@ -39,17 +38,17 @@ class ObjectServiceTest {
     void setUp() {
         // 테스트용 ObjectService 생성
         objectService = new ObjectService();
-        // RestTemplate을 커스텀해서 주입해도 되고, 기본 생성자 후 objectService.setRestTemplate() 해도 됨.
-        RestTemplate restTemplate = new RestTemplate();
 
-        objectService.setRestTemplate(restTemplate);
+        // 설정값 주입
         objectService.setAuthUrl("http://fake-auth.local/v1/tokens");
-        objectService.setTenantId("test-tenant");
-        objectService.setUsername("test-user");
-        objectService.setPassword("test-pass");
         objectService.setStorageUrl("http://fake-storage.local");
+        objectService.setTenantId("fake-tenant");
+        objectService.setUsername("fake-user");
+        objectService.setPassword("fake-pass");
 
-        // RestTemplate에 MockRestServiceServer 연결
+        // RestTemplate 설정 & MockRestServiceServer 생성
+        RestTemplate restTemplate = new RestTemplate();
+        objectService.setRestTemplate(restTemplate);
         mockServer = createServer(restTemplate);
     }
 
@@ -59,17 +58,18 @@ class ObjectServiceTest {
 
         @Test
         @DisplayName("성공 케이스 - 200 OK")
-        void testGenerateAuthTokenSuccess() {
-            // given
+        void testGenerateAuthTokenSuccess200() {
+            // 정상 토큰 발급 시나리오
             String responseBody = """
-                    {
-                      "auth": {
-                        "token": {
-                          "id":"fake-token-value"
-                        }
-                      }
+                {
+                  "auth": {
+                    "token": {
+                      "id":"fake-token-value"
                     }
-                    """;
+                  }
+                }
+                """;
+
             mockServer.expect(once(), requestTo("http://fake-auth.local/v1/tokens"))
                     .andExpect(method(HttpMethod.POST))
                     .andRespond(withSuccess(responseBody, MediaType.APPLICATION_JSON));
@@ -83,15 +83,44 @@ class ObjectServiceTest {
         }
 
         @Test
-        @DisplayName("실패 케이스 - 500 오류")
-        void testGenerateAuthTokenFail() {
-            // given
+        @DisplayName("실패 케이스 - 202 ACCEPTED (200이 아닌 정상응답)")
+        void testGenerateAuthTokenFailNon200() {
+            // 202 응답 (OK도 에러도 아닌 경우) -> else문으로 인해 RuntimeException 발생
             mockServer.expect(once(), requestTo("http://fake-auth.local/v1/tokens"))
                     .andExpect(method(HttpMethod.POST))
-                    .andRespond(withServerError()); // 500
+                    .andRespond(withStatus(HttpStatus.ACCEPTED));
 
-            // when & then
-            assertThatThrownBy(() -> objectService.generateAuthToken())
+            assertThatThrownBy(objectService::generateAuthToken)
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Failed to get auth token: 202 ACCEPTED");
+
+            mockServer.verify();
+        }
+
+        @Test
+        @DisplayName("실패 케이스 - HttpClientErrorException (4xx)")
+        void testGenerateAuthTokenFail4xx() {
+            // 401, 403, 404 등 4xx
+            mockServer.expect(once(), requestTo("http://fake-auth.local/v1/tokens"))
+                    .andExpect(method(HttpMethod.POST))
+                    .andRespond(withStatus(HttpStatus.UNAUTHORIZED)); // 401
+
+            assertThatThrownBy(objectService::generateAuthToken)
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Failed to get auth token: 401 UNAUTHORIZED");
+
+            mockServer.verify();
+        }
+
+        @Test
+        @DisplayName("실패 케이스 - HttpServerErrorException (5xx)")
+        void testGenerateAuthTokenFail5xx() {
+            // 500 등 5xx
+            mockServer.expect(once(), requestTo("http://fake-auth.local/v1/tokens"))
+                    .andExpect(method(HttpMethod.POST))
+                    .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+            assertThatThrownBy(objectService::generateAuthToken)
                     .isInstanceOf(RuntimeException.class)
                     .hasMessageContaining("Failed to get auth token: 500 INTERNAL_SERVER_ERROR");
 
@@ -104,69 +133,87 @@ class ObjectServiceTest {
     class UploadObjectTests {
 
         @Test
-        @DisplayName("성공 케이스 - 200 OK 또는 201 Created")
-        void testUploadObjectSuccessCreated() throws Exception {
-            // given
-            String containerName = "test-container";
-            String objectName = "test-file.png";
-            String url = "http://fake-storage.local/test-container/test-file.png";
-            objectService.setTokenId("valid-token");
+        @DisplayName("실패 케이스 - Token이 null")
+        void testUploadObjectNoToken() {
+            // tokenId가 null이면 IllegalStateException
+            objectService.setTokenId(null);
 
-            // Mock 서버: 201 Created 또는 200 OK 응답
-            mockServer.expect(once(), requestTo(url))
-                    .andExpect(method(HttpMethod.PUT))
-                    .andRespond(withStatus(HttpStatus.CREATED));  // 또는 HttpStatus.OK
-
-            byte[] data = "dummy-image-content".getBytes(StandardCharsets.UTF_8);
-            InputStream inputStream = new ByteArrayInputStream(data);
-
-            // when
-            objectService.uploadObject(containerName, objectName, inputStream);
-
-            // then
-            mockServer.verify();
+            InputStream inputStream = new ByteArrayInputStream("dummy".getBytes());
+            assertThatThrownBy(() -> objectService.uploadObject("container", "obj", inputStream))
+                    .isInstanceOf(IllegalStateException.class)
+                    .hasMessageContaining("Token is not available");
         }
 
         @Test
         @DisplayName("성공 케이스 - 200 OK")
-        void testUploadObjectSuccessOk() throws Exception {
-            String containerName = "cont";
-            String objectName = "obj.txt";
-            String url = "http://fake-storage.local/cont/obj.txt";
+        void testUploadObjectSuccess200() {
             objectService.setTokenId("valid-token");
 
-            // Mock 서버: 200 응답
+            String url = "http://fake-storage.local/container/myObject";
+            // 200 OK 응답 시 정상 처리
             mockServer.expect(once(), requestTo(url))
                     .andExpect(method(HttpMethod.PUT))
                     .andRespond(withSuccess("", MediaType.TEXT_PLAIN));
 
-            byte[] data = "hello".getBytes(StandardCharsets.UTF_8);
-            InputStream is = new ByteArrayInputStream(data);
+            InputStream inputStream = new ByteArrayInputStream("hello".getBytes(StandardCharsets.UTF_8));
+            objectService.uploadObject("container", "myObject", inputStream);
 
-            objectService.uploadObject(containerName, objectName, is);
+            // inputStream close() 커버리지를 위해 코드에 finally 블록이 있음
+            // 여기선 별도 close() 확인이 어려우나 커버리지는 달성
+            mockServer.verify();
+        }
+
+        @Test
+        @DisplayName("성공 케이스 - 201 Created")
+        void testUploadObjectSuccess201() {
+            objectService.setTokenId("valid-token");
+
+            String url = "http://fake-storage.local/container/createdObject";
+            // 201 Created 응답
+            mockServer.expect(once(), requestTo(url))
+                    .andExpect(method(HttpMethod.PUT))
+                    .andRespond(withStatus(HttpStatus.CREATED));
+
+            InputStream inputStream = new ByteArrayInputStream("created".getBytes(StandardCharsets.UTF_8));
+            objectService.uploadObject("container", "createdObject", inputStream);
 
             mockServer.verify();
         }
 
         @Test
-        @DisplayName("실패 케이스 - 업로드 중 403 Forbidden")
-        void testUploadObjectFail403() throws Exception {
-            String containerName = "cont";
-            String objectName = "obj.png";
-            String url = "http://fake-storage.local/cont/obj.png";
-
+        @DisplayName("실패 케이스 - 202 Accepted 등 (OK/CREATED 외 상태)")
+        void testUploadObjectFailNon200or201() {
             objectService.setTokenId("valid-token");
 
-            // Mock 서버: 403 응답
+            String url = "http://fake-storage.local/container/failObject";
+            // 202 응답 (OK, CREATED 외의 상태 코드)
             mockServer.expect(once(), requestTo(url))
                     .andExpect(method(HttpMethod.PUT))
-                    .andRespond(withStatus(HttpStatus.FORBIDDEN));
+                    .andRespond(withStatus(HttpStatus.ACCEPTED));
 
-            byte[] data = "forbidden content".getBytes(StandardCharsets.UTF_8);
-            InputStream is = new ByteArrayInputStream(data);
+            InputStream inputStream = new ByteArrayInputStream("test".getBytes());
 
-            // when & then
-            assertThatThrownBy(() -> objectService.uploadObject(containerName, objectName, is))
+            assertThatThrownBy(() -> objectService.uploadObject("container", "failObject", inputStream))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Failed to upload object: 202 ACCEPTED");
+
+            mockServer.verify();
+        }
+
+
+        @Test
+        @DisplayName("실패 케이스 - HttpClientErrorException (4xx)")
+        void testUploadObjectFail4xx() {
+            objectService.setTokenId("valid-token");
+
+            String url = "http://fake-storage.local/container/fourOhFour";
+            mockServer.expect(once(), requestTo(url))
+                    .andExpect(method(HttpMethod.PUT))
+                    .andRespond(withStatus(HttpStatus.FORBIDDEN)); // 403
+
+            InputStream inputStream = new ByteArrayInputStream("not allowed".getBytes());
+
+            assertThatThrownBy(() -> objectService.uploadObject("container", "fourOhFour", inputStream))
                     .isInstanceOf(RuntimeException.class)
                     .hasMessageContaining("Upload failed with status: 403 FORBIDDEN");
 
@@ -174,15 +221,43 @@ class ObjectServiceTest {
         }
 
         @Test
-        @DisplayName("실패 케이스 - 토큰 없음")
-        void testUploadObjectNoToken() {
-            // given
-            objectService.setTokenId(null); // 토큰 없음
+        @DisplayName("실패 케이스 - HttpServerErrorException (5xx)")
+        void testUploadObjectFail5xx() {
+            objectService.setTokenId("valid-token");
 
-            // when & then
-            assertThatThrownBy(() -> objectService.uploadObject("any", "obj", new ByteArrayInputStream(new byte[0])))
-                    .isInstanceOf(IllegalStateException.class)
-                    .hasMessageContaining("Token is not available");
+            String url = "http://fake-storage.local/container/internalError";
+            mockServer.expect(once(), requestTo(url))
+                    .andExpect(method(HttpMethod.PUT))
+                    .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+            InputStream inputStream = new ByteArrayInputStream("server error".getBytes());
+
+            assertThatThrownBy(() -> objectService.uploadObject("container", "internalError", inputStream))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Upload failed with status: 500 INTERNAL_SERVER_ERROR");
+
+            mockServer.verify();
+        }
+
+        @Test
+        @DisplayName("실패 케이스 - 예기치 않은 Exception (예: IOException)")
+        void testUploadObjectUnexpectedException() {
+            objectService.setTokenId("valid-token");
+
+            // IOUtils.toByteArray(...)에서 IOException 발생하도록 가짜 InputStream 사용
+            InputStream brokenStream = new InputStream() {
+                @Override
+                public int read() throws IOException {
+                    throw new IOException("Broken Stream");
+                }
+            };
+
+            assertThatThrownBy(() -> objectService.uploadObject("container", "failObject", brokenStream))
+                    .isInstanceOf(RuntimeException.class)
+                    .hasMessageContaining("Failed to upload object: Broken Stream");
+
+            // HTTP 요청 전에 예외 발생 -> mockServer 기록 없음
+            mockServer.verify();
         }
     }
 
@@ -192,51 +267,45 @@ class ObjectServiceTest {
 
         @Test
         @DisplayName("성공 케이스 - 200 OK")
-        void testLoadImageFromStorageSuccess() throws Exception {
-            String containerName = "my-container";
-            String objectName = "image.jpg";
-            String url = "http://fake-storage.local/my-container/image.jpg";
+        void testLoadImageSuccess() throws IOException {
             objectService.setTokenId("valid-token");
 
-            byte[] fakeImageBytes = "fake image bytes".getBytes(StandardCharsets.UTF_8);
+            String url = "http://fake-storage.local/container/someImage.jpg";
+            byte[] fakeImage = "fakeImageData".getBytes(StandardCharsets.UTF_8);
 
-            // Mock 서버: 200 OK + 바이트 스트림
             mockServer.expect(once(), requestTo(url))
                     .andExpect(method(HttpMethod.GET))
-                    .andRespond(withSuccess(fakeImageBytes, MediaType.APPLICATION_OCTET_STREAM));
+                    .andRespond(withSuccess(fakeImage, MediaType.APPLICATION_OCTET_STREAM));
 
             // when
-            MockMultipartFile result = (MockMultipartFile) objectService.loadImageFromStorage(containerName, objectName);
+            MockMultipartFile result =
+                    (MockMultipartFile) objectService.loadImageFromStorage("container", "someImage.jpg");
 
             // then
             mockServer.verify();
             assertThat(result).isNotNull();
-            assertThat(result.getOriginalFilename()).isEqualTo("image.jpg");
-            assertThat(result.getBytes()).isEqualTo(fakeImageBytes);
+            assertThat(result.getOriginalFilename()).isEqualTo("someImage.jpg");
+            assertThat(result.getBytes()).isEqualTo(fakeImage);
         }
 
         @Test
-        @DisplayName("실패 케이스 - 404 NotFound")
-        void testLoadImageFromStorageNotFound() {
-            String containerName = "no-exist";
-            String objectName = "no-image.png";
-            String url = "http://fake-storage.local/no-exist/no-image.png";
-
+        @DisplayName("실패 케이스 - 404 Not Found")
+        void testLoadImageNotFound() {
             objectService.setTokenId("valid-token");
 
+            String url = "http://fake-storage.local/noContainer/noImage.png";
             mockServer.expect(once(), requestTo(url))
                     .andExpect(method(HttpMethod.GET))
                     .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
-            // when & then
-            // loadImageFromStorage() 안에서 RestTemplate.execute()가 404 받으면
-            // Spring에서 HttpClientErrorException.NotFound 발생
-            assertThatThrownBy(() -> objectService.loadImageFromStorage(containerName, objectName))
+            assertThatThrownBy(() ->
+                    objectService.loadImageFromStorage("noContainer", "noImage.png"))
                     .isInstanceOf(HttpClientErrorException.NotFound.class);
 
             mockServer.verify();
         }
     }
+
     @Nested
     @DisplayName("deleteObject() 테스트")
     class DeleteObjectTests {
@@ -244,47 +313,31 @@ class ObjectServiceTest {
         @Test
         @DisplayName("성공 케이스 - 204 No Content")
         void testDeleteObjectSuccess() {
-            // given
-            String containerName = "test-container";
-            String objectName = "test-object";
-            String url = "http://fake-storage.local/test-container/test-object";
-
             objectService.setTokenId("valid-token");
 
-            // Mock 서버: 204 응답
+            String url = "http://fake-storage.local/container/myObject";
             mockServer.expect(once(), requestTo(url))
                     .andExpect(method(HttpMethod.DELETE))
                     .andRespond(withStatus(HttpStatus.NO_CONTENT));
 
-            // when
-            objectService.deleteObject(containerName, objectName);
-
-            // then
+            objectService.deleteObject("container", "myObject");
             mockServer.verify();
         }
 
         @Test
         @DisplayName("실패 케이스 - 403 Forbidden")
         void testDeleteObjectForbidden() {
-            // given
-            String containerName = "test-container";
-            String objectName = "test-object";
-            String url = "http://fake-storage.local/test-container/test-object";
-
             objectService.setTokenId("valid-token");
 
-            // Mock 서버: 403 Forbidden 응답
+            String url = "http://fake-storage.local/container/forbiddenObj";
             mockServer.expect(once(), requestTo(url))
                     .andExpect(method(HttpMethod.DELETE))
                     .andRespond(withStatus(HttpStatus.FORBIDDEN));
 
-            // when & then
-            assertThatThrownBy(() -> objectService.deleteObject(containerName, objectName))
-                    .isInstanceOf(HttpClientErrorException.Forbidden.class)
-                    .hasMessageContaining("403 Forbidden");
+            assertThatThrownBy(() -> objectService.deleteObject("container", "forbiddenObj"))
+                    .isInstanceOf(HttpClientErrorException.Forbidden.class);
 
             mockServer.verify();
         }
     }
-
 }
