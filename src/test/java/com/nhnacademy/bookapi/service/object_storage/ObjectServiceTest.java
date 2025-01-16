@@ -1,19 +1,13 @@
 package com.nhnacademy.bookapi.service.object_storage;
 
-import com.amazonaws.util.IOUtils;
-import com.nhnacademy.bookapi.config.GlobalExceptionHandler;
 import com.nhnacademy.bookapi.service.object.ObjectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.client.MockRestServiceServer;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -293,18 +287,6 @@ class ObjectServiceTest {
 
             mockServer.verify();
         }
-
-//        @Test
-//        @DisplayName("실패 케이스 - 토큰 없음")
-//        void testDeleteObjectNoToken() {
-//            // given
-//            objectService.setTokenId(null); // 토큰 없음
-//
-//            // when & then
-//            assertThatThrownBy(() -> objectService.deleteObject("any-container", "any-object"))
-//                    .isInstanceOf(IllegalStateException.class)
-//                    .hasMessageContaining("Token is not available");
-//        }
     }
 
 }

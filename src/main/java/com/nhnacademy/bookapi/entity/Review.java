@@ -53,4 +53,8 @@ public class Review {
     public void updateCreatedAT(LocalDateTime now) {
         this.createdAt = now;
     }
+
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }
