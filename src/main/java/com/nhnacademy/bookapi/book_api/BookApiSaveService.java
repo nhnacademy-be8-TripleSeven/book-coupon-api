@@ -17,6 +17,8 @@ import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.entity.Wrapper;
+import com.nhnacademy.bookapi.exception.AladinApiException;
+import com.nhnacademy.bookapi.exception.BookAlreadyExistsException;
 import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCoverImageRepository;
@@ -76,12 +78,17 @@ public class BookApiSaveService {
 //    private final WrapperRepository wrapperRepository;
 
 
-    public BookApiDTO getAladinBookByIsbn(String isbn) throws Exception {
+    public BookApiDTO getAladinBookByIsbn(String isbn){
+        JsonNode book = null;
+        try {
+            book = bookApiService.getBook(isbn).get(0);
+        }catch (Exception e){
+            throw new AladinApiException(e.getMessage());
+        }
 
-        JsonNode book = bookApiService.getBook(isbn).get(0);
         String isbn13 = book.path("isbn13").asText();
         if(!isbn13.equals(isbn)) {
-            return new BookApiDTO();
+            throw new BookAlreadyExistsException("이미 존재하는 isbn 입니다.");
         }
         boolean findIsbn = bookRepository.existsByIsbn13(isbn);
 

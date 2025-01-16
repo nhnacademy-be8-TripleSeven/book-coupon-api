@@ -7,12 +7,18 @@ import com.nhnacademy.bookapi.dto.tag.TagResponseDto;
 import com.nhnacademy.bookapi.exception.TagAlreadyExistException;
 import com.nhnacademy.bookapi.exception.TagNotFoundException;
 import com.nhnacademy.bookapi.service.tag.TagService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -26,9 +32,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ExtendWith(MockitoExtension.class)
 class TagControllerTest {
 
     private MockMvc mockMvc;
+
+    @InjectMocks
+    private TagController tagController;
+
+    @Mock
     private TagService tagService;
     private ObjectMapper objectMapper;
 
@@ -173,6 +185,19 @@ class TagControllerTest {
 
             mockMvc.perform(get("/admin/tags"))
                     .andExpect(status().isNotFound());
+        }
+
+        @Test
+        void testGetAllTags() throws Exception {
+            int page = 0;
+            int size = 24;
+            String sortField = "name";
+            String sortDirection = "asc";
+            Sort sort = Sort.by(Sort.Direction.ASC, sortField);
+            Pageable pageable = PageRequest.of(page, size, sort);
+            ResponseEntity<Page<TagResponseDto>> response = tagController.getAllTags(page, size, sortField, sortDirection);
+
+            Assertions.assertEquals(200, response.getStatusCodeValue());
         }
     }
 }

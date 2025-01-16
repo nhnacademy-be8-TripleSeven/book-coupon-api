@@ -9,12 +9,18 @@ import com.nhnacademy.bookapi.exception.BookTagAlreadyExistException;
 import com.nhnacademy.bookapi.exception.BookTagNotFoundException;
 import com.nhnacademy.bookapi.exception.TagNotFoundException;
 import com.nhnacademy.bookapi.service.book_tag.BookTagService;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -25,9 +31,15 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+@ExtendWith(MockitoExtension.class)
 class BookTagControllerTest {
 
     private MockMvc mockMvc;
+
+    @InjectMocks
+    private BookTagController bookTagController;
+
+    @Mock
     private BookTagService bookTagService;
     private ObjectMapper objectMapper;
 
@@ -204,6 +216,28 @@ class BookTagControllerTest {
             mockMvc.perform(get("/admin/book-tags/{bookId}", bookId))
                     .andExpect(status().isNotFound())
                     .andExpect(jsonPath("$.message").value("Book not found"));
+        }
+
+        @Test
+        void testAddBookTag_Success() throws Exception {
+            BookTagRequestDTO requestDto = new BookTagRequestDTO(100L, 200L);
+
+            ResponseEntity<Void> response = bookTagController.addBookTag(requestDto);
+
+            Assertions.assertEquals(201, response.getStatusCodeValue());
+        }
+
+        @Test
+        void testDeleteBookTag_Success() throws Exception {
+            BookTagRequestDTO requestDto = new BookTagRequestDTO(100L, 200L);
+            ResponseEntity<Void> response = bookTagController.deleteBookTag(requestDto);
+            Assertions.assertEquals(200, response.getStatusCodeValue());
+        }
+
+        @Test
+        void testGetBookTagByBookId_Success() throws Exception {
+            ResponseEntity<List<BookTagResponseDTO>> response = bookTagController.getBookTagsByBook(999L);
+            Assertions.assertEquals(200, response.getStatusCodeValue());
         }
     }
 }

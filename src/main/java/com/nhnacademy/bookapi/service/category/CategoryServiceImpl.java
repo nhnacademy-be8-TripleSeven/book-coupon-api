@@ -117,7 +117,7 @@ public class CategoryServiceImpl implements CategoryService {
         return convertCategoriesToDTOs(byLevel);
     }
 
-    private List<CategoryDTO> convertCategoriesToDTOs(List<Category> categories) {
+    protected List<CategoryDTO> convertCategoriesToDTOs(List<Category> categories) {
         for (Category category : categories) {
             CategoryDTO categoryDTO;
             if (category.getParent() != null) {
