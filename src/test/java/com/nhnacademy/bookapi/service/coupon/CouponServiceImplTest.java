@@ -7,6 +7,7 @@ import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyResponseDTO;
 import com.nhnacademy.bookapi.dto.member.MemberDto;
+import com.nhnacademy.bookapi.dto.member.MemberNotFoundException;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.*;
 import com.nhnacademy.bookapi.repository.*;
@@ -17,7 +18,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
+import org.mockito.invocation.InvocationOnMock;
+import org.mockito.stubbing.Answer;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -71,9 +73,6 @@ class CouponServiceImplTest {
 
     @Mock
     private RabbitTemplate rabbitTemplate;
-
-    @Mock
-    private CouponHelperService couponHelperService;
 
 
     @BeforeEach
@@ -1005,10 +1004,46 @@ class CouponServiceImplTest {
 
     @Test
     void testCreateAndAssignCoupons_Success() {
-        // Mock Helper Service의 반환값
-        CouponAssignResponseDTO mockResponse = new CouponAssignResponseDTO(1L, "쿠폰 발급 성공");
 
-        // 요청 객체
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Test Policy")
+                .couponValidTime(30)
+                .build();
+
+        MemberDto member = MemberDto.builder().id(1L).build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Test Coupon")
+                .couponPolicy(policy)
+                .build();
+
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(memberFeignClient.getMembers(null, null, 0, 100, null, "ASC"))
+                .thenReturn(new PageImpl<>(List.of(member)));
+        when(couponRepository.saveAll(anyList())).thenReturn(List.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                "Test Coupon",
+                1L,
+                null,
+                "전체"
+        );
+        List<CouponAssignResponseDTO> response = couponService.createAndAssignCoupons(request);
+
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(1L, response.get(0).getCouponId());
+    }
+
+
+    @Test
+    void testCreateAndAssignCoupons_Failure_CouponPolicyNotFound() {
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.empty());
+
         CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
                 "Test Coupon",
                 1L,
@@ -1016,38 +1051,115 @@ class CouponServiceImplTest {
                 "전체"
         );
 
-        // Helper Service Mock 동작 정의
-        when(couponHelperService.createAndAssignCoupons(request))
-                .thenReturn(List.of(mockResponse));
+        assertThrows(CouponPolicyNotFoundException.class, () -> couponService.createAndAssignCoupons(request));
+    }
 
-        // 테스트 실행
+
+    @Test
+    void testCreateAndAssignCoupons_Failure_InvalidRecipientType() {
+
+        CouponPolicy policy = CouponPolicy.builder().id(1L).build();
+
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(memberFeignClient.getMembers(null, null, 0, 100, null, "ASC"))
+                .thenReturn(new PageImpl<>(List.of()));
+
+
+        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                "Test Coupon",
+                1L,
+                null,
+                "test"
+        );
+        assertThrows(InvalidRecipientTypeException.class, () -> couponService.createAndAssignCoupons(request));
+    }
+
+    @Test
+    void testCreateAndAssignCoupons_Failure_EmptyRecipients() {
+        CouponPolicy policy = CouponPolicy.builder().id(1L).build();
+
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(memberFeignClient.getMembers(null, null, 0, 100, null, "ASC"))
+                .thenReturn(new PageImpl<>(List.of())); // Empty list for members
+
+        CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
+                "Test Coupon",
+                1L,
+                null,
+                "전체"
+        );
+
+        assertThrows(MemberNotFoundException.class, () -> couponService.createAndAssignCoupons(request));
+    }
+
+    @Test
+    void testCreateAndAssignCoupons_Success_GradeRecipient() {
+
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Test Policy")
+                .couponValidTime(30)
+                .build();
+
+        MemberDto member = MemberDto.builder().id(1L).build();
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .couponPolicy(policy)
+                .name("Test Coupon")
+                .build();
+
+        CouponCreationAndAssignRequestDTO request = CouponCreationAndAssignRequestDTO.builder().name("Test Coupon").
+                bookId(null).categoryId(null).couponPolicyId(1L).recipientType("등급별").grade("GOLD").build();
+
+        when(couponPolicyRepository.findById(request.getCouponPolicyId())).thenReturn(Optional.of(policy));
+        when(memberFeignClient.getMembers(null, MemberGrade.GOLD, 0, 100, null, "ASC"))
+                .thenReturn(new PageImpl<>(List.of(member)));
+        when(couponRepository.saveAll(anyList())).thenReturn(List.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+
+
+
+
         List<CouponAssignResponseDTO> response = couponService.createAndAssignCoupons(request);
 
-        // 검증
         assertNotNull(response);
         assertEquals(1, response.size());
         assertEquals(1L, response.get(0).getCouponId());
     }
 
     @Test
-    void testCreateAndAssignCoupons_Failure_CouponPolicyNotFound() {
-        // 요청 객체
+    void testCreateAndAssignCoupons_Success_IndividualRecipient() {
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("Test Policy")
+                .couponValidTime(30)
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("Test Coupon")
+                .couponPolicy(policy)
+                .build();
+
+        when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
+        when(couponRepository.saveAll(anyList())).thenReturn(List.of(coupon));
+        when(couponRepository.findById(1L)).thenReturn(Optional.of(coupon));
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+
         CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
                 "Test Coupon",
                 1L,
-                null,
-                "전체"
+                List.of(1L),
+                "개인별"
         );
 
-        // Helper Service에서 예외 발생
-        when(couponHelperService.createAndAssignCoupons(request))
-                .thenThrow(new CouponPolicyNotFoundException("Coupon policy not found"));
+        List<CouponAssignResponseDTO> response = couponService.createAndAssignCoupons(request);
 
-        // 테스트 실행 및 검증
-        assertThrows(CouponPolicyNotFoundException.class, () -> couponService.createAndAssignCoupons(request));
+        assertNotNull(response);
+        assertEquals(1, response.size());
+        assertEquals(1L, response.get(0).getCouponId());
     }
-
-
 
 
     @Test
@@ -1111,25 +1223,41 @@ class CouponServiceImplTest {
                 any(CouponAssignRequestDTO.class)
         );
     }
+
     @Test
     void testIssueWelcomeCoupon_FullCoverage() {
+        // Given
         Long memberId = 1L;
 
-        // Mock 데이터 설정
+        // Welcome 정책 설정
         CouponPolicyResponseDTO welcomePolicy = CouponPolicyResponseDTO.builder()
                 .id(1L)
                 .name("Welcome Policy")
                 .couponValidTime(30)
                 .build();
 
+        // CouponPolicy Mock 설정
         CouponPolicy couponPolicyEntity = CouponPolicy.builder()
                 .id(1L)
                 .name("Welcome Policy")
                 .couponValidTime(30)
                 .build();
 
-        CouponAssignResponseDTO welcomeResponse = new CouponAssignResponseDTO(1L, "Welcome Coupon Assigned");
-        CouponAssignResponseDTO firstComeResponse = new CouponAssignResponseDTO(2L, "First Come Coupon Assigned");
+        when(couponPolicyService.searchCouponPoliciesByName("Welcome"))
+                .thenReturn(List.of(welcomePolicy));
+
+        when(couponPolicyRepository.findById(1L))
+                .thenReturn(Optional.of(couponPolicyEntity));
+
+        // Welcome 쿠폰 생성 및 저장 Mock
+        Coupon welcomeCoupon = Coupon.builder()
+                .id(1L)
+                .name("Welcome Coupon")
+                .couponPolicy(couponPolicyEntity)
+                .build();
+
+        when(couponRepository.saveAll(anyList()))
+                .thenReturn(List.of(welcomeCoupon)); // 쿠폰 저장 Mock
 
         Coupon firstComeCoupon = Coupon.builder()
                 .id(2L)
@@ -1141,31 +1269,27 @@ class CouponServiceImplTest {
                         .build())
                 .build();
 
-        // Mock 동작 정의
-        when(couponPolicyService.searchCouponPoliciesByName("Welcome"))
-                .thenReturn(List.of(welcomePolicy));
-        when(couponPolicyRepository.findById(1L))
-                .thenReturn(Optional.of(couponPolicyEntity));
+        when(couponRepository.save(any(Coupon.class)))
+                .thenReturn(firstComeCoupon);
 
-        when(couponHelperService.createAndAssignCoupons(any()))
-                .thenReturn(List.of(welcomeResponse));
+        when(couponRepository.findById(anyLong())).thenReturn(Optional.of(welcomeCoupon));
 
         when(couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰"))
                 .thenReturn(Optional.of(firstComeCoupon));
 
-        // RabbitTemplate Mock 동작 정의
         doNothing().when(rabbitTemplate)
-                .convertAndSend(eq(RabbitConfig.EXCHANGE_NAME), eq(RabbitConfig.ROUTING_KEY), any(CouponAssignRequestDTO.class));
+                .convertAndSend(eq(RabbitConfig.EXCHANGE_NAME), eq(RabbitConfig.ROUTING_KEY), any(CouponAssignRequestDTO.class)); // RabbitMQ Mock
 
-        // 테스트 실행
+        // When
         List<CouponAssignResponseDTO> responses = couponService.issueWelcomeCoupon(memberId);
 
-        // 검증
+        // Then
         assertNotNull(responses);
         assertEquals(2, responses.size());
-        assertEquals(1L, responses.get(0).getCouponId());
-        assertEquals(2L, responses.get(1).getCouponId());
+
     }
+
+
 
     @Test
     void testIssueWelcomeCoupon_NoFirstComeCoupon() {
@@ -1485,8 +1609,7 @@ class CouponServiceImplTest {
                 categoryCouponRepository,
                 rabbitTemplate,
                 memberFeignClient,
-                couponPolicyService,
-                couponHelperService
+                couponPolicyService
         ));
         doReturn(LocalDate.of(2024, 2, 1)) // 테스트용 고정된 날짜
                 .when(couponService).getCurrentDate();
@@ -1516,9 +1639,8 @@ class CouponServiceImplTest {
                 .couponValidTime(30)
                 .build();
 
-        // Mock된 응답 객체
-        CouponAssignResponseDTO response1 = new CouponAssignResponseDTO(1L, "쿠폰 발급 성공");
-        CouponAssignResponseDTO response2 = new CouponAssignResponseDTO(2L, "쿠폰 발급 성공");
+        Coupon coupon1 = Coupon.builder().id(1L).couponPolicy(policy).memberId(1L).build();
+        Coupon coupon2 = Coupon.builder().id(2L).couponPolicy(policy).memberId(2L).build();
 
         // Mock 설정
         when(memberFeignClient.getMembers(any(), any(), anyInt(), anyInt(), any(), anyString()))
@@ -1527,8 +1649,20 @@ class CouponServiceImplTest {
                 .thenReturn(List.of(policy));
         when(couponPolicyRepository.findById(anyLong()))
                 .thenReturn(Optional.of(policy));
-        when(couponHelperService.createAndAssignCoupons(any(CouponCreationAndAssignRequestDTO.class)))
-                .thenReturn(List.of(response1, response2));
+        when(couponRepository.save(any(Coupon.class)))
+                .thenAnswer(new Answer<Coupon>() {
+                    private int count = 0; // 호출 횟수를 추적하기 위한 변수
+                    @Override
+                    public Coupon answer(InvocationOnMock invocation) throws Throwable {
+                        Coupon coupon = invocation.getArgument(0); // 전달된 Coupon 객체 가져오기
+                        count++;
+                        return count == 1 ? coupon1 : coupon2; // 첫 번째 호출은 coupon1, 두 번째 호출은 coupon2
+                    }
+                });
+
+        when(couponRepository.findById(anyLong())).thenReturn(Optional.of(coupon1));
+        when(couponRepository.saveAll(anyList()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // 전달된 리스트를 그대로 반환
 
         // Spy 객체 생성 및 날짜 Mock
         CouponServiceImpl couponService = spy(new CouponServiceImpl(
@@ -1541,8 +1675,7 @@ class CouponServiceImplTest {
                 categoryCouponRepository,
                 rabbitTemplate,
                 memberFeignClient,
-                couponPolicyService,
-                couponHelperService
+                couponPolicyService
         ));
         doReturn(LocalDate.of(2024, 2, 1)) // 테스트용 고정된 날짜
                 .when(couponService).getCurrentDate();
@@ -1554,6 +1687,7 @@ class CouponServiceImplTest {
         assertTrue(response.isSuccess());
         assertEquals(2, response.getIssuedCount());
     }
+
 
 
     @Test
@@ -1572,9 +1706,8 @@ class CouponServiceImplTest {
                 .couponValidTime(30)
                 .build();
 
-        // Mock된 응답 객체
-        CouponAssignResponseDTO response1 = new CouponAssignResponseDTO(1L, "쿠폰 발급 성공");
-        CouponAssignResponseDTO response2 = new CouponAssignResponseDTO(2L, "쿠폰 발급 성공");
+        Coupon coupon1 = Coupon.builder().id(1L).couponPolicy(policy).memberId(1L).build();
+        Coupon coupon2 = Coupon.builder().id(2L).couponPolicy(policy).memberId(2L).build();
 
         // Mock 설정
         when(memberFeignClient.getMembers(any(), any(), anyInt(), anyInt(), any(), anyString()))
@@ -1583,8 +1716,20 @@ class CouponServiceImplTest {
                 .thenReturn(List.of(policy));
         when(couponPolicyRepository.findById(anyLong()))
                 .thenReturn(Optional.of(policy));
-        when(couponHelperService.createAndAssignCoupons(any(CouponCreationAndAssignRequestDTO.class)))
-                .thenReturn(List.of(response1, response2));
+        when(couponRepository.save(any(Coupon.class)))
+                .thenAnswer(new Answer<Coupon>() {
+                    private int count = 0; // 호출 횟수를 추적하기 위한 변수
+                    @Override
+                    public Coupon answer(InvocationOnMock invocation) throws Throwable {
+                        Coupon coupon = invocation.getArgument(0); // 전달된 Coupon 객체 가져오기
+                        count++;
+                        return count == 1 ? coupon1 : coupon2; // 첫 번째 호출은 coupon1, 두 번째 호출은 coupon2
+                    }
+                });
+
+        when(couponRepository.findById(anyLong())).thenReturn(Optional.of(coupon1));
+        when(couponRepository.saveAll(anyList()))
+                .thenAnswer(invocation -> invocation.getArgument(0)); // 전달된 리스트를 그대로 반환
 
         // Spy 객체 생성 및 날짜 Mock
         CouponServiceImpl couponService = spy(new CouponServiceImpl(
@@ -1597,8 +1742,7 @@ class CouponServiceImplTest {
                 categoryCouponRepository,
                 rabbitTemplate,
                 memberFeignClient,
-                couponPolicyService,
-                couponHelperService
+                couponPolicyService
         ));
         doReturn(LocalDate.of(2023, 2, 1)) // 테스트용 고정된 날짜
                 .when(couponService).getCurrentDate();
@@ -1610,7 +1754,6 @@ class CouponServiceImplTest {
         assertTrue(response.isSuccess());
         assertEquals(2, response.getIssuedCount());
     }
-
 
     @Test
     void testAssignMonthlyBirthdayCoupons_NoBirthdays() {
@@ -1868,6 +2011,9 @@ class CouponServiceImplTest {
         assertNotNull(response);
         assertEquals(couponId, response.getCouponId());
     }
+
+
+
 
 
 

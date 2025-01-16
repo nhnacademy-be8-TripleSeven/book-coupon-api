@@ -7,6 +7,7 @@ import com.nhnacademy.bookapi.dto.coupon.*;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyOrderResponseDTO;
 import com.nhnacademy.bookapi.dto.couponpolicy.CouponPolicyResponseDTO;
 import com.nhnacademy.bookapi.dto.member.MemberDto;
+import com.nhnacademy.bookapi.dto.member.MemberNotFoundException;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.*;
 import com.nhnacademy.bookapi.repository.*;
@@ -14,6 +15,7 @@ import com.nhnacademy.bookapi.service.couponpolicy.CouponPolicyService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +46,7 @@ public class CouponServiceImpl implements CouponService {
     private final MemberFeignClient memberFeignClient;
 
     private final CouponPolicyService couponPolicyService;
-    private final CouponHelperService couponHelperService;
+
 
 
     // 쿠폰 생성 (이름, 정책)
@@ -325,8 +327,39 @@ public class CouponServiceImpl implements CouponService {
     @Override
     @Transactional
     public List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request) {
-        return couponHelperService.createAndAssignCoupons(request);
+        // 1. 쿠폰 정책 조회
+        CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
+                .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
+
+        // 2. 발급 대상 조회
+        List<Long> memberIds = getMemberIdsByRecipientType(request);
+        if (memberIds.isEmpty()) {
+            throw new MemberNotFoundException("발급 대상 회원이 없습니다.");
+        }
+
+        // 3. 쿠폰 생성 및 발급
+        List<Coupon> coupons = memberIds.stream()
+                .map(memberId -> {
+                    Coupon coupon = createCouponBasedOnTarget(request, policy);
+                    coupon.setCouponAssignData(
+                            memberId,
+                            LocalDate.now(),
+                            LocalDate.now().plusDays(policy.getCouponValidTime()),
+                            CouponStatus.NOTUSED
+                    );
+                    return coupon;
+                })
+                .toList();
+
+        // 4. 배치 저장
+        List<Coupon> savedCoupons = couponRepository.saveAll(coupons);
+
+        // 5. 응답 생성
+        return savedCoupons.stream()
+                .map(savedCoupon -> new CouponAssignResponseDTO(savedCoupon.getId(), "쿠폰 발급 성공"))
+                .toList();
     }
+
 
 
     // 타겟별 쿠폰 생성
@@ -453,7 +486,7 @@ public class CouponServiceImpl implements CouponService {
                 for (CouponPolicyResponseDTO policy : couponPolicies) {
                     CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
                             "회원가입" + policy.getName(), policy.getId(), Collections.singletonList(memberId), "개인별");
-                    responses.addAll(couponHelperService.createAndAssignCoupons(request));
+                    responses.addAll(createAndAssignCoupons(request));
                 }
             }
         } catch (Exception e) {
@@ -583,7 +616,7 @@ public class CouponServiceImpl implements CouponService {
 
         try {
             // 쿠폰 생성 및 발급
-            List<CouponAssignResponseDTO> responses = couponHelperService.createAndAssignCoupons(requestDTO);
+            List<CouponAssignResponseDTO> responses = createAndAssignCoupons(requestDTO);
             return responses.size(); // 발급된 쿠폰 개수 반환
         } catch (Exception e) {
             log.error("Failed to assign birthday coupons for policy: {}", policy.getName(), e);
