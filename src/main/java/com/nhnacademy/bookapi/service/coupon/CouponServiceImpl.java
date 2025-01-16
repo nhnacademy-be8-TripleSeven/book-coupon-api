@@ -320,13 +320,15 @@ public class CouponServiceImpl implements CouponService {
                 coupon.getCouponStatus());
     }
 
-
-
+    @Transactional
+    @Override
+    public List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request) {
+        // 트랜잭션 시작
+        return createAndAssignCouponsLogic(request);
+    }
 
     // 생성 및 발급
-    @Override
-    @Transactional
-    public List<CouponAssignResponseDTO> createAndAssignCoupons(CouponCreationAndAssignRequestDTO request) {
+    private List<CouponAssignResponseDTO> createAndAssignCouponsLogic(CouponCreationAndAssignRequestDTO request) {
         // 1. 쿠폰 정책 조회
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                 .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
@@ -486,7 +488,7 @@ public class CouponServiceImpl implements CouponService {
                 for (CouponPolicyResponseDTO policy : couponPolicies) {
                     CouponCreationAndAssignRequestDTO request = new CouponCreationAndAssignRequestDTO(
                             "회원가입" + policy.getName(), policy.getId(), Collections.singletonList(memberId), "개인별");
-                    responses.addAll(createAndAssignCoupons(request));
+                    responses.addAll(createAndAssignCouponsLogic(request));
                 }
             }
         } catch (Exception e) {
@@ -616,7 +618,7 @@ public class CouponServiceImpl implements CouponService {
 
         try {
             // 쿠폰 생성 및 발급
-            List<CouponAssignResponseDTO> responses = createAndAssignCoupons(requestDTO);
+            List<CouponAssignResponseDTO> responses = createAndAssignCouponsLogic(requestDTO);
             return responses.size(); // 발급된 쿠폰 개수 반환
         } catch (Exception e) {
             log.error("Failed to assign birthday coupons for policy: {}", policy.getName(), e);
