@@ -273,8 +273,8 @@ class BookMultiTableServiceTest {
                 CategoryDTO.builder().name("Thriller").level(2).build()
             ))
             .bookTypes(Arrays.asList(
-                BookTypeDTO.builder().type("FICTION").ranks(1).build(),
-                BookTypeDTO.builder().type("THRILLER").ranks(2).build()
+                BookTypeDTO.builder().type("BOOK").ranks(1).build(),
+                BookTypeDTO.builder().type("BESTSELLER").ranks(2).build()
             ))
             .authors(Arrays.asList(
                 BookCreatorDTO.builder().name("Author One").role("AUTHOR").build(),
