@@ -9,6 +9,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
@@ -25,6 +26,22 @@ public class CacheConfig {
     private final ObjectMapper objectMapper;
     private final RedisConnectionFactory redisConnectionFactory;
 
+
+
+    @Bean(name = "cacheObjectMapper")
+    public ObjectMapper cacheObjectMapper() {
+        PolymorphicTypeValidator ptv = BasicPolymorphicTypeValidator
+            .builder()
+            .allowIfSubType(Object.class)
+            .build();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY);
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.activateDefaultTyping(ptv, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
+        return objectMapper;
+    }
+
     public CacheConfig(RedisConnectionFactory redisConnectionFactory) {
         this.redisConnectionFactory = redisConnectionFactory;
 
@@ -40,14 +57,14 @@ public class CacheConfig {
     }
 
     @Bean
-    public RedisCacheManager redisCacheManager() {
+    public RedisCacheManager redisCacheManager(@Qualifier("cacheObjectMapper") ObjectMapper objectMapper) {
         RedisCacheConfiguration redisCacheConfiguration = RedisCacheConfiguration
             .defaultCacheConfig()
             .disableCachingNullValues()
             .serializeKeysWith(RedisSerializationContext.SerializationPair
                 .fromSerializer(new StringRedisSerializer()))
             .serializeValuesWith(RedisSerializationContext.SerializationPair
-                .fromSerializer(new GenericJackson2JsonRedisSerializer(this.objectMapper)))
+                .fromSerializer(new GenericJackson2JsonRedisSerializer(objectMapper)))
             .entryTtl(Duration.ofMinutes(30));
 
         // 캐시 이름별 설정
