@@ -298,9 +298,9 @@ public class BookMultiTableService {
         if(!allByBook.isEmpty() && !categoryDTOList.isEmpty()){
             bookCategoryRepository.deleteAll(allByBook);
         }
+        int level = 1;
         for (CategoryDTO categoryDTO : categoryDTOList) {
 
-            int level = 1;
             String categoryName = categoryDTO.getName();
             Category categoryByName = categoryRepository.findCategoryByName(categoryName).orElse(null);
             Category saveCategory;
@@ -356,13 +356,19 @@ public class BookMultiTableService {
 
         int index = 0;
         if(!bookTypeDTOList.isEmpty()) {
-            for (BookType bookType : bookTypeList) {
-                if(bookTypeRepository.findById(bookType.getId()).isPresent()){
-
+            if(!bookTypeList.isEmpty()) {
+                for (BookType bookType : bookTypeList) {
+                    BookTypeDTO bookTypeDTO = bookTypeDTOList.get(index);
+                    bookType.update(Type.valueOf(bookTypeDTO.getType()), bookTypeDTO.getRanks(),
+                        book);
+                    index++;
                 }
-                BookTypeDTO bookTypeDTO = bookTypeDTOList.get(index);
-                bookType.update(Type.valueOf(bookTypeDTO.getType()), bookTypeDTO.getRanks(), book);
-                index++;
+            }else {
+                for (BookTypeDTO bookTypeDTO : bookTypeDTOList) {
+                    BookType bookType = new BookType(Type.valueOf(bookTypeDTO.getType()),
+                        bookTypeDTO.getRanks(), book);
+                    bookTypeService.createBookType(bookType);
+                }
             }
         }
     }

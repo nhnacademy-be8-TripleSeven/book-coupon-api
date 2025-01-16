@@ -1,5 +1,6 @@
 package com.nhnacademy.bookapi.service.category;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -35,6 +36,9 @@ class CategoryServiceImplTest {
 
     @Mock
     private CategoryRepository categoryRepository;
+
+    @Mock
+    private CategoryServiceImpl categoryServiceImpl;
 
     @Mock
     private BookCategoryRepository bookCategoryRepository;
@@ -348,6 +352,60 @@ class CategoryServiceImplTest {
         assertEquals(2, result.get(1).getLevel()); // 두 번째 카테고리 레벨 확인
         verify(categoryRepository, times(1)).findByParentIdAndLevel(parentId, level); // 레포지토리 호출 검증
     }
+
+    @Test
+    void testConvertCategoriesDTO_isParent() {
+        // Arrange: 부모 카테고리와 자식 카테고리 생성
+        Category parent = Category.builder()
+            .id(1L)
+            .name("Parent Category")
+            .level(1)
+            .build();
+
+        Category child = Category.builder()
+            .id(2L)
+            .name("Child Category")
+            .parent(parent)
+            .level(2)
+            .build();
+
+        // CategoryDTO 기대 결과 생성
+        CategoryDTO expectedParentDTO = CategoryDTO.builder()
+            .id(parent.getId())
+            .name(parent.getName())
+            .level(parent.getLevel())
+            .build();
+
+        CategoryDTO expectedChildDTO = CategoryDTO.builder()
+            .id(child.getId())
+            .name(child.getName())
+            .level(child.getLevel())
+            .parent(expectedParentDTO)
+            .build();
+
+        // Category 리스트 및 Mock 설정
+        List<Category> categories = List.of(child);
+        when(categoryServiceImpl.convertCategoriesToDTOs(categories))
+            .thenReturn(List.of(expectedChildDTO));
+
+        // Act: 메서드 호출
+        List<CategoryDTO> categoryDTOs = categoryServiceImpl.convertCategoriesToDTOs(categories);
+
+        // Assert: 결과 검증
+        assertThat(categoryDTOs).hasSize(1);
+
+        CategoryDTO childDTO = categoryDTOs.get(0);
+        assertThat(childDTO.getId()).isEqualTo(child.getId());
+        assertThat(childDTO.getName()).isEqualTo(child.getName());
+        assertThat(childDTO.getLevel()).isEqualTo(child.getLevel());
+
+        // 부모 카테고리 검증
+        assertThat(childDTO.getParent()).isNotNull();
+        assertThat(childDTO.getParent().getId()).isEqualTo(parent.getId());
+        assertThat(childDTO.getParent().getName()).isEqualTo(parent.getName());
+        assertThat(childDTO.getParent().getLevel()).isEqualTo(parent.getLevel());
+    }
+
 
 
 }
