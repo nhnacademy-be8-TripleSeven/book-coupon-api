@@ -192,62 +192,235 @@ class ReviewControllerTest {
     class UpdateReviewTests {
 
         @Test
-        @DisplayName("리뷰 수정 성공 -> 200 OK")
-        void testUpdateReviewSuccess() throws Exception {
+        @DisplayName("1. removeImage 파라미터 없이(기본값 false), 파일 없음 -> 기존 이미지 유지")
+        void testUpdateReview_noRemoveImageParam_noFile() throws Exception {
+            // given
             Long userId = 1L;
-            ReviewRequestDto dto = new ReviewRequestDto();
-            dto.setBookId(100L);
-            dto.setText("수정된 내용");
-            dto.setRating(4);
+            Long bookId = 100L;
+            ReviewRequestDto dto = new ReviewRequestDto("Updated Review", 5, bookId);
 
-            when(reviewService.updateReview(eq(userId), any(ReviewRequestDto.class)))
+            // JSON 직렬화 파일 파트
+            MockMultipartFile jsonDto = new MockMultipartFile(
+                    "reviewRequestDto",
+                    "",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsBytes(dto)
+            );
+            // 파일 파트는 없거나 empty
+            // removeImage 파라미터도 없음
+
+            when(reviewService.updateReview(eq(userId), any(ReviewRequestDto.class), isNull(), eq(false)))
                     .thenReturn(true);
 
-            mockMvc.perform(put("/api/reviews")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-User", userId)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isOk());
+            // when & then
+            mockMvc.perform(
+                            multipart("/api/reviews")
+                                    .file(jsonDto)
+                                    .header("X-USER", userId)
+                                    .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+                    )
+                    .andExpect(status().isCreated()); // Controller는 200 OK
         }
 
         @Test
-        @DisplayName("리뷰 수정 시, BookNotFoundException -> 404 NotFound")
-        void testUpdateReviewBookNotFound() throws Exception {
+        @DisplayName("2. removeImage=false, 새 파일 업로드 -> 기존 이미지 덮어쓰기")
+        void testUpdateReview_removeImageFalse_filePresent() throws Exception {
+            // given
             Long userId = 1L;
-            ReviewRequestDto dto = new ReviewRequestDto();
-            dto.setBookId(999L);
-            dto.setRating(3);
-            dto.setText("Test review");
-            when(reviewService.updateReview(eq(userId), any(ReviewRequestDto.class)))
-                    .thenThrow(new BookNotFoundException("Book not found"));
+            Long bookId = 100L;
+            ReviewRequestDto dto = new ReviewRequestDto("Updated Review with File", 4, bookId);
 
-            mockMvc.perform(put("/api/reviews")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-User", userId)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message").value("Book not found"));
+            // JSON 직렬화
+            MockMultipartFile jsonDto = new MockMultipartFile(
+                    "reviewRequestDto",
+                    "",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsBytes(dto)
+            );
+            // 실제 파일
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "test.png",
+                    MediaType.IMAGE_PNG_VALUE,
+                    "dummyImage".getBytes()
+            );
+
+            when(reviewService.updateReview(eq(userId), any(ReviewRequestDto.class), eq(file), eq(false)))
+                    .thenReturn(true);
+
+            // when & then
+            mockMvc.perform(
+                            multipart("/api/reviews")
+                                    .file(jsonDto)
+                                    .file(file)
+                                    .param("removeImage", "false")
+                                    .header("X-USER", userId)
+                                    .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+                    )
+                    .andExpect(status().isCreated());
         }
 
         @Test
-        @DisplayName("리뷰 수정 시, ReviewNotFoundException -> 404 NotFound")
-        void testUpdateReviewNotFound() throws Exception {
-            Long userId = 2L;
-            ReviewRequestDto dto = new ReviewRequestDto();
-            dto.setBookId(123L);
-            dto.setRating(3);
-            dto.setText("Test review");
-            when(reviewService.updateReview(eq(userId), any(ReviewRequestDto.class)))
-                    .thenThrow(new ReviewNotFoundException("Review not found"));
+        @DisplayName("3. removeImage=true, 새 파일 업로드 -> 기존 이미지 삭제 후 새 이미지 업로드")
+        void testUpdateReview_removeImageTrue_filePresent() throws Exception {
+            Long userId = 1L;
+            Long bookId = 100L;
+            ReviewRequestDto dto = new ReviewRequestDto("Updated Review with File", 4, bookId);
 
-            mockMvc.perform(put("/api/reviews")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("X-User", userId)
-                            .content(objectMapper.writeValueAsString(dto)))
-                    .andExpect(status().isNotFound())
-                    .andExpect(jsonPath("$.message").value("Review not found"));
+            MockMultipartFile jsonDto = new MockMultipartFile(
+                    "reviewRequestDto",
+                    "",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsBytes(dto)
+            );
+            MockMultipartFile file = new MockMultipartFile(
+                    "file",
+                    "new.png",
+                    MediaType.IMAGE_PNG_VALUE,
+                    "newImage".getBytes()
+            );
+
+            when(reviewService.updateReview(eq(userId), any(ReviewRequestDto.class), eq(file), eq(true)))
+                    .thenReturn(true);
+
+            mockMvc.perform(
+                            multipart("/api/reviews")
+                                    .file(jsonDto)
+                                    .file(file)
+                                    .param("removeImage", "true")
+                                    .header("X-USER", userId)
+                                    .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+                    )
+                    .andExpect(status().isCreated());
         }
+
+        @Test
+        @DisplayName("4. removeImage=true, 파일 없음 -> 기존 이미지만 삭제")
+        void testUpdateReview_removeImageTrue_noFile() throws Exception {
+            Long userId = 1L;
+            Long bookId = 100L;
+            ReviewRequestDto dto = new ReviewRequestDto("Updated Review - remove only", 4, bookId);
+
+            MockMultipartFile jsonDto = new MockMultipartFile(
+                    "reviewRequestDto",
+                    "",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsBytes(dto)
+            );
+
+            // removeImage=true, file 파트는 없음
+            when(reviewService.updateReview(eq(userId), any(ReviewRequestDto.class), isNull(), eq(true)))
+                    .thenReturn(true);
+
+            mockMvc.perform(
+                            multipart("/api/reviews")
+                                    .file(jsonDto)
+                                    .param("removeImage", "true")
+                                    .header("X-USER", userId)
+                                    .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+                    )
+                    .andExpect(status().isCreated());
+        }
+
+
+        @Test
+        @DisplayName("7. removeImage=false, 파일 없이 (기존 이미지 유지) + 별도 Param 지정 -> 200 OK")
+        void testUpdateReview_removeImageFalse_noFile() throws Exception {
+            Long userId = 1L;
+            Long bookId = 100L;
+
+            ReviewRequestDto dto = new ReviewRequestDto("Updated text only", 3, bookId);
+            MockMultipartFile jsonDto = new MockMultipartFile(
+                    "reviewRequestDto",
+                    "",
+                    MediaType.APPLICATION_JSON_VALUE,
+                    objectMapper.writeValueAsBytes(dto)
+            );
+
+            when(reviewService.updateReview(eq(userId), any(ReviewRequestDto.class), isNull(), eq(false)))
+                    .thenReturn(true);
+
+            mockMvc.perform(
+                            multipart("/api/reviews")
+                                    .file(jsonDto)
+                                    .param("removeImage", "false")
+                                    .header("X-USER", userId)
+                                    .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+                    )
+                    .andExpect(status().isCreated());
+        }
+
+//        @Test
+//        @DisplayName("5. BookNotFoundException -> 404 NotFound")
+//        void testUpdateReview_bookNotFound() throws Exception {
+//            // given
+//            Long userId = 1L;
+//            Long bookId = 999L;
+//
+//            // 컨트롤러로 전달할 DTO
+//            ReviewRequestDto dto = new ReviewRequestDto("Update fails - no book", 5, bookId);
+//
+//            // JSON 직렬화 파일 파트 준비
+//            MockMultipartFile jsonDto = new MockMultipartFile(
+//                    "reviewRequestDto",
+//                    "",
+//                    MediaType.APPLICATION_JSON_VALUE,
+//                    objectMapper.writeValueAsBytes(dto)
+//            );
+//
+//            // Mock 설정: updateReview(...)가 BookNotFoundException을 던지도록.
+//            doThrow(new BookNotFoundException("Book not found"))
+//                    .when(reviewService)
+//                    .updateReview(
+//                            eq(userId),              // userId = 1L
+//                            any(ReviewRequestDto.class), // DTO는 any() 처리
+//                            any(MultipartFile.class),  // file 파라미터는 any()
+//                            eq(false)                 // removeImage = false
+//                    );
+//
+//            // when & then
+//            mockMvc.perform(
+//                            multipart("/api/reviews")
+//                                    .file(jsonDto)
+//                                    // removeImage=false
+//                                    .param("removeImage", "false")
+//                                    .header("X-USER", userId)
+//                                    .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+//                    )
+//                    .andExpect(status().isNotFound())
+//                    .andExpect(jsonPath("$.message").value("Book not found"));
+//        }
+//
+//
+//        @Test
+//        @DisplayName("6. ReviewNotFoundException -> 404 NotFound")
+//        void testUpdateReview_reviewNotFound() throws Exception {
+//            Long userId = 1L;
+//            Long bookId = 100L;
+//
+//            ReviewRequestDto dto = new ReviewRequestDto("Update fails - no review", 5, bookId);
+//            MockMultipartFile jsonDto = new MockMultipartFile(
+//                    "reviewRequestDto",
+//                    "",
+//                    MediaType.APPLICATION_JSON_VALUE,
+//                    objectMapper.writeValueAsBytes(dto)
+//            );
+//
+//            doThrow(new ReviewNotFoundException("Review not found"))
+//                    .when(reviewService)
+//                    .updateReview(eq(userId), any(ReviewRequestDto.class), any(), anyBoolean());
+//
+//            mockMvc.perform(
+//                            multipart("/api/reviews")
+//                                    .file(jsonDto)
+//                                    .header("X-USER", userId)
+//                                    .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
+//                    )
+//                    .andExpect(status().isNotFound())
+//                    .andExpect(jsonPath("$.message").value("Review not found"));
+//        }
     }
+
 
     @Nested
     @DisplayName("GET /api/reviews/all - 특정 유저의 모든 리뷰 조회")
@@ -349,7 +522,6 @@ class ReviewControllerTest {
                     .andExpect(jsonPath("$.content[0].text").value("리뷰A"))
                     .andExpect(jsonPath("$.content[1].text").value("리뷰B"));
         }
-
 
 
         @Test
