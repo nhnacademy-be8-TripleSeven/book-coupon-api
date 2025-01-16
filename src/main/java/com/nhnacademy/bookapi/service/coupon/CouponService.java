@@ -43,6 +43,8 @@ public interface CouponService {
 
     Long applyCoupon(Long couponId, Long paymentAmount);
 
+    List<Long> getMemberIdsByRecipientType(CouponCreationAndAssignRequestDTO request);
+
     // 사용 가능성이 있는 미사용 코드
     void deleteCoupon(Long id);
 
