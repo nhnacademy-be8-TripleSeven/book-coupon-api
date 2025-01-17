@@ -5,6 +5,8 @@ import com.nhnacademy.bookapi.dto.book.BookApiDTO;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
+import com.nhnacademy.bookapi.dto.book.BookOrderRequestDTO;
+import com.nhnacademy.bookapi.dto.book.BookStockRequestDTO;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book.OrderItemDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
@@ -153,9 +155,17 @@ public class BookController {
         return ResponseEntity.ok(name);
     }
 
-    @GetMapping("/books/orderDetail/{bookId}")
-    public ResponseEntity<BookOrderDetailResponse> getBookOrderDetail(@PathVariable Long bookId) {
-        BookOrderDetailResponse bookOrderDetail = bookMultiTableService.getBookOrderDetail(bookId);
-        return ResponseEntity.ok(bookOrderDetail);
+    @PostMapping("/books/orderDetails")
+    public ResponseEntity<List<BookOrderDetailResponse>> getBookOrderDetail(@RequestBody List<BookOrderRequestDTO> bookOrderRequestDTOList) {
+        List<BookOrderDetailResponse> bookOrderDetails = bookMultiTableService.getBookOrderDetails(bookOrderRequestDTOList);
+        return ResponseEntity.ok(bookOrderDetails);
     }
+
+    @PutMapping("/books/stockReduce")
+    public ResponseEntity<Void> orderStockReduce(@RequestBody List<BookStockRequestDTO> bookStockRequestDTOList) {
+        bookService.bookReduceStock(bookStockRequestDTOList);
+        return ResponseEntity.ok().build();
+    }
+
+
 }
