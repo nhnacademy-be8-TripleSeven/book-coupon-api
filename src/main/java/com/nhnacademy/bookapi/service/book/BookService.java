@@ -48,5 +48,7 @@ public interface BookService {
 
     String getBookName(Long bookId);
 
+    void bookReduceStock(List<BookStockRequestDTO> bookStockRequestDTOList);
+
 
 }

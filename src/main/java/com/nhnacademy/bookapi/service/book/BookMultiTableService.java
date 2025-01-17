@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.service.book;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
+import com.nhnacademy.bookapi.dto.book.BookOrderRequestDTO;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book_type.BookTypeDTO;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
@@ -22,6 +23,7 @@ import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
+import com.nhnacademy.bookapi.exception.StockUnavailableException;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCouponRepository;
 import com.nhnacademy.bookapi.repository.BookPopularityRepository;
@@ -230,18 +232,38 @@ public class BookMultiTableService {
         bookService.deleteBook(bookId);
     }
 
-    public BookOrderDetailResponse getBookOrderDetail(long bookId) {
-        BookOrderDetailResponse bookOrderDetail = bookRepository.findBookOrderDetail(bookId);
-        if(bookOrderDetail == null){
-            bookOrderDetail = new BookOrderDetailResponse();
+    @Transactional(readOnly = true)
+    public List<BookOrderDetailResponse> getBookOrderDetails(List<BookOrderRequestDTO> bookOrderRequestDTOList) {
+        List<BookOrderDetailResponse> bookOrderDetailResponseList = new ArrayList<>();
+        for (BookOrderRequestDTO bookOrderRequestDTO : bookOrderRequestDTOList) {
+            BookOrderDetailResponse bookOrderDetail = getBookOrderDetail(
+                bookOrderRequestDTO.getBookIds(), bookOrderRequestDTO.getQuantity());
+            bookOrderDetailResponseList.add(bookOrderDetail);
         }
 
+        return bookOrderDetailResponseList;
+    }
+
+
+
+    private BookOrderDetailResponse getBookOrderDetail(long bookId, int quantity) {
+        BookOrderDetailResponse bookOrderDetail = bookRepository.findBookOrderDetail(bookId);
+        checkStock(bookOrderDetail.getStock(), quantity);
+
+//        if(bookOrderDetail == null){
+//            throw new BookNotFoundException(String.format("bookId: %d is not found", bookId));
+//        }
         List<CategoryDTO> categoryListByBookId = categoryService.getCategoryListByBookId(bookId);
         if(categoryListByBookId != null){
             bookOrderDetail.addCategoryList(categoryListByBookId);
         }
-
         return bookOrderDetail;
+    }
+
+    private void checkStock(int stock,int quentity){
+        if(stock < quentity){
+            throw new StockUnavailableException("stock not enough");
+        }
     }
 
     //object storage에 이미지 업로드 메소드

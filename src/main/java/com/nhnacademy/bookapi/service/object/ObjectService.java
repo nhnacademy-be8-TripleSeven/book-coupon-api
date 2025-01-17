@@ -149,6 +149,12 @@ public class ObjectService {
             throw new RuntimeException("Upload failed with status: " + ex.getStatusCode());
         } catch (Exception e) {
             throw new RuntimeException("Unexpected error during upload", e);
+        }finally {
+            try {
+                inputStream.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
     public MultipartFile loadImageFromStorage(String containerName, String objectName) {
