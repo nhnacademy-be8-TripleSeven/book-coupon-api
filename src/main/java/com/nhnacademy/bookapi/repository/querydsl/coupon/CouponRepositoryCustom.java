@@ -1,4 +1,4 @@
-package com.nhnacademy.bookapi.repository.querydsl.Coupon;
+package com.nhnacademy.bookapi.repository.querydsl.coupon;
 
 import com.nhnacademy.bookapi.entity.Coupon;
 

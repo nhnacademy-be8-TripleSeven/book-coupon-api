@@ -6,7 +6,7 @@ public class CouponCreationRequestDTO {
     private String name;
     private Long couponPolicyId;
 
-    public CouponCreationRequestDTO(String name, Long policyId) {
+    public CouponCreationRequestDTO(String name, Long policyId){
         this.name = name;
         this.couponPolicyId = policyId;
     }
