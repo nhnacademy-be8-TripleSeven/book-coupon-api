@@ -109,36 +109,14 @@ public class CouponServiceImpl implements CouponService {
         long createdCount = 0;
 
         try {
+            // 쿠폰 정책 조회
             CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
                     .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
 
+            // 요청 수량만큼 반복 생성
             for (long i = 0; i < request.getQuantity(); i++) {
-                try {
-                    if (request.getCategoryId() != null) {
-                        CategoryCouponCreationRequestDTO categoryRequest = new CategoryCouponCreationRequestDTO(
-                                request.getCategoryId(),
-                                policy.getId(),
-                                request.getName()
-                        );
-                        createCategoryCoupon(categoryRequest);
-                    } else if (request.getBookId() != null) {
-                        BookCouponCreationRequestDTO bookRequest = new BookCouponCreationRequestDTO(
-                                request.getBookId(),
-                                policy.getId(),
-                                request.getName()
-                        );
-                        createBookCoupon(bookRequest);
-                    } else {
-                        CouponCreationRequestDTO generalRequest = new CouponCreationRequestDTO(
-                                request.getName(),
-                                policy.getId()
-                        );
-                        createCoupon(generalRequest);
-                    }
+                if (tryCreateCoupon(request, policy, i)) {
                     createdCount++;
-                } catch (Exception e) {
-                    // 특정 쿠폰 생성 실패는 로깅하고 건너뛰기
-                    log.error("Error creating coupon at iteration {}: {}", i, e.getMessage());
                 }
             }
         } catch (Exception e) {
@@ -147,9 +125,36 @@ public class CouponServiceImpl implements CouponService {
         }
 
         boolean success = createdCount > 0; // 일부라도 성공했으면 true 반환
-        log.info("Success? {}", success);
+        log.info("Bulk coupon creation completed. Success? {}", success);
         return new BulkCouponCreationResponseDTO(success, createdCount);
     }
+
+    private boolean tryCreateCoupon(CouponBulkCreationRequestDTO request, CouponPolicy policy, long iteration) {
+        try {
+            CouponCreationAndAssignRequestDTO individualRequest = new CouponCreationAndAssignRequestDTO(
+                    request.getName(),
+                    policy.getId(),
+                    request.getCategoryId(),
+                    request.getBookId()
+            );
+            createCouponBasedOnType(individualRequest, policy);
+            return true;
+        } catch (Exception e) {
+            log.error("Error creating coupon at iteration {}: {}", iteration, e.getMessage());
+            return false;
+        }
+    }
+
+    protected void createCouponBasedOnType(CouponCreationAndAssignRequestDTO request, CouponPolicy policy) {
+        try {
+            Coupon coupon = createCouponBasedOnTarget(request, policy);
+            log.info("Coupon successfully created: {}", coupon.getId());
+        } catch (Exception e) {
+            log.error("Failed to create coupon for request: {}, error: {}", request, e.getMessage());
+        }
+    }
+
+
 
 
     // 쿠폰 만료 (스케쥴러)
@@ -490,8 +495,8 @@ public class CouponServiceImpl implements CouponService {
                 }
             }
         } catch (Exception e) {
-            log.error("Error during 'Welcome' policies processing for member ID: {}", memberId, e);
-            throw new RuntimeException("Error in processWelcomePolicies", e);
+            log.info("Error during 'Welcome' policies processing for member ID: {}", memberId, e);
+            throw new ProcessWelcomeException("Error in processWelcomePolicies");
         }
     }
 
@@ -513,8 +518,8 @@ public class CouponServiceImpl implements CouponService {
                 log.info("No available '회원가입 선착순 쿠폰' for member ID: {}", memberId);
             }
         } catch (Exception e) {
-            log.error("Error during 'First Come' coupon processing for member ID: {}", memberId, e);
-            throw new RuntimeException("Error in processFirstComeCoupon", e);
+            log.info("Error during 'First Come' coupon processing for member ID: {}", memberId, e);
+            throw new ProcessFirstcomeException("Error in processFirstComeCoupon");
         }
     }
 
