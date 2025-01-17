@@ -39,7 +39,7 @@ public interface CouponService {
 
     List<CouponAssignResponseDTO> issueWelcomeCoupon(Long memberId);
 
-    List<AvailableCouponResponseDTO> getAvailableCoupons(Long userId, List<Long> bookIds, Long amount);
+    List<AvailableCouponResponseDTO> getAvailableCoupons(Long userId, Long bookId, Long amount);
 
     Long applyCoupon(Long couponId, Long paymentAmount);
 
