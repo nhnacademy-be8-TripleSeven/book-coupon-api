@@ -36,6 +36,8 @@ public class BookOrderDetailResponse {
         this.stock = stock;
     }
 
+
+
     public void addCategoryList(List<CategoryDTO> categoryList) {
         this.category.addAll(categoryList);
     }

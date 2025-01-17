@@ -119,7 +119,9 @@ public class BookRepositoryImpl extends QuerydslRepositorySupport implements Boo
                 book.regularPrice,
                 book.salePrice,
                 image.url.as("coverUrl"),
-                wrapper.wrappable))
+                wrapper.wrappable,
+                book.stock
+            ))
             .fetchOne();
     }
 
