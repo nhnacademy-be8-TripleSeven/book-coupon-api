@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CouponMessageListener {
     private final CouponRepository couponRepository;
     private final RetryStateService retryStateService;
-    private static int MAX_RETRY_COUNT = 3;
+    private static final int MAX_RETRY_COUNT = 3;
     private final Set<String> processingMessages = ConcurrentHashMap.newKeySet();
     private boolean isAlreadyProcessing(String messageId) {
         return !processingMessages.add(messageId);
@@ -67,7 +67,6 @@ public class CouponMessageListener {
         }
     }
 
-    @Transactional
     public void processCouponAssignment(CouponAssignRequestDTO request) {
         Coupon coupon = couponRepository.findById(request.getCouponId())
                 .orElseThrow(() -> new CouponNotFoundException("Coupon not found: " + request.getCouponId()));

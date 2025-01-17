@@ -20,16 +20,16 @@ public class CouponRepositoryImpl extends QuerydslRepositorySupport implements C
     }
 
     @Override
-    public List<Coupon> findAvailableCoupons(Long memberId, Long amount, List<Long> bookIds) {
+    public List<Coupon> findAvailableCoupons(Long memberId, Long amount, Long bookId) {
         QCoupon coupon = QCoupon.coupon;
         QBookCoupon bookCoupon = QBookCoupon.bookCoupon;
         QCategoryCoupon categoryCoupon = QCategoryCoupon.categoryCoupon;
         QBookCategory bookCategory = QBookCategory.bookCategory;
 
-        // 서브쿼리: 도서에 해당하는 카테고리 ID 조회
+        // 서브쿼리: 단일 책에 해당하는 카테고리 ID 조회
         var categoryIds = JPAExpressions.select(bookCategory.category.id)
                 .from(bookCategory)
-                .where(bookCategory.book.id.in(bookIds));
+                .where(bookCategory.book.id.eq(bookId));
 
         // 메인 쿼리: 조건에 맞는 쿠폰 조회
         return from(coupon)
@@ -40,7 +40,7 @@ public class CouponRepositoryImpl extends QuerydslRepositorySupport implements C
                                 coupon.id.in(
                                                 JPAExpressions.select(bookCoupon.coupon.id)
                                                         .from(bookCoupon)
-                                                        .where(bookCoupon.book.id.in(bookIds))
+                                                        .where(bookCoupon.book.id.eq(bookId))
                                         )
                                         .or(
                                                 coupon.id.in(
@@ -57,4 +57,5 @@ public class CouponRepositoryImpl extends QuerydslRepositorySupport implements C
                 )
                 .fetch();
     }
+
 }

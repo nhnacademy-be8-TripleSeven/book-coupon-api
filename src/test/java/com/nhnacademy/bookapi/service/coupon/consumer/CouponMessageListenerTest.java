@@ -32,9 +32,7 @@ class CouponMessageListenerTest {
 
     @Mock
     private Channel channel;
-
-    @Captor
-    private ArgumentCaptor<Long> deliveryTagCaptor;
+    
 
     private Coupon testCoupon;
 
