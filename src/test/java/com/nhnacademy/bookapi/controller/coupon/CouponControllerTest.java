@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
@@ -59,7 +59,7 @@ class CouponControllerTest {
         ResponseEntity<BulkCouponCreationResponseDTO> response = couponController.createCouponsInBulk(requestDTO);
 
         // Then
-        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(responseDTO, response.getBody());
     }
 
@@ -75,7 +75,7 @@ class CouponControllerTest {
         ResponseEntity<List<CouponAssignResponseDTO>> response = couponController.createAndAssignCoupons(requestDTO);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(responseList, response.getBody());
     }
 
@@ -91,7 +91,7 @@ class CouponControllerTest {
         ResponseEntity<List<BookSearchDTO>> response = couponController.searchBooksForCoupon(query);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(results, response.getBody());
     }
 
@@ -107,7 +107,7 @@ class CouponControllerTest {
         ResponseEntity<List<CategorySearchDTO>> response = couponController.searchCategoriesForCoupon(query);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(results, response.getBody());
     }
 
@@ -125,7 +125,7 @@ class CouponControllerTest {
         ResponseEntity<CouponUseResponseDTO> response = couponController.useCouponForUser(userId, couponId, bookId);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(responseDTO, response.getBody());
     }
 
@@ -141,7 +141,7 @@ class CouponControllerTest {
         ResponseEntity<List<CouponDetailsDTO>> response = couponController.getCouponsForUser(userId, null, null, null);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(coupons, response.getBody());
     }
 
@@ -157,27 +157,27 @@ class CouponControllerTest {
         ResponseEntity<List<CouponDetailsDTO>> response = couponController.getUsedCouponsForUser(userId, null, null, null);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(usedCoupons, response.getBody());
     }
-//
-//    @Test
-//    void testGetAvailableCoupons() {
-//        // Given
-//        Long userId = 1L;
-//        List<Long> bookIds = List.of(1L, 2L);
-//        Long amount = 1000L;
-//        List<AvailableCouponResponseDTO> availableCoupons = Collections.emptyList();
-//
-//        when(couponService.getAvailableCoupons(userId, bookIds, amount)).thenReturn(availableCoupons);
-//
-//        // When
-//        ResponseEntity<List<AvailableCouponResponseDTO>> response = couponController.getAvailableCoupons(userId, bookIds, amount);
-//
-//        // Then
-//        assertEquals(200, response.getStatusCodeValue());
-//        assertEquals(availableCoupons, response.getBody());
-//    }
+
+    @Test
+    void testGetAvailableCoupons() {
+        // Given
+        Long userId = 1L;
+        Long bookId = 1L;
+        Long amount = 1000L;
+        List<AvailableCouponResponseDTO> availableCoupons = Collections.emptyList();
+
+        when(couponService.getAvailableCoupons(userId, bookId, amount)).thenReturn(availableCoupons);
+
+        // When
+        ResponseEntity<List<AvailableCouponResponseDTO>> response = couponController.getAvailableCoupons(userId, bookId, amount);
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(availableCoupons, response.getBody());
+    }
 
     @Test
     void testApplyCoupon() {
@@ -192,7 +192,7 @@ class CouponControllerTest {
         ResponseEntity<Long> response = couponController.applyCoupon(couponId, paymentAmount);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(discountAmount, response.getBody());
     }
 
@@ -208,7 +208,7 @@ class CouponControllerTest {
         ResponseEntity<CouponPolicyOrderResponseDTO> response = couponController.getCouponPolicyByCouponId(couponId);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(responseDTO, response.getBody());
     }
     @Test
@@ -223,7 +223,7 @@ class CouponControllerTest {
         ResponseEntity<CouponUseResponseDTO> response = couponController.useCoupon(couponId);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(responseDTO, response.getBody());
     }
 
@@ -239,7 +239,7 @@ class CouponControllerTest {
         ResponseEntity<List<CouponAssignResponseDTO>> response = couponController.issueWelcomeCoupon(memberId);
 
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(responses, response.getBody());
     }
 
@@ -255,7 +255,7 @@ class CouponControllerTest {
         ResponseEntity<List<CouponPolicyResponseDTO>> response = couponController.searchCouponPoliciesByNameTest(query);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(responseList, response.getBody());
     }
 
@@ -271,7 +271,7 @@ class CouponControllerTest {
         ResponseEntity<CouponAssignResponseDTO> response = couponController.assignCoupon(requestDTO);
 
         // Then
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(responseDTO, response.getBody());
     }
 
@@ -286,6 +286,6 @@ class CouponControllerTest {
         ResponseEntity<Void> response = couponController.deleteCoupon(id);
 
         // Then
-        assertEquals(204, response.getStatusCodeValue());
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
 }

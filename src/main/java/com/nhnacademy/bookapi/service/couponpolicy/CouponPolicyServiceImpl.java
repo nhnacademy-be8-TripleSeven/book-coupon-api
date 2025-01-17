@@ -13,11 +13,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class CouponPolicyServiceImpl implements CouponPolicyService {
+
+    private static final String COUPON_POLICY_NOT_FOUND = "쿠폰 정책을 찾을 수 없습니다.";
 
     private final CouponPolicyRepository couponPolicyRepository;
 
@@ -42,7 +43,7 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
         validateCouponPolicyRequest(request);
 
         CouponPolicy policy = couponPolicyRepository.findById(id)
-                .orElseThrow(() -> new CouponPolicyNotFoundException("CouponPolicy not found"));
+                .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
 
         policy.setCouponPolicyUpdateData(request.getName(), request.getCouponMinAmount(),request.getCouponMaxAmount(),
                 request.getCouponDiscountRate(), request.getCouponDiscountAmount(), request.getCouponValidTime());
@@ -59,7 +60,7 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
     public void deleteCouponPolicy(Long id) {
 
         if (!couponPolicyRepository.existsById(id)) {
-            throw new CouponPolicyNotFoundException("CouponPolicy not found");
+            throw new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND);
         }
 
         couponPolicyRepository.deleteById(id);
@@ -72,12 +73,12 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
         List<CouponPolicy> policies = couponPolicyRepository.findAll();
 
         if (policies.isEmpty()) {
-            throw new CouponPolicyNotFoundException("No coupon policies found.");
+            throw new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND);
         }
 
         return policies.stream()
                 .map(this::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
 
@@ -96,7 +97,7 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
     @Transactional(readOnly = true)
     public CouponPolicyResponseDTO getCouponPolicyByName(String name) {
         CouponPolicy policy = couponPolicyRepository.findByName(name)
-                .orElseThrow(() -> new CouponPolicyNotFoundException("CouponPolicy not found"));
+                .orElseThrow(() -> new CouponPolicyNotFoundException(COUPON_POLICY_NOT_FOUND));
 
         return toResponse(policy);
     }
@@ -112,15 +113,14 @@ public class CouponPolicyServiceImpl implements CouponPolicyService {
 
         return policies.stream()
                 .map(this::toResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // 쿠폰 응답 DTO 제작 메소드
     private CouponPolicyResponseDTO toResponse(CouponPolicy policy) {
-        CouponPolicyResponseDTO response = new CouponPolicyResponseDTO(policy.getId(), policy.getName(),
+        return new CouponPolicyResponseDTO(policy.getId(), policy.getName(),
                 policy.getCouponMinAmount(), policy.getCouponMaxAmount(), policy.getCouponDiscountRate(),
                 policy.getCouponDiscountAmount(), policy.getCouponValidTime());
-        return response;
     }
 
     // 정책 등록, 수정 시 예외처리 메소드

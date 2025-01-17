@@ -4,10 +4,10 @@ import lombok.Getter;
 @Getter
 public class CouponCreationRequestDTO {
     private String name;
-    private Long CouponPolicyId;
+    private Long couponPolicyId;
 
-    public CouponCreationRequestDTO(String name, Long couponPolicyId) {
+    public CouponCreationRequestDTO(String name, Long policyId) {
         this.name = name;
-        CouponPolicyId = couponPolicyId;
+        this.couponPolicyId = policyId;
     }
 }

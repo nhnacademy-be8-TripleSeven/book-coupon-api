@@ -143,9 +143,14 @@ class CouponServiceImplTest {
         // Given
         when(bookRepository.findById(1L)).thenReturn(Optional.empty());
 
+        // When
+        BookCouponCreationRequestDTO request = new BookCouponCreationRequestDTO(1L, 1L, "Book Coupon");
+
         // Then
-        assertThrows(BookNotFoundException.class, () ->
-                couponService.createBookCoupon(new BookCouponCreationRequestDTO(1L, 1L, "Book Coupon")));
+        assertThrows(
+                BookNotFoundException.class,
+                () -> couponService.createBookCoupon(request)
+        );
     }
 
     @Test
@@ -180,9 +185,10 @@ class CouponServiceImplTest {
         // Given
         when(couponRepository.findById(1L)).thenReturn(Optional.empty());
 
+        CategoryCouponCreationRequestDTO request = new CategoryCouponCreationRequestDTO(1L, 1L, "Category Coupon");
         // Then
         assertThrows(CategoryNotFoundException.class, () ->
-                couponService.createCategoryCoupon(new CategoryCouponCreationRequestDTO(1L, 1L, "Category Coupon")));
+                couponService.createCategoryCoupon(request));
     }
 
     @Test
@@ -248,40 +254,51 @@ class CouponServiceImplTest {
         CouponPolicy policy = CouponPolicy.builder().id(1L).name("Test Policy").couponValidTime(30).build();
         when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
 
-        // 첫 번째와 두 번째 쿠폰은 성공적으로 생성
-        when(couponRepository.save(any(Coupon.class)))
-                .thenReturn(Coupon.builder().id(1L).name("Coupon 1").couponPolicy(policy).build())
-                .thenReturn(Coupon.builder().id(2L).name("Coupon 2").couponPolicy(policy).build())
-                .thenThrow(new RuntimeException("Failed to create coupon 3")) // 세 번째 쿠폰은 실패
-                .thenReturn(Coupon.builder().id(4L).name("Coupon 4").couponPolicy(policy).build());
+        CouponServiceImpl spyCouponService = spy(couponService);
+
+        // `createCouponBasedOnType`의 동작 정의
+        doNothing()
+                .doNothing()
+                .doThrow(new RuntimeException("Failed to create coupon 3"))
+                .doNothing()
+                .when(spyCouponService).createCouponBasedOnType(any(CouponCreationAndAssignRequestDTO.class), eq(policy));
 
         CouponBulkCreationRequestDTO request = new CouponBulkCreationRequestDTO(
                 "Partial Bulk Coupon", 1L, null, null, 4L
         );
 
-        BulkCouponCreationResponseDTO response = couponService.createCouponsInBulk(request);
+        BulkCouponCreationResponseDTO response = spyCouponService.createCouponsInBulk(request);
 
+        // Assertions
         assertTrue(response.isSuccess());
-        assertEquals(3, response.getCreatedCount()); // 성공적으로 생성된 쿠폰은 3개
+        assertEquals(3, response.getCreatedCount());
     }
+
 
     @Test
     void testCreateCouponsInBulk_AllFailures() {
         CouponPolicy policy = CouponPolicy.builder().id(1L).name("Test Policy").couponValidTime(30).build();
         when(couponPolicyRepository.findById(1L)).thenReturn(Optional.of(policy));
 
-        // 모든 쿠폰 생성에서 예외 발생
-        when(couponRepository.save(any(Coupon.class))).thenThrow(new RuntimeException("Failed to create coupon"));
+        CouponServiceImpl spyCouponService = spy(couponService);
+
+        // `createCouponBasedOnType`의 동작 정의
+        doThrow(new RuntimeException("Failed to create coupon 1"))
+                .doThrow(new RuntimeException("Failed to create coupon 2"))
+                .doThrow(new RuntimeException("Failed to create coupon 3"))
+                .doThrow(new RuntimeException("Failed to create coupon 4"))
+                .when(spyCouponService).createCouponBasedOnType(any(CouponCreationAndAssignRequestDTO.class), eq(policy));
 
         CouponBulkCreationRequestDTO request = new CouponBulkCreationRequestDTO(
-                "Failure Bulk Coupon", 1L, null, null, 5L
+                "Partial Bulk Coupon", 1L, null, null, 4L
         );
 
-        BulkCouponCreationResponseDTO response = couponService.createCouponsInBulk(request);
+        BulkCouponCreationResponseDTO response = spyCouponService.createCouponsInBulk(request);
 
         assertFalse(response.isSuccess());
-        assertEquals(0, response.getCreatedCount()); // 성공적으로 생성된 쿠폰이 없음
+        assertEquals(0, response.getCreatedCount());
     }
+
 
     @Test
     void testCreateCouponsInBulk_Failure_NoPolicy() {
@@ -521,11 +538,6 @@ class CouponServiceImplTest {
         long couponId = 2L;
         long bookId = 1L;
 
-        // 도서와 카테고리 설정
-        Category category = Category.builder().id(10L).name("Test Category").build();
-        Book book = Book.builder().id(bookId).title("Test Book").build();
-        BookCategory bookCategory = new BookCategory(book, category);
-
         CouponPolicy policy = CouponPolicy.builder().id(couponId).name("Test Policy").couponValidTime(30).build();
         Coupon coupon = Coupon.builder().id(couponId).name("Category Coupon").couponPolicy(policy).memberId(userId).build();
 
@@ -681,7 +693,7 @@ class CouponServiceImplTest {
                 .couponStatus(CouponStatus.NOTUSED)
                 .build();
 
-        when(couponRepository.findByMemberIdAndCouponIssueDateAfterOrderByCouponIssueDateDesc(eq(userId), eq(fiveYearsAgo)))
+        when(couponRepository.findByMemberIdAndCouponIssueDateAfterOrderByCouponIssueDateDesc(userId, fiveYearsAgo))
                 .thenReturn(List.of(coupon));
 
         List<CouponDetailsDTO> result = couponService.getCouponsForUser(userId, keyword, null, null);
@@ -834,8 +846,9 @@ class CouponServiceImplTest {
                 .build();
 
         when(couponRepository.findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(
-                eq(userId), eq(CouponStatus.USED), eq(fiveYearsAgo)))
+                userId, CouponStatus.USED, fiveYearsAgo))
                 .thenReturn(List.of(coupon));
+
 
         // When
         List<CouponDetailsDTO> results = couponService.getUsedCouponsForUser(userId, keyword, null, null);
@@ -865,7 +878,7 @@ class CouponServiceImplTest {
                 .couponPolicy(policy)
                 .build();
 
-        when(couponRepository.findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(eq(userId), eq(CouponStatus.USED), eq(fiveYearsAgo)))
+        when(couponRepository.findByMemberIdAndCouponStatusAndCouponIssueDateAfterOrderByCouponUseAtDesc(userId, CouponStatus.USED, fiveYearsAgo))
                 .thenReturn(List.of(coupon));
 
         List<CouponDetailsDTO> result = couponService.getUsedCouponsForUser(userId, keyword, null, null);
@@ -1206,7 +1219,7 @@ class CouponServiceImplTest {
                 .thenReturn(Optional.of(welcomeCoupon));
 
         doNothing().when(rabbitTemplate)
-                .convertAndSend(eq(RabbitConfig.EXCHANGE_NAME), eq(RabbitConfig.ROUTING_KEY), eq(assignRequest));
+                .convertAndSend(RabbitConfig.EXCHANGE_NAME, RabbitConfig.ROUTING_KEY, assignRequest);
 
         List<CouponAssignResponseDTO> responses = couponService.issueWelcomeCoupon(memberId);
 
@@ -1599,7 +1612,7 @@ class CouponServiceImplTest {
                 });
 
         // Spy 객체 생성 및 날짜 Mock
-        CouponServiceImpl couponService = spy(new CouponServiceImpl(
+        CouponServiceImpl couponSpyService = spy(new CouponServiceImpl(
                 couponRepository,
                 couponPolicyRepository,
                 bookRepository,
@@ -1612,10 +1625,10 @@ class CouponServiceImplTest {
                 couponPolicyService
         ));
         doReturn(LocalDate.of(2024, 2, 1)) // 테스트용 고정된 날짜
-                .when(couponService).getCurrentDate();
+                .when(couponSpyService).getCurrentDate();
 
         // Act
-        BulkAssignResponseDTO response = couponService.assignMonthlyBirthdayCoupons();
+        BulkAssignResponseDTO response = couponSpyService.assignMonthlyBirthdayCoupons();
 
         // Assert
         assertTrue(response.isSuccess());
@@ -1651,10 +1664,9 @@ class CouponServiceImplTest {
                 .thenReturn(Optional.of(policy));
         when(couponRepository.save(any(Coupon.class)))
                 .thenAnswer(new Answer<Coupon>() {
-                    private int count = 0; // 호출 횟수를 추적하기 위한 변수
+                    private int count = 0;
                     @Override
-                    public Coupon answer(InvocationOnMock invocation) throws Throwable {
-                        Coupon coupon = invocation.getArgument(0); // 전달된 Coupon 객체 가져오기
+                    public Coupon answer(InvocationOnMock invocation) {
                         count++;
                         return count == 1 ? coupon1 : coupon2; // 첫 번째 호출은 coupon1, 두 번째 호출은 coupon2
                     }
@@ -1665,7 +1677,7 @@ class CouponServiceImplTest {
                 .thenAnswer(invocation -> invocation.getArgument(0)); // 전달된 리스트를 그대로 반환
 
         // Spy 객체 생성 및 날짜 Mock
-        CouponServiceImpl couponService = spy(new CouponServiceImpl(
+        CouponServiceImpl couponSpyService = spy(new CouponServiceImpl(
                 couponRepository,
                 couponPolicyRepository,
                 bookRepository,
@@ -1678,10 +1690,10 @@ class CouponServiceImplTest {
                 couponPolicyService
         ));
         doReturn(LocalDate.of(2024, 2, 1)) // 테스트용 고정된 날짜
-                .when(couponService).getCurrentDate();
+                .when(couponSpyService).getCurrentDate();
 
         // Act: 테스트 실행
-        BulkAssignResponseDTO response = couponService.assignMonthlyBirthdayCoupons();
+        BulkAssignResponseDTO response = couponSpyService.assignMonthlyBirthdayCoupons();
 
         // Assert: 결과 검증
         assertTrue(response.isSuccess());
@@ -1718,21 +1730,21 @@ class CouponServiceImplTest {
                 .thenReturn(Optional.of(policy));
         when(couponRepository.save(any(Coupon.class)))
                 .thenAnswer(new Answer<Coupon>() {
-                    private int count = 0; // 호출 횟수를 추적하기 위한 변수
+                    private int count = 0;
                     @Override
-                    public Coupon answer(InvocationOnMock invocation) throws Throwable {
-                        Coupon coupon = invocation.getArgument(0); // 전달된 Coupon 객체 가져오기
+                    public Coupon answer(InvocationOnMock invocation) {
                         count++;
-                        return count == 1 ? coupon1 : coupon2; // 첫 번째 호출은 coupon1, 두 번째 호출은 coupon2
+                        return count == 1 ? coupon1 : coupon2;
                     }
                 });
+
 
         when(couponRepository.findById(anyLong())).thenReturn(Optional.of(coupon1));
         when(couponRepository.saveAll(anyList()))
                 .thenAnswer(invocation -> invocation.getArgument(0)); // 전달된 리스트를 그대로 반환
 
         // Spy 객체 생성 및 날짜 Mock
-        CouponServiceImpl couponService = spy(new CouponServiceImpl(
+        CouponServiceImpl couponSpyService = spy(new CouponServiceImpl(
                 couponRepository,
                 couponPolicyRepository,
                 bookRepository,
@@ -1745,10 +1757,10 @@ class CouponServiceImplTest {
                 couponPolicyService
         ));
         doReturn(LocalDate.of(2023, 2, 1)) // 테스트용 고정된 날짜
-                .when(couponService).getCurrentDate();
+                .when(couponSpyService).getCurrentDate();
 
         // Act: 테스트 실행
-        BulkAssignResponseDTO response = couponService.assignMonthlyBirthdayCoupons();
+        BulkAssignResponseDTO response = couponSpyService.assignMonthlyBirthdayCoupons();
 
         // Assert: 결과 검증
         assertTrue(response.isSuccess());
@@ -1807,44 +1819,44 @@ class CouponServiceImplTest {
 
 
 
-//
-//    @Test
-//    void testGetAvailableCoupons() {
-//        Long userId = 1L;
-//        List<Long> bookIds = List.of(101L, 102L);
-//        Long paymentAmount = 10000L;
-//
-//        // Mock 데이터 준비
-//        CouponPolicy policy = CouponPolicy.builder()
-//                .id(1L)
-//                .name("10% 할인")
-//                .couponDiscountRate(new BigDecimal("0.1"))
-//                .couponDiscountAmount(null)
-//                .couponMaxAmount(2000L)
-//                .build();
-//
-//        Coupon coupon = Coupon.builder()
-//                .id(1L)
-//                .name("회원 특별 쿠폰")
-//                .couponPolicy(policy)
-//                .couponExpiryDate(LocalDate.now().plusDays(5))
-//                .build();
-//
-//        // Mock 설정
-//        when(couponRepository.findAvailableCoupons(userId, paymentAmount, bookIds))
-//                .thenReturn(List.of(coupon));
-//
-//
-//        // 메서드 호출
-//        List<AvailableCouponResponseDTO> result = couponService.getAvailableCoupons(userId, bookIds, paymentAmount);
-//
-//        // 결과 검증
-//        assertNotNull(result);
-//        assertEquals(1, result.size());
-//        assertEquals("회원 특별 쿠폰", result.get(0).getCouponName());
-//        assertEquals(policy.getCouponDiscountRate(), result.get(0).getDiscountRate());
-//        assertEquals(policy.getCouponMaxAmount(), result.get(0).getMaxDiscountAmount());
-//    }
+
+    @Test
+    void testGetAvailableCoupons() {
+        Long userId = 1L;
+        Long bookId = 1L;
+        Long paymentAmount = 10000L;
+
+        // Mock 데이터 준비
+        CouponPolicy policy = CouponPolicy.builder()
+                .id(1L)
+                .name("10% 할인")
+                .couponDiscountRate(new BigDecimal("0.1"))
+                .couponDiscountAmount(null)
+                .couponMaxAmount(2000L)
+                .build();
+
+        Coupon coupon = Coupon.builder()
+                .id(1L)
+                .name("회원 특별 쿠폰")
+                .couponPolicy(policy)
+                .couponExpiryDate(LocalDate.now().plusDays(5))
+                .build();
+
+        // Mock 설정
+        when(couponRepository.findAvailableCoupons(userId, paymentAmount, bookId))
+                .thenReturn(List.of(coupon));
+
+
+        // 메서드 호출
+        List<AvailableCouponResponseDTO> result = couponService.getAvailableCoupons(userId, bookId, paymentAmount);
+
+        // 결과 검증
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("회원 특별 쿠폰", result.get(0).getCouponName());
+        assertEquals(policy.getCouponDiscountRate(), result.get(0).getDiscountRate());
+        assertEquals(policy.getCouponMaxAmount(), result.get(0).getMaxDiscountAmount());
+    }
 
 
     @Test

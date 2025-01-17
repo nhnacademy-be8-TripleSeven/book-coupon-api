@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.bookapi.config.RabbitConfig;
 import com.nhnacademy.bookapi.dto.coupon.CouponAssignRequestDTO;
+import com.nhnacademy.bookapi.exception.MessageParserException;
 import com.rabbitmq.client.Channel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
@@ -61,7 +62,7 @@ public class DLQMessageListener {
             ObjectMapper mapper = new ObjectMapper();
             return mapper.readValue(messageContent, CouponAssignRequestDTO.class);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to parse message content: " + messageContent, e);
+            throw new MessageParserException("Failed to parse message content: " + messageContent);
         }
     }
 }

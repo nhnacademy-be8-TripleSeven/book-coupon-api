@@ -40,7 +40,7 @@ public class CouponController {
 
     // **관리자 전용 API** //
     @Operation(summary = "단체 쿠폰 생성", description = "다수의 쿠폰을 한 번에 생성합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "쿠폰 생성 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰 정책을 찾을 수 없음"),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 요청"),
@@ -56,7 +56,7 @@ public class CouponController {
 
 
     @Operation(summary = "쿠폰 생성 및 발급", description = "쿠폰을 생성한 후 대상 회원들에게 발급합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 생성 및 발급 성공"),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 요청 데이터"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
@@ -68,14 +68,23 @@ public class CouponController {
         return ResponseEntity.ok(responses);
     }
 
-    // 쿠폰 대상 지정을 위한 도서 검색
+
+    @Operation(summary = "쿠폰 대상 도서 검색", description = "쿠폰 대상 지정을 위한 도서를 검색합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "도서 검색 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 도서를 찾을 수 없음")
+    })
     @GetMapping("/admin/coupons/book-search")
     public ResponseEntity<List<BookSearchDTO>> searchBooksForCoupon(@RequestParam("query") String query) {
         List<BookSearchDTO> results = bookService.searchBooksByName(query);
         return ResponseEntity.ok(results);
     }
 
-    // 쿠폰 대상 지정을 위한 카테고리 검색
+    @Operation(summary = "쿠폰 대상 카테고리 검색", description = "쿠폰 대상 지정을 위한 카테고리를 검색합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "카테고리 검색 성공"),
+            @ApiResponse(responseCode = "404", description = "해당 카테고리를 찾을 수 없음")
+    })
     @GetMapping("/admin/coupons/category-search")
     public ResponseEntity<List<CategorySearchDTO>> searchCategoriesForCoupon(@RequestParam("query") String query) {
         List<CategorySearchDTO> results = categoryService.searchCategoriesByName(query);
@@ -91,9 +100,10 @@ public class CouponController {
 
     // **멤버 전용 API** //
     @Operation(summary = "사용자 쿠폰 사용", description = "사용자가 본인의 쿠폰을 사용합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 사용 성공"),
-            @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰")
+            @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰"),
+            @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
     @PostMapping("/api/coupons/use")
     public ResponseEntity<CouponUseResponseDTO> useCouponForUser(
@@ -105,7 +115,7 @@ public class CouponController {
     }
 
     @Operation(summary = "사용자 쿠폰 조회", description = "사용자가 본인의 모든 쿠폰을 조회합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 조회 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
@@ -119,7 +129,7 @@ public class CouponController {
     }
 
     @Operation(summary = "사용자 사용 쿠폰 조회", description = "사용자가 본인의 사용한 쿠폰만 조회합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "사용 쿠폰 조회 성공"),
             @ApiResponse(responseCode = "404", description = "사용 쿠폰을 찾을 수 없음")
     })
@@ -135,7 +145,7 @@ public class CouponController {
     }
 
     @Operation(summary = "결제 시 사용 가능한 쿠폰 조회", description = "사용 가능한 쿠폰 목록 조회")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
@@ -160,7 +170,7 @@ public class CouponController {
 
 
     @Operation(summary = "쿠폰 적용 후 할인 금액 계산", description = "쿠폰을 적용하여 할인되는 금액 반환")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "할인 금액 계산 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음"),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 요청")
@@ -175,9 +185,10 @@ public class CouponController {
     }
 
     @Operation(summary = "무인증 쿠폰 사용", description = "인증없이 쿠폰을 사용합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 사용 성공"),
-            @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰")
+            @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰"),
+            @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
     @PostMapping("/coupons/use/{couponId}")
     public ResponseEntity<CouponUseResponseDTO> useCoupon(
@@ -187,7 +198,7 @@ public class CouponController {
     }
 
     @Operation(summary = "쿠폰 아이디 기반 쿠폰 정책 조회", description = "쿠폰 아이디를 기반으로 쿠폰 정책을 조회합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 정책 조회 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰 아이디나 쿠폰 정책을 찾을 수 없음")
     })
@@ -202,7 +213,7 @@ public class CouponController {
             summary = "회원가입 Welcome 쿠폰 발급",
             description = "회원가입 성공 시 'Welcome' 정책에 해당하는 쿠폰을 생성 및 발급하며, 추가적으로 '회원가입 선착순 쿠폰'이 있다면 발급합니다."
     )
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰 정책 또는 사용 가능한 쿠폰 없음"),
             @ApiResponse(responseCode = "500", description = "서버 오류")
@@ -214,7 +225,7 @@ public class CouponController {
     }
 
     @Operation(summary = "쿠폰 정책 이름 검색", description = "입력한 이름을 포함하는 쿠폰 정책을 검색합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 정책 검색 성공"),
             @ApiResponse(responseCode = "404", description = "해당 이름의 쿠폰 정책을 찾을 수 없음")
     })
@@ -233,7 +244,7 @@ public class CouponController {
 
     // **미사용, but 사용 가능성 있음 API** //
     @Operation(summary = "쿠폰 발급", description = "특정 회원에게 쿠폰을 발급합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음"),
             @ApiResponse(responseCode = "400", description = "이미 발급된 쿠폰")
@@ -245,7 +256,7 @@ public class CouponController {
     }
 
     @Operation(summary = "쿠폰 단일 삭제", description = "쿠폰을 삭제합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "쿠폰 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
@@ -256,7 +267,11 @@ public class CouponController {
     }
 
 
-
+    @Operation(summary = "생일 쿠폰 발급", description = "생일 쿠폰을 발급합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "생일 쿠폰 발급 성공"),
+            @ApiResponse(responseCode = "500", description = "서버 오류")
+    })
     @PostMapping("/assign/birthday")
     public ResponseEntity<BulkAssignResponseDTO> assignBirthdayCoupons() {
         log.info("Manually triggered monthly birthday coupon assignment...");

@@ -20,7 +20,7 @@ public class CouponPolicyController {
     private final CouponPolicyService couponPolicyService;
 
     @Operation(summary = "쿠폰 정책 생성", description = "새로운 쿠폰 정책을 생성합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "쿠폰 정책 생성 성공"),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 요청 데이터")
     })
@@ -31,7 +31,7 @@ public class CouponPolicyController {
     }
 
     @Operation(summary = "쿠폰 정책 수정", description = "쿠폰 정책 정보를 수정합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 정책 수정 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰 정책을 찾을 수 없음"),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 요청 데이터")
@@ -43,7 +43,7 @@ public class CouponPolicyController {
     }
 
     @Operation(summary = "쿠폰 정책 삭제", description = "특정 쿠폰 정책을 삭제합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "쿠폰 정책 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰 정책을 찾을 수 없음")
     })
@@ -54,7 +54,7 @@ public class CouponPolicyController {
     }
 
     @Operation(summary = "모든 쿠폰 정책 조회", description = "등록된 모든 쿠폰 정책을 조회합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 정책 조회 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰 정책을 찾을 수 없음")
     })
@@ -65,7 +65,7 @@ public class CouponPolicyController {
     }
 
     @Operation(summary = "쿠폰 정책 ID로 조회", description = "특정 ID의 쿠폰 정책을 조회합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 정책 조회 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰 정책을 찾을 수 없음")
     })
@@ -76,7 +76,7 @@ public class CouponPolicyController {
     }
 
     @Operation(summary = "쿠폰 정책 이름으로 조회", description = "특정 이름의 쿠폰 정책을 조회합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 정책 조회 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰 정책을 찾을 수 없음")
     })
@@ -88,7 +88,7 @@ public class CouponPolicyController {
 
 
     @Operation(summary = "쿠폰 정책 이름 검색", description = "입력한 이름을 포함하는 쿠폰 정책을 검색합니다.")
-    @ApiResponses({
+    @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 정책 검색 성공"),
             @ApiResponse(responseCode = "404", description = "해당 이름의 쿠폰 정책을 찾을 수 없음")
     })
