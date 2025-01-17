@@ -175,7 +175,7 @@ public class CouponController {
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음"),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 요청")
     })
-    @PostMapping("/api/coupons/apply")
+    @GetMapping("/api/coupons/apply")
     public ResponseEntity<Long> applyCoupon(
             @RequestParam Long couponId,
             @RequestParam Long paymentAmount) {
