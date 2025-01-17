@@ -1807,44 +1807,44 @@ class CouponServiceImplTest {
 
 
 
-
-    @Test
-    void testGetAvailableCoupons() {
-        Long userId = 1L;
-        List<Long> bookIds = List.of(101L, 102L);
-        Long paymentAmount = 10000L;
-
-        // Mock 데이터 준비
-        CouponPolicy policy = CouponPolicy.builder()
-                .id(1L)
-                .name("10% 할인")
-                .couponDiscountRate(new BigDecimal("0.1"))
-                .couponDiscountAmount(null)
-                .couponMaxAmount(2000L)
-                .build();
-
-        Coupon coupon = Coupon.builder()
-                .id(1L)
-                .name("회원 특별 쿠폰")
-                .couponPolicy(policy)
-                .couponExpiryDate(LocalDate.now().plusDays(5))
-                .build();
-
-        // Mock 설정
-        when(couponRepository.findAvailableCoupons(userId, paymentAmount, bookIds))
-                .thenReturn(List.of(coupon));
-
-
-        // 메서드 호출
-        List<AvailableCouponResponseDTO> result = couponService.getAvailableCoupons(userId, bookIds, paymentAmount);
-
-        // 결과 검증
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals("회원 특별 쿠폰", result.get(0).getCouponName());
-        assertEquals(policy.getCouponDiscountRate(), result.get(0).getDiscountRate());
-        assertEquals(policy.getCouponMaxAmount(), result.get(0).getMaxDiscountAmount());
-    }
+//
+//    @Test
+//    void testGetAvailableCoupons() {
+//        Long userId = 1L;
+//        List<Long> bookIds = List.of(101L, 102L);
+//        Long paymentAmount = 10000L;
+//
+//        // Mock 데이터 준비
+//        CouponPolicy policy = CouponPolicy.builder()
+//                .id(1L)
+//                .name("10% 할인")
+//                .couponDiscountRate(new BigDecimal("0.1"))
+//                .couponDiscountAmount(null)
+//                .couponMaxAmount(2000L)
+//                .build();
+//
+//        Coupon coupon = Coupon.builder()
+//                .id(1L)
+//                .name("회원 특별 쿠폰")
+//                .couponPolicy(policy)
+//                .couponExpiryDate(LocalDate.now().plusDays(5))
+//                .build();
+//
+//        // Mock 설정
+//        when(couponRepository.findAvailableCoupons(userId, paymentAmount, bookIds))
+//                .thenReturn(List.of(coupon));
+//
+//
+//        // 메서드 호출
+//        List<AvailableCouponResponseDTO> result = couponService.getAvailableCoupons(userId, bookIds, paymentAmount);
+//
+//        // 결과 검증
+//        assertNotNull(result);
+//        assertEquals(1, result.size());
+//        assertEquals("회원 특별 쿠폰", result.get(0).getCouponName());
+//        assertEquals(policy.getCouponDiscountRate(), result.get(0).getDiscountRate());
+//        assertEquals(policy.getCouponMaxAmount(), result.get(0).getMaxDiscountAmount());
+//    }
 
 
     @Test

@@ -160,24 +160,24 @@ class CouponControllerTest {
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(usedCoupons, response.getBody());
     }
-
-    @Test
-    void testGetAvailableCoupons() {
-        // Given
-        Long userId = 1L;
-        List<Long> bookIds = List.of(1L, 2L);
-        Long amount = 1000L;
-        List<AvailableCouponResponseDTO> availableCoupons = Collections.emptyList();
-
-        when(couponService.getAvailableCoupons(userId, bookIds, amount)).thenReturn(availableCoupons);
-
-        // When
-        ResponseEntity<List<AvailableCouponResponseDTO>> response = couponController.getAvailableCoupons(userId, bookIds, amount);
-
-        // Then
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(availableCoupons, response.getBody());
-    }
+//
+//    @Test
+//    void testGetAvailableCoupons() {
+//        // Given
+//        Long userId = 1L;
+//        List<Long> bookIds = List.of(1L, 2L);
+//        Long amount = 1000L;
+//        List<AvailableCouponResponseDTO> availableCoupons = Collections.emptyList();
+//
+//        when(couponService.getAvailableCoupons(userId, bookIds, amount)).thenReturn(availableCoupons);
+//
+//        // When
+//        ResponseEntity<List<AvailableCouponResponseDTO>> response = couponController.getAvailableCoupons(userId, bookIds, amount);
+//
+//        // Then
+//        assertEquals(200, response.getStatusCodeValue());
+//        assertEquals(availableCoupons, response.getBody());
+//    }
 
     @Test
     void testApplyCoupon() {

@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
+@Slf4j
 public class CouponController {
 
     private final CouponService couponService;
@@ -140,7 +142,7 @@ public class CouponController {
     @GetMapping("/api/coupons/available")
     public ResponseEntity<List<AvailableCouponResponseDTO>> getAvailableCoupons(
             @RequestHeader("X-USER") Long userId,
-            @RequestParam List<Long> bookId,
+            @RequestParam Long bookId,
             @RequestParam Long amount) {
 
         List<AvailableCouponResponseDTO> availableCoupons = couponService.getAvailableCoupons(userId, bookId, amount);
@@ -253,4 +255,19 @@ public class CouponController {
         return ResponseEntity.noContent().build();
     }
 
+
+
+    @PostMapping("/assign/birthday")
+    public ResponseEntity<BulkAssignResponseDTO> assignBirthdayCoupons() {
+        log.info("Manually triggered monthly birthday coupon assignment...");
+        try {
+            BulkAssignResponseDTO response = couponService.assignMonthlyBirthdayCoupons();
+            log.info("Manual birthday coupon assignment completed. Total issued: {}", response.getIssuedCount());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Error during manual birthday coupon assignment: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new BulkAssignResponseDTO(false, 0));
+        }
+    }
 }
