@@ -237,7 +237,7 @@ public class BookMultiTableService {
         List<BookOrderDetailResponse> bookOrderDetailResponseList = new ArrayList<>();
         for (BookOrderRequestDTO bookOrderRequestDTO : bookOrderRequestDTOList) {
             BookOrderDetailResponse bookOrderDetail = getBookOrderDetail(
-                bookOrderRequestDTO.getBookIds(), bookOrderRequestDTO.getQuantity());
+                bookOrderRequestDTO.getBookId(), bookOrderRequestDTO.getQuantity());
             bookOrderDetailResponseList.add(bookOrderDetail);
         }
 
