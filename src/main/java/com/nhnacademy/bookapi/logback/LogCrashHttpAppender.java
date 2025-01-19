@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 
 public class LogCrashHttpAppender extends AppenderBase<ILoggingEvent> {
 
-    private static final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate = new RestTemplate();
     private String appKey;
     private String url;
     private String logSource = "http";
