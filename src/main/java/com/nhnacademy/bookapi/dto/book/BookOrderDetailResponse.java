@@ -21,17 +21,22 @@ public class BookOrderDetailResponse {
     private int salePrice;
     private String coverUrl;
     private boolean wrappable;
+    private int stock;
     private List<CategoryDTO> category = new ArrayList<>();
 
+
     public BookOrderDetailResponse(Long id, String title, int regularPrice, int salePrice,
-        String coverUrl, boolean wrappable) {
+        String coverUrl, boolean wrappable, int stock) {
         this.id = id;
         this.title = title;
         this.regularPrice = regularPrice;
         this.salePrice = salePrice;
         this.coverUrl = coverUrl;
         this.wrappable = wrappable;
+        this.stock = stock;
     }
+
+
 
     public void addCategoryList(List<CategoryDTO> categoryList) {
         this.category.addAll(categoryList);

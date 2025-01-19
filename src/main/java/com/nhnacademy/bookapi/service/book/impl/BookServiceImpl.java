@@ -10,6 +10,7 @@ import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
+import com.nhnacademy.bookapi.exception.StockUnavailableException;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
@@ -259,6 +260,23 @@ public class BookServiceImpl implements BookService {
         Book book = bookOptional.get();
 
         return book.getTitle();
+    }
+
+
+
+    @Transactional
+    public void bookReduceStock(List<BookStockRequestDTO> bookStockRequestDTOList) {
+        for (BookStockRequestDTO bookStockRequestDTO : bookStockRequestDTOList) {
+            Long bookId = bookStockRequestDTO.getBookId();
+            Book book = bookRepository.findById(bookId).orElseThrow(
+                () -> new BookNotFoundException(String.format("bookId: %d is not found", bookId)));
+            //재고 차감
+            if(bookStockRequestDTO.getStockToReduce() < book.getStock()) {
+                book.stockReduce(bookStockRequestDTO.getStockToReduce());
+            }else {
+                throw new StockUnavailableException(String.format("%s의 재고가 부족합니다.", book.getTitle()));
+            }
+        }
     }
 
 }

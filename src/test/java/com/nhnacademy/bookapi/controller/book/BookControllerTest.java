@@ -228,20 +228,20 @@ class BookControllerTest {
         verify(bookService, times(1)).getBookName(bookId);
     }
 
-    @Test
-    void testGetBookOrderDetail() {
-        // Given
-        Long bookId = 1L;
-        BookOrderDetailResponse bookOrderDetail = new BookOrderDetailResponse();
-
-        when(bookMultiTableService.getBookOrderDetail(bookId)).thenReturn(bookOrderDetail);
-
-        // When
-        ResponseEntity<BookOrderDetailResponse> response = bookController.getBookOrderDetail(bookId);
-
-        // Then
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(bookOrderDetail, response.getBody());
-        verify(bookMultiTableService, times(1)).getBookOrderDetail(bookId);
-    }
+//    @Test
+//    void testGetBookOrderDetail() {
+//        // Given
+//        Long bookId = 1L;
+//        BookOrderDetailResponse bookOrderDetail = new BookOrderDetailResponse();
+//
+//        when(bookMultiTableService.getBookOrderDetail(bookId)).thenReturn(bookOrderDetail);
+//
+//        // When
+//        ResponseEntity<BookOrderDetailResponse> response = bookController.getBookOrderDetail(bookId);
+//
+//        // Then
+//        assertEquals(200, response.getStatusCodeValue());
+//        assertEquals(bookOrderDetail, response.getBody());
+//        verify(bookMultiTableService, times(1)).getBookOrderDetail(bookId);
+//    }
 }

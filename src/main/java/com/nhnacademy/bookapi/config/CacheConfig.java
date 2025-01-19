@@ -11,7 +11,6 @@ import com.nhnacademy.bookapi.deserializer.PageImplDeserializer;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.domain.PageImpl;
