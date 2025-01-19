@@ -502,10 +502,13 @@ public class CouponServiceImpl implements CouponService {
 
 
     public void processFirstComeCoupon(Long memberId, List<CouponAssignResponseDTO> responses) {
+        Optional<Coupon> optionalCoupon = couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰");
+        if (optionalCoupon.isEmpty()) {
+            log.info("No available '회원가입 선착순 쿠폰' for member ID: {}", memberId);
+            return;
+        }
+        Coupon coupon = optionalCoupon.get();
         try {
-            Optional<Coupon> optionalCoupon = couponRepository.findAndLockFirstByName("회원가입 선착순 쿠폰");
-            if (optionalCoupon.isPresent()) {
-                Coupon coupon = optionalCoupon.get();
                 CouponAssignRequestDTO request = new CouponAssignRequestDTO(coupon.getId(), memberId);
                 rabbitTemplate.convertAndSend(
                         RabbitConfig.EXCHANGE_NAME,
@@ -514,9 +517,6 @@ public class CouponServiceImpl implements CouponService {
                 );
                 log.info("Welcome coupon assign request sent to MQ for coupon ID: {}, member ID: {}", coupon.getId(), memberId);
                 responses.add(new CouponAssignResponseDTO(coupon.getId(), "Welcome coupon assigned successfully."));
-            } else {
-                log.info("No available '회원가입 선착순 쿠폰' for member ID: {}", memberId);
-            }
         } catch (Exception e) {
             log.info("Error during 'First Come' coupon processing for member ID: {}", memberId, e);
             throw new ProcessFirstcomeException("Error in processFirstComeCoupon");
