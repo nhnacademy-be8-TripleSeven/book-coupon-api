@@ -31,7 +31,7 @@ public class CouponMessageListener {
     private final RetryStateService retryStateService;
     private static final int MAX_RETRY_COUNT = 3;
     private final Set<String> processingMessages = ConcurrentHashMap.newKeySet();
-    private boolean isAlreadyProcessing(String messageId) {
+    protected boolean isAlreadyProcessing(String messageId) {
         return !processingMessages.add(messageId);
     }
 
@@ -50,7 +50,6 @@ public class CouponMessageListener {
         }
 
         try {
-            log.info("Processing message ID: {}", messageId);
             processCouponAssignment(request);
             acknowledgeMessage(channel, message.getMessageProperties().getDeliveryTag(), messageId);
         } catch (CouponAlreadyAssignedException e) {
@@ -79,8 +78,6 @@ public class CouponMessageListener {
         coupon.setCouponAssignData(request.getMemberId(), LocalDate.now(),
                 LocalDate.now().plusDays(coupon.getCouponPolicy().getCouponValidTime()), CouponStatus.NOTUSED);
         couponRepository.saveAndFlush(coupon);
-
-        log.info("Coupon successfully assigned: {}", coupon.getId());
     }
 
 
@@ -109,9 +106,7 @@ public class CouponMessageListener {
     private void moveToDlq(Channel channel, Message message) {
         try {
             if (channel.isOpen()) {
-                log.info("Moving message to DLQ: {}", new String(message.getBody()));
                 channel.basicReject(message.getMessageProperties().getDeliveryTag(), false);
-                log.info("Message moved to DLQ successfully: {}", message.getMessageProperties().getMessageId());
             } else {
                 log.error("Channel is closed. Cannot move message to DLQ.");
             }
@@ -126,7 +121,6 @@ public class CouponMessageListener {
             if (channel.isOpen()) {
                 channel.basicAck(deliveryTag, false);
                 retryStateService.resetRetryCount(messageId);
-                log.info("Message acknowledged: {}", messageId);
             } else {
                 log.warn("Channel is closed. Cannot acknowledge message: {}", messageId);
             }
