@@ -31,8 +31,6 @@ class CouponRepositoryImplTest {
     private CouponPolicy couponPolicy;
     private CouponPolicy couponPolicy2;
 
-    private Book book;
-
     @BeforeAll
     static void setUpGlobalData(@Autowired CouponPolicyRepository couponPolicyRepository) {
 
