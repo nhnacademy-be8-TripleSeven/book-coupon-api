@@ -15,12 +15,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.Collections;
 import java.util.List;
 
 @RestController
@@ -105,14 +103,15 @@ public class CouponController {
             @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
-    @PostMapping("/api/coupons/use")
+    @PutMapping("/api/coupons/{couponId}/use")
     public ResponseEntity<CouponUseResponseDTO> useCouponForUser(
             @RequestHeader("X-USER") Long userId,
-            @RequestParam Long couponId,
+            @PathVariable Long couponId,
             @RequestParam(required = false) Long bookId ) {
         CouponUseResponseDTO response = couponService.useCoupon(userId, couponId, bookId);
         return ResponseEntity.ok(response);
     }
+
 
     @Operation(summary = "사용자 쿠폰 조회", description = "사용자가 본인의 모든 쿠폰을 조회합니다.")
     @ApiResponses(value = {
@@ -160,22 +159,13 @@ public class CouponController {
         return ResponseEntity.ok(availableCoupons);
     }
 
-
-
-
-
-
-
-
-
-
     @Operation(summary = "쿠폰 적용 후 할인 금액 계산", description = "쿠폰을 적용하여 할인되는 금액 반환")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "할인 금액 계산 성공"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음"),
             @ApiResponse(responseCode = "400", description = "유효하지 않은 요청")
     })
-    @PostMapping("/coupons/apply")
+    @GetMapping("/api/coupons/apply")
     public ResponseEntity<Long> applyCoupon(
             @RequestParam Long couponId,
             @RequestParam Long paymentAmount) {
@@ -184,13 +174,23 @@ public class CouponController {
         return ResponseEntity.ok(discountAmount);
     }
 
+
+
+
+
+
+
+
+
+
+
     @Operation(summary = "무인증 쿠폰 사용", description = "인증없이 쿠폰을 사용합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "쿠폰 사용 성공"),
             @ApiResponse(responseCode = "400", description = "사용할 수 없는 쿠폰"),
             @ApiResponse(responseCode = "404", description = "쿠폰을 찾을 수 없음")
     })
-    @PostMapping("/coupons/use/{couponId}")
+    @PutMapping("/coupons/{couponId}/use")
     public ResponseEntity<CouponUseResponseDTO> useCoupon(
             @PathVariable Long couponId) {
         CouponUseResponseDTO response = couponService.useBaseCoupon(couponId);
@@ -266,23 +266,4 @@ public class CouponController {
         return ResponseEntity.noContent().build();
     }
 
-
-    @Operation(summary = "생일 쿠폰 발급", description = "생일 쿠폰을 발급합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "생일 쿠폰 발급 성공"),
-            @ApiResponse(responseCode = "500", description = "서버 오류")
-    })
-    @PostMapping("/assign/birthday")
-    public ResponseEntity<BulkAssignResponseDTO> assignBirthdayCoupons() {
-        log.info("Manually triggered monthly birthday coupon assignment...");
-        try {
-            BulkAssignResponseDTO response = couponService.assignMonthlyBirthdayCoupons();
-            log.info("Manual birthday coupon assignment completed. Total issued: {}", response.getIssuedCount());
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            log.error("Error during manual birthday coupon assignment: {}", e.getMessage(), e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new BulkAssignResponseDTO(false, 0));
-        }
-    }
 }

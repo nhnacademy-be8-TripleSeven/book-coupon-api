@@ -102,8 +102,7 @@ aladin:
     key: ttbrlgus45311101001
 
 logging:
-  level:
-    root: info
+  config: classpath:logback-spring.xml
   logstash:
     host: 115.94.72.197
     port: 50000 # Logstash TCP input 포트
