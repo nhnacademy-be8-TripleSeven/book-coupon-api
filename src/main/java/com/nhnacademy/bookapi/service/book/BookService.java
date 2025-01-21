@@ -42,7 +42,7 @@ public interface BookService {
 
 
 
-    List<OrderItemDTO> getCartItemsByIds(List<Long> bookIds);
+    List<OrderItemDTO> getOrderItemsByIds(List<Long> bookIds);
 
     Page<BookDetailResponseDTO> searchBookByCategoryId(Long categoryId, Pageable pageable);
 

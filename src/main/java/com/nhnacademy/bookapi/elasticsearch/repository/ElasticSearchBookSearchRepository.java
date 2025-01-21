@@ -5,35 +5,28 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.annotations.Query;
+import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.repository.ElasticsearchRepository;
 import org.springframework.stereotype.Repository;
 
-@Repository
 public interface ElasticSearchBookSearchRepository extends ElasticsearchRepository<BookDocument, String>, CustomBookSearchRepository {
-
-
-    // 제목과 ISBN으로 검색
     @Query("{ " +
         "  \"function_score\": { " +
         "    \"query\": { " +
         "      \"bool\": { " +
         "        \"should\": [ " +
-        "          { \"match\": { \"title\": { \"query\": \"?0\", \"boost\": 4 } } }, " +
-        "          { \"match\": { \"isbn13\": { \"query\": \"?0\", \"boost\": 1 } } }, " +
-        "          { \"match\": { \"bookcreators\": { \"query\": \"?0\", \"boost\": 3 } } }, " +
-        "          { \"match\": { \"publishername\": { \"query\": \"?0\", \"boost\": 2 } } } " +
+        "          { \"match\": { \"title\":         { \"query\": \"?0\", \"boost\": 4, \"fuzziness\": \"AUTO\" } } }, " +
+        "          { \"match\": { \"isbn13\":        { \"query\": \"?0\", \"boost\": 1 } } }, " +
+        "          { \"match\": { \"bookcreators\":  { \"query\": \"?0\", \"boost\": 3 } } }, " +
+        "          { \"match\": { \"publishername\": { \"query\": \"?0\", \"boost\": 2 } } }, " +
+        "          { \"match\": { \"title_split\":   { \"query\": \"?0\", \"boost\": 0.5 } } } " +
         "        ] " +
         "      } " +
         "    }, " +
-        "    \"boost_mode\": \"sum\", " +
-        "    \"script_score\": { " +
-        "      \"script\": { " +
-        "        \"source\": \"_score + doc['popularity'].value\" " +
-        "      } " +
-        "    } " +
+        "    \"boost_mode\": \"sum\" " +
         "  } " +
         "}")
-    Page<BookDocument> searchWithPopularityAndWeights(String keyword, Pageable pageable);
+    Page<BookDocument> getBookDocumentByKeyword(String keyword, Pageable pageable);
 
 
 }

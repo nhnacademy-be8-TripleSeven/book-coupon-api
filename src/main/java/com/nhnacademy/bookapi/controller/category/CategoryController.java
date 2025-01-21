@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -26,20 +27,20 @@ public class CategoryController {
     private final CategoryService categoryService;
 
 
-    @PostMapping("/admin/books/categoryCreate")
+    @PostMapping("/admin/books/category")
     public ResponseEntity<Void> saveCategory(@RequestBody CategoryDTO categoryDTO){
         categoryService.saveCategory(categoryDTO);
         return ResponseEntity.ok().build();
     }
 
-    @GetMapping("/admin/books/categoryList")
+    @GetMapping("/admin/books/categories")
     public ResponseEntity<Page<CategoryDTO>> getCategoryList(@RequestParam int level, Pageable pageable){
         Page<CategoryDTO> categoryByLevel = categoryService.getCategoryByLevel(level, pageable);
 
         return ResponseEntity.ok(categoryByLevel);
     }
 
-    @PostMapping("/admin/books/categoryDelete")
+    @DeleteMapping("/admin/books/category")
     public ResponseEntity<Void> deleteCategory(@RequestParam(name = "id", required = false) Long id){
         categoryService.deleteCategoryById(id);
         return ResponseEntity.ok().build();
@@ -55,19 +56,19 @@ public class CategoryController {
 
     }
 
-    @GetMapping("/admin/books/categoryLevelList")
+    @GetMapping("/admin/books/categories-level-one")
     public ResponseEntity<CategoryLevelDTO> getCategoryLevel1(){
         CategoryLevelDTO categoryLevelList = categoryService.getCategoryLevelList();
         return ResponseEntity.ok(categoryLevelList);
     }
 
-    @GetMapping("/admin/books/categories")
+    @GetMapping("/admin/books/categories-level")
     public ResponseEntity<List<CategoryDTO>> getAdminCategoryByLevel(int level){
         List<CategoryDTO> categoryByLevel = categoryService.getCategoryByLevel(level);
         return ResponseEntity.ok(categoryByLevel);
     }
 
-    @GetMapping("/admin/books/categoriesParentList")
+    @GetMapping("/admin/books/categories-parent")
     public ResponseEntity<List<CategoryDTO>> getCategoryByParentAndLevel(@RequestParam Long parent,@RequestParam int level){
         List<CategoryDTO> categoriesByParentAndLevel = categoryService.getCategoriesByParentAndLevel(
             parent, level);

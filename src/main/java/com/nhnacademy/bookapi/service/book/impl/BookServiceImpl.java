@@ -218,7 +218,9 @@ public class BookServiceImpl implements BookService {
     }
 
     public Book getBook(Long id) {
-        return bookRepository.findById(id).orElse(null);
+        return bookRepository.findById(id).orElseThrow(() -> {
+            return new BookNotFoundException("book not found");
+        });
     }
 
 
@@ -236,7 +238,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<OrderItemDTO> getCartItemsByIds(List<Long> bookIds) {
+    public List<OrderItemDTO> getOrderItemsByIds(List<Long> bookIds) {
         List<Book> books = bookRepository.findAllById(bookIds);
         List<OrderItemDTO> cartItems = new ArrayList<>();
         for (Book book : books) {

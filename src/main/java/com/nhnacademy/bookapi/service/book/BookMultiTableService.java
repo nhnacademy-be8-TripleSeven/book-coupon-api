@@ -23,6 +23,7 @@ import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
+import com.nhnacademy.bookapi.exception.BookPopularityNotFoundException;
 import com.nhnacademy.bookapi.exception.StockUnavailableException;
 import com.nhnacademy.bookapi.repository.BookCategoryRepository;
 import com.nhnacademy.bookapi.repository.BookCouponRepository;
@@ -34,6 +35,7 @@ import com.nhnacademy.bookapi.repository.PublisherRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import com.nhnacademy.bookapi.repository.WrapperRepository;
 import com.nhnacademy.bookapi.service.book_index.BookIndexService;
+import com.nhnacademy.bookapi.service.book_popularity.BookPopularityService;
 import com.nhnacademy.bookapi.service.book_tag.BookTagService;
 import com.nhnacademy.bookapi.service.book_type.BookTypeService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
@@ -53,6 +55,8 @@ import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -88,6 +92,7 @@ public class BookMultiTableService {
     private final BookTypeRepository bookTypeRepository;
     private final BookRepository bookRepository;
     private final BookTagService bookTagService;
+    private final BookPopularityService bookPopularityService;
 
     @Transactional(readOnly = true)
     public BookDTO getAdminBookById(Long id) {
@@ -275,6 +280,16 @@ public class BookMultiTableService {
     }
     public MultipartFile loadImageTOStorage(ObjectService objectService, String objectName) {
         return objectService.loadImageFromStorage(containerName, objectName);
+    }
+
+    @Retryable(
+        value = {NumberFormatException.class, BookPopularityNotFoundException.class}, // 재시도할 예외 타입
+        maxAttempts = 3, // 최대 재시도 횟수
+        backoff = @Backoff(delay = 2000) // 재시도 간격 (밀리초)
+    )
+    @Transactional
+    public void updateSearchRank(long bookId, long popularity){
+        bookPopularityService.updateSearchRank(bookId, popularity);
     }
 
 

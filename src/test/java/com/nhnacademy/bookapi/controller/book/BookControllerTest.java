@@ -200,15 +200,15 @@ class BookControllerTest {
         List<Long> bookIds = List.of(1L, 2L, 3L);
         List<OrderItemDTO> cartItems = Collections.emptyList();
 
-        when(bookService.getCartItemsByIds(bookIds)).thenReturn(cartItems);
+        when(bookService.getOrderItemsByIds(bookIds)).thenReturn(cartItems);
 
         // When
-        ResponseEntity<List<OrderItemDTO>> response = bookController.getCartItems(bookIds);
+        ResponseEntity<List<OrderItemDTO>> response = bookController.getOrderItems(bookIds);
 
         // Then
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(cartItems, response.getBody());
-        verify(bookService, times(1)).getCartItemsByIds(bookIds);
+        verify(bookService, times(1)).getOrderItemsByIds(bookIds);
     }
 
     @Test
