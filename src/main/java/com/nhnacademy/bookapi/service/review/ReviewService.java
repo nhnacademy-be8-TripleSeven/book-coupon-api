@@ -9,6 +9,7 @@ import com.nhnacademy.bookapi.exception.ReviewAlreadyExistException;
 import com.nhnacademy.bookapi.exception.ReviewNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
+import com.nhnacademy.bookapi.service.object.NaverObjectStorageService;
 import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.AllArgsConstructor;
 import lombok.Setter;
@@ -34,6 +35,7 @@ public class ReviewService {
     private final BookRepository bookRepository;
     @Setter
     private ObjectService objectService;
+    private NaverObjectStorageService naverObjectStorageService;
 
     @Transactional
     public boolean addReview(Long userId, ReviewRequestDto reviewRequestDto, MultipartFile file) {
@@ -46,14 +48,8 @@ public class ReviewService {
 
         String imageUrl = null;
         if (file != null && !file.isEmpty()) {
-            objectService.generateAuthToken();
-            try (InputStream inputStream = file.getInputStream()) {
-                String objectName = "reviews/" + "review"+"_"+userId+"_"+reviewRequestDto.getBookId();
-                objectService.uploadObject("triple-seven", objectName, inputStream);
-                imageUrl = objectService.getStorageUrl() + "/triple-seven/" + objectName;
-            } catch (IOException e) {
-                throw new RuntimeException("이미지 업로드 실패: " + e.getMessage());
-            }
+            String objectKey = "reviews/review_" + userId + "_" + reviewRequestDto.getBookId();
+            imageUrl = naverObjectStorageService.uploadFile(objectKey, file);
         }
         // 리뷰 생성 및 저장
         Review review = new Review(
@@ -78,26 +74,16 @@ public class ReviewService {
         objectService.generateAuthToken();
         if (isRemoveImage) { // 일단 기존 이미지를 삭제하는 것은 확정
             if (file != null && !file.isEmpty()) { // 기존 이미지를 삭제하고 새로운 이미지를 업로드
-                try (InputStream inputStream = file.getInputStream()) {
-                    String objectName = "reviews/" + "review" + "_" + userId + "_" + reviewRequestDto.getBookId();
-                    objectService.uploadObject("triple-seven", objectName, inputStream);
-                    imageUrl = objectService.getStorageUrl() + "/triple-seven/" + objectName;
-                } catch (IOException e) {
-                    throw new RuntimeException("이미지 수정 실패: " + e.getMessage());
-                }
+                    String objectKey = "reviews/review_" + userId + "_" + reviewRequestDto.getBookId();
+                    imageUrl = naverObjectStorageService.uploadFile(objectKey, file);
             } else { // 아예 리뷰에 이미지를 삭제
-                String objectName = "reviews/"+ "review" + "_" + userId + "_" + reviewRequestDto.getBookId();
-                objectService.deleteObject("triple-seven", objectName);
+                String objectKey = "reviews/review_" + userId + "_" + reviewRequestDto.getBookId();
+                naverObjectStorageService.deleteFile(objectKey);
             }
         } else {
             if (file != null && !file.isEmpty()) { // 기존 이미지가 없었고 수정할 때 이미지를 업로드
-                try (InputStream inputStream = file.getInputStream()) {
-                    String objectName = "reviews/" + "review" + "_" + userId + "_" + reviewRequestDto.getBookId();
-                    objectService.uploadObject("triple-seven", objectName, inputStream);
-                    imageUrl = objectService.getStorageUrl() + "/triple-seven/" + objectName;
-                } catch (IOException e) {
-                    throw new RuntimeException("이미지 수정 실패: " + e.getMessage());
-                }
+                String objectKey = "reviews/review_" + userId + "_" + reviewRequestDto.getBookId();
+                imageUrl = naverObjectStorageService.uploadFile(objectKey, file);
             } else {
                 imageUrl = review.getImageUrl();
             }
@@ -121,10 +107,9 @@ public class ReviewService {
     public void deleteAllReviewsWithBook(Long bookId) {
         List<Long> userIds = reviewRepository.findAllUserIdsByBookId(bookId);
         reviewRepository.deleteByBookId(bookId);
-        objectService.generateAuthToken();
         for (Long userId : userIds) {
-            String objectName = "reviews/"+ "review" + "_" + userId + "_" + bookId;
-            objectService.deleteObject("triple-seven", objectName);
+            String objectKey = "reviews/review_" + userId + "_" + bookId;
+            naverObjectStorageService.deleteFile(objectKey);
         }
     }
 
