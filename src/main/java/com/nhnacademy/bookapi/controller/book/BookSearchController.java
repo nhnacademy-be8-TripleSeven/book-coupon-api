@@ -4,7 +4,6 @@ import com.nhnacademy.bookapi.dto.book.BookDetailResponseDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
 import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.elasticsearch.dto.DocumentSearchResponseDTO;
-import com.nhnacademy.bookapi.elasticsearch.repository.ElasticSearchBookSearchRepository;
 import com.nhnacademy.bookapi.elasticsearch.service.BookSearchService;
 import com.nhnacademy.bookapi.entity.Type;
 
@@ -34,7 +33,6 @@ public class BookSearchController {
 
     private final BookService bookService;
 
-    private final ElasticSearchBookSearchRepository elasticSearchBookSearchRepository;
     private final BookServiceImpl bookServiceImpl;
     private final BookSearchService bookSearchService;
 
@@ -48,10 +46,10 @@ public class BookSearchController {
         @ApiResponse(responseCode = "200", description = "검색 성공"),
         @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    @GetMapping("/term/{term}")
+    @GetMapping("/search/{term}")
     public ResponseEntity<Page<DocumentSearchResponseDTO>> bookTitleSearch(@PathVariable(name = "term") String term, Pageable pageable) {
 
-        Page<DocumentSearchResponseDTO> booksByTerm = bookSearchService.elasticSearch(term,
+        Page<DocumentSearchResponseDTO> booksByTerm = bookSearchService.searchBook(term,
             pageable);
         return ResponseEntity.ok(booksByTerm);
     }
@@ -62,7 +60,7 @@ public class BookSearchController {
         @ApiResponse(responseCode = "200", description = "검색 성공"),
         @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    @GetMapping("/typeSearch/{type}")
+    @GetMapping("/type-search/{type}")
     public ResponseEntity<PageDTO<BookDetailResponseDTO>> bookTypeSearch(@PathVariable(name = "type") String type, Pageable pageable) {
 
         PageDTO<BookDetailResponseDTO> bookTypeBooks = bookService.getBookTypeBooks(Type.valueOf(type.toUpperCase()),
@@ -73,7 +71,7 @@ public class BookSearchController {
     }
 
 
-    @GetMapping("/categorySearch")
+    @GetMapping("/category-search")
     public ResponseEntity<Page<BookDetailResponseDTO>> getBookByCategoryId(@RequestParam long id, Pageable pageable) {
         return ResponseEntity.ok(bookService.searchBookByCategoryId(id, pageable));
     }

@@ -1,9 +1,11 @@
 package com.nhnacademy.bookapi.elasticsearch.dto;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 public class DocumentSearchResponseDTO {
@@ -14,7 +16,7 @@ public class DocumentSearchResponseDTO {
 
     private String isbn13;
 
-    private LocalDateTime publishDate;
+    private LocalDate publishDate;
 
     private int regularPrice;
 
@@ -28,4 +30,6 @@ public class DocumentSearchResponseDTO {
         this.title = title;
         this.isbn13 = isbn13;
     }
+
+
 }

@@ -68,7 +68,7 @@ class BookSearchControllerTest {
         // Arrange
         List<DocumentSearchResponseDTO> mockList = Collections.singletonList(new DocumentSearchResponseDTO("1", "Mock Title", "Mock Content"));
         Page<DocumentSearchResponseDTO> mockPage = new PageImpl<>(mockList, PageRequest.of(0, 10), mockList.size());
-        when(bookSearchService.elasticSearch(eq("test"), any(PageRequest.class))).thenReturn(mockPage);
+        when(bookSearchService.searchBook(eq("test"), any(PageRequest.class))).thenReturn(mockPage);
 
         // Act
         ResponseEntity<Page<DocumentSearchResponseDTO>> response = bookSearchController.bookTitleSearch("test", PageRequest.of(0, 10));
@@ -76,7 +76,7 @@ class BookSearchControllerTest {
         // Assert
         assertThat(response.getStatusCodeValue()).isEqualTo(200);
         assertThat(response.getBody()).isEqualTo(mockPage);
-        verify(bookSearchService, times(1)).elasticSearch(eq("test"), any(PageRequest.class));
+        verify(bookSearchService, times(1)).searchBook(eq("test"), any(PageRequest.class));
     }
 
     @Test

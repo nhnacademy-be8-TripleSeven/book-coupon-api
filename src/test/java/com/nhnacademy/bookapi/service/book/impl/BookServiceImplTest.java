@@ -178,7 +178,7 @@ class BookServiceImplTest {
 
         when(bookRepository.findAllById(bookIds)).thenReturn(List.of(book));
 
-        List<OrderItemDTO> result = bookService.getCartItemsByIds(bookIds);
+        List<OrderItemDTO> result = bookService.getOrderItemsByIds(bookIds);
         List<Book> allById = bookRepository.findAllById(bookIds);
 
         assertNotNull(result);

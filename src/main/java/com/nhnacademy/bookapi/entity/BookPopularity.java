@@ -11,7 +11,6 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @AllArgsConstructor
-@Builder
 public class BookPopularity {
 
     @Id
@@ -34,6 +33,14 @@ public class BookPopularity {
         this.cartCount = cartCount;
     }
 
+    @Builder
+    public BookPopularity(long bookId, long searchRank, Book book){
+        this.bookId = bookId;
+        this.searchRank = searchRank;
+        this.book = book;
+    }
+
+
     public void create(Book book) {
         this.book = book;
         this.clickRank = 0;
@@ -45,6 +52,10 @@ public class BookPopularity {
         this.clickRank = clickRank;
         this.searchRank = searchRank;
         this.cartCount = cartCount;
+    }
+
+    public void updateSearchRank(long searchRank){
+        this.searchRank = searchRank;
     }
 
 }
