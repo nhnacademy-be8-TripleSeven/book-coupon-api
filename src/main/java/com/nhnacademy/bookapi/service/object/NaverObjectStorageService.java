@@ -65,7 +65,5 @@ public class NaverObjectStorageService {
                 .bucket(containerName)
                 .key(objectKey)
                 .build());
-
-        System.out.println("🗑 파일 삭제 완료: " + objectKey);
     }
 }
