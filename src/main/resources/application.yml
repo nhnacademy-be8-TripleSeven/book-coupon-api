@@ -121,3 +121,9 @@ object:
   username: rlgus4531@naver.com
   password: team3
 
+naver:
+  storage:
+    accessKey: ncp_iam_BPAMKR2smCmeOqrc4jQQ
+    secretKey: ncp_iam_BPKMKRWhRkXTsP9QD5IaKTZ8xAe5JG1mdn
+    endpoint: https://kr.object.ncloudstorage.com
+    containerName: nhn-triple-seven
