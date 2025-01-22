@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -1233,7 +1234,8 @@ class CouponServiceImplTest {
         verify(rabbitTemplate, times(1)).convertAndSend(
                 eq(RabbitConfig.EXCHANGE_NAME),
                 eq(RabbitConfig.ROUTING_KEY),
-                any(CouponAssignRequestDTO.class)
+                any(CouponAssignRequestDTO.class),
+                any(MessagePostProcessor.class)
         );
     }
 
