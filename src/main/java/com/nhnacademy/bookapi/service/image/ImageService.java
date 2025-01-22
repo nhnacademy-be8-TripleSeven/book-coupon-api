@@ -11,7 +11,6 @@ import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ImageRepository;
 import java.util.List;
 
-import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,6 @@ public class ImageService {
     private final BookCoverImageRepository bookCoverImageRepository;
     private final BookImageRepository bookImageRepository;
     private final BookRepository bookRepository;
-    private final ObjectService objectService;
 
     public void bookCoverSave(Image image, BookCoverImage bookCoverImage) {
         imageRepository.save(image);
@@ -63,20 +61,17 @@ public class ImageService {
 
         Book book = bookRepository.findById(bookId).orElseThrow(() -> new BookNotFoundException("book not found"));
 
-        objectService.generateAuthToken();
 
               // 2. BookImage 삭제
         if (detailImages != null && !detailImages.isEmpty()) {
             bookImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리
             imageRepository.deleteAll(detailImages); // 삭제할 Image 리스트
-            objectService.deleteObject("triple-seven", book.getIsbn13() + "_detail.jpg");
         }
 
         // 3. BookCoverImage 삭제
         if (coverImages != null && !coverImages.isEmpty()) {
             bookCoverImageRepository.deleteByBookId(bookId); // JPQL DELETE 쿼리
             imageRepository.deleteAll(coverImages); // 삭제할 Image 리스트
-            objectService.deleteObject("triple-seven", book.getIsbn13() + "_cover.jpg");
         }
 
 

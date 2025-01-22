@@ -10,8 +10,8 @@ import com.nhnacademy.bookapi.exception.ReviewNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import com.nhnacademy.bookapi.service.object.NaverObjectStorageService;
-import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.aspectj.apache.bcel.generic.LineNumberGen;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,14 +28,14 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
-    @Setter
-    private ObjectService objectService;
-    private NaverObjectStorageService naverObjectStorageService;
+
+
+    private final NaverObjectStorageService naverObjectStorageService;
 
     @Transactional
     public boolean addReview(Long userId, ReviewRequestDto reviewRequestDto, MultipartFile file) {
@@ -71,7 +71,6 @@ public class ReviewService {
         //기존 이미지를 삭제하기를 클릭하는 경우 - 1. 기존이미지를 삭제하고 새로운 이미지를 업로드, 2. 기존이미지를삭제하고 아예 이미지를 삭제하고싶은 경우
         //기존 이미지 삭제하기를 클릭하지 않는 경우 1. 리뷰 내용만 수정하고 이미지는 그대로 둔다.(isRemoveImage는 false이고 file도 empty)
         String imageUrl = null;
-        objectService.generateAuthToken();
         if (isRemoveImage) { // 일단 기존 이미지를 삭제하는 것은 확정
             if (file != null && !file.isEmpty()) { // 기존 이미지를 삭제하고 새로운 이미지를 업로드
                     String objectKey = "reviews/review_" + userId + "_" + reviewRequestDto.getBookId();

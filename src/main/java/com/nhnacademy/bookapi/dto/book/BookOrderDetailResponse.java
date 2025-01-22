@@ -39,6 +39,9 @@ public class BookOrderDetailResponse {
 
 
     public void addCategoryList(List<CategoryDTO> categoryList) {
-        this.category.addAll(categoryList);
+        if (category != null) {
+            this.category = new ArrayList<>(this.category); // 변경 가능한 리스트로 초기화
+            this.category.addAll(categoryList);
+        }
     }
 }

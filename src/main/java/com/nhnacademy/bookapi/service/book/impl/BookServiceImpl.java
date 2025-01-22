@@ -22,6 +22,7 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -189,7 +190,9 @@ public class BookServiceImpl implements BookService {
 
         Page<BookDetailResponseDTO> bookTypeItemByType = bookRepository.findBookTypeItemByType(
                 bookType, pageable);
-        addCreatorsByBookDetailResponse(bookTypeItemByType.getContent());
+        if(!bookTypeItemByType.isEmpty()){
+            addCreatorsByBookDetailResponse(bookTypeItemByType.getContent());
+        }
         return new PageDTO<>(bookTypeItemByType.getContent(), pageable.getPageNumber(), pageable.getPageSize(), bookTypeItemByType.getTotalElements());
     }
 

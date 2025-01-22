@@ -41,7 +41,7 @@ import com.nhnacademy.bookapi.service.book_type.BookTypeService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import com.nhnacademy.bookapi.service.image.ImageService;
-import com.nhnacademy.bookapi.service.object.ObjectService;
+import com.nhnacademy.bookapi.service.object.NaverObjectStorageService;
 import com.nhnacademy.bookapi.service.review.ReviewService;
 import com.nhnacademy.bookapi.service.tag.TagService;
 import java.io.IOException;
@@ -66,11 +66,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class BookMultiTableService {
 
-    private final ObjectService objectService;
 
-    //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
-    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
-    private final String containerName = "triple-seven";
 
     private final BookService bookService;
     private final ImageService imageService;
@@ -80,19 +76,16 @@ public class BookMultiTableService {
     private final BookIndexService bookIndexService;
     private final BookTypeService bookTypeService;
     private final PublisherRepository publisherRepository;
-    private final BookCouponRepository couponRepository;
-    private final ReviewRepository reviewRepository;
     private final WrapperRepository wrapperRepository;
-    private final BookCouponRepository bookCouponRepository;
-    private final BookPopularityRepository popularityRepository;
     private final BookPopularityRepository bookPopularityRepository;
     private final BookCategoryRepository bookCategoryRepository;
     private final ReviewService reviewService;
     private final CategoryRepository categoryRepository;
-    private final BookTypeRepository bookTypeRepository;
     private final BookRepository bookRepository;
     private final BookTagService bookTagService;
     private final BookPopularityService bookPopularityService;
+    private final NaverObjectStorageService naverObjectStorageService;
+    private final BookCouponRepository bookCouponRepository;
 
     @Transactional(readOnly = true)
     public BookDTO getAdminBookById(Long id) {
@@ -232,7 +225,6 @@ public class BookMultiTableService {
         wrapperRepository.deleteByBookId(bookId);
         // Book Popularity 삭제
         bookPopularityRepository.deleteByBookId(bookId);
-
         // Book 삭제
         bookService.deleteBook(bookId);
     }
@@ -245,19 +237,15 @@ public class BookMultiTableService {
                 bookOrderRequestDTO.getBookId(), bookOrderRequestDTO.getQuantity());
             bookOrderDetailResponseList.add(bookOrderDetail);
         }
-
         return bookOrderDetailResponseList;
     }
 
 
 
-    private BookOrderDetailResponse getBookOrderDetail(long bookId, int quantity) {
+    protected BookOrderDetailResponse getBookOrderDetail(long bookId, int quantity) {
         BookOrderDetailResponse bookOrderDetail = bookRepository.findBookOrderDetail(bookId);
         checkStock(bookOrderDetail.getStock(), quantity);
 
-//        if(bookOrderDetail == null){
-//            throw new BookNotFoundException(String.format("bookId: %d is not found", bookId));
-//        }
         List<CategoryDTO> categoryListByBookId = categoryService.getCategoryListByBookId(bookId);
         if(categoryListByBookId != null){
             bookOrderDetail.addCategoryList(categoryListByBookId);
@@ -269,17 +257,6 @@ public class BookMultiTableService {
         if(stock < quentity){
             throw new StockUnavailableException("stock not enough");
         }
-    }
-
-    //object storage에 이미지 업로드 메소드
-    public String uploadCoverImageToStorage(ObjectService objectService, MultipartFile imageFile, String objectName)
-        throws IOException {
-        InputStream inputStream = imageFile.getInputStream();
-        objectService.uploadObject(containerName, objectName, inputStream);
-        return storageUrl + "/" + containerName + "/" + objectName;
-    }
-    public MultipartFile loadImageTOStorage(ObjectService objectService, String objectName) {
-        return objectService.loadImageFromStorage(containerName, objectName);
     }
 
     @Retryable(
@@ -294,12 +271,12 @@ public class BookMultiTableService {
 
 
     protected void bookCoverImageUpdateOrCreate(List<MultipartFile> coverImages, Book book,
-        String isbn)
-        throws IOException {
+        String isbn) {
 
         for (MultipartFile multipartFile : coverImages) {
             Image coverImage = imageService.getCoverImage(book.getId());
-            String path = uploadCoverImageToStorage(objectService, multipartFile, isbn + "_cover.jpg");
+            String path = naverObjectStorageService.uploadFile(isbn + "_cover.jpg", multipartFile);
+
             if (coverImage != null) {
                 coverImage.update(path);
             }else {
@@ -316,7 +293,7 @@ public class BookMultiTableService {
 
         for (MultipartFile multipartFile : detailImages) {
             Image detailImage = imageService.getDetailImage(book.getId());
-            String path = uploadCoverImageToStorage(objectService, multipartFile, isbn + "_detail.jpg");
+            String path = naverObjectStorageService.uploadFile(isbn + "_detail.jpg", multipartFile);
             if (detailImage != null) {
                 detailImage.update(path);
             }else {

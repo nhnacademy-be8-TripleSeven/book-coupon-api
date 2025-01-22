@@ -2,6 +2,7 @@ package com.nhnacademy.bookapi.controller.book;
 
 import com.nhnacademy.bookapi.book_api.BookApiSaveService;
 import com.nhnacademy.bookapi.dto.book.*;
+import com.nhnacademy.bookapi.dto.book.BookStockRequestDTO.BookStockRequestDTOBuilder;
 import com.nhnacademy.bookapi.service.book.BookMultiTableService;
 import com.nhnacademy.bookapi.service.book.BookService;
 import org.junit.jupiter.api.BeforeEach;
@@ -228,20 +229,40 @@ class BookControllerTest {
         verify(bookService, times(1)).getBookName(bookId);
     }
 
-//    @Test
-//    void testGetBookOrderDetail() {
-//        // Given
-//        Long bookId = 1L;
-//        BookOrderDetailResponse bookOrderDetail = new BookOrderDetailResponse();
-//
-//        when(bookMultiTableService.getBookOrderDetail(bookId)).thenReturn(bookOrderDetail);
-//
-//        // When
-//        ResponseEntity<BookOrderDetailResponse> response = bookController.getBookOrderDetail(bookId);
-//
-//        // Then
-//        assertEquals(200, response.getStatusCodeValue());
-//        assertEquals(bookOrderDetail, response.getBody());
-//        verify(bookMultiTableService, times(1)).getBookOrderDetail(bookId);
-//    }
+    @Test
+    void testGetBookOrderDetail() {
+        // Given
+        Long bookId = 1L;
+        int stock = 10;
+        BookOrderRequestDTO orderRequestDTO = new BookOrderRequestDTO(bookId, stock);
+        List<BookOrderRequestDTO> orderRequestDTO1 = List.of(orderRequestDTO);
+
+        BookOrderDetailResponse bookOrderDetail = BookOrderDetailResponse.builder().title("test").regularPrice(1)
+            .salePrice(1).wrappable(true).stock(stock).build();
+
+        List<BookOrderDetailResponse> bookOrderDetails = List.of(bookOrderDetail);
+
+        when(bookMultiTableService.getBookOrderDetails(orderRequestDTO1)).thenReturn(bookOrderDetails);
+        // When
+        ResponseEntity<List<BookOrderDetailResponse>> response = bookController.getBookOrderDetail(orderRequestDTO1);
+        // Then
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(bookOrderDetails, response.getBody());
+        assertEquals(bookOrderDetails.size(), response.getBody().size());
+        assertEquals("test", response.getBody().get(0).getTitle());
+
+        verify(bookMultiTableService, times(1)).getBookOrderDetails(orderRequestDTO1);
+    }
+
+    @Test
+    void testOrderStockReduce(){
+        BookStockRequestDTO bookStockRequestDTO = mock(BookStockRequestDTO.class);
+        List<BookStockRequestDTO> bookStockRequestDTO1 = List.of(bookStockRequestDTO);
+
+        doNothing().when(bookService).bookReduceStock(bookStockRequestDTO1);
+
+        bookController.orderStockReduce(bookStockRequestDTO1);
+
+        verify(bookService, times(1)).bookReduceStock(bookStockRequestDTO1);
+    }
 }
