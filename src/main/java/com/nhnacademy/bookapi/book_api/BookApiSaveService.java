@@ -65,12 +65,12 @@ public class BookApiSaveService {
         try {
             book = bookApiService.getBook(isbn).get(0);
         }catch (Exception e){
-            throw new AladinApiException(e.getMessage());
+            throw new AladinApiException("찾을 수 없습니다.");
         }
 
         String isbn13 = book.path("isbn13").asText();
         if(!isbn13.equals(isbn)) {
-            throw new BookAlreadyExistsException("이미 존재하는 isbn 입니다.");
+            throw new BookAlreadyExistsException("존재하지 않는 isbn 입니다.");
         }
         boolean findIsbn = bookRepository.existsByIsbn13(isbn);
 

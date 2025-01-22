@@ -67,7 +67,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class BookMultiTableService {
 
 
-
     private final BookService bookService;
     private final ImageService imageService;
     private final CategoryService categoryService;
@@ -91,7 +90,8 @@ public class BookMultiTableService {
     public BookDTO getAdminBookById(Long id) {
         BookDTO bookById = bookService.getBookById(id);
         Long bookId = bookById.getId();
-        bookById.addImage(imageService.getBookCoverImages(bookId), imageService.getBookDetailImages(bookId));
+        bookById.addImage(imageService.getBookCoverImages(bookId),
+            imageService.getBookDetailImages(bookId));
         bookById.addCategory(categoryService.getCategoryListByBookId(bookId));
         bookById.addAuthor(bookCreatorService.bookCreatorList(bookId));
         bookById.addTags(tagService.getTagName(bookId));
@@ -117,23 +117,25 @@ public class BookMultiTableService {
             bookUpdateDTO.addIndex(bookIndexService.getBookIndexList(bookUpdateDTO.getId()));
         }
 
-
         return bookList;
     }
-
 
 
     @Transactional
     public void updateBook(BookUpdateDTO bookUpdateDTO) throws IOException {
 
         Book book = bookService.getBook(bookUpdateDTO.getId());
-        book.update(bookUpdateDTO.getTitle(),bookUpdateDTO.getIsbn(), bookUpdateDTO.getPublishedDate(),
-            bookUpdateDTO.getRegularPrice(),bookUpdateDTO.getSalePrice(),bookUpdateDTO.getDescription());
+        book.update(bookUpdateDTO.getTitle(), bookUpdateDTO.getIsbn(),
+            bookUpdateDTO.getPublishedDate(),
+            bookUpdateDTO.getRegularPrice(), bookUpdateDTO.getSalePrice(),
+            bookUpdateDTO.getDescription());
 
-        List<MultipartFile> bookCoverImages = Optional.ofNullable(bookUpdateDTO.getCoverImage()).orElse(Collections.emptyList());
+        List<MultipartFile> bookCoverImages = Optional.ofNullable(bookUpdateDTO.getCoverImage())
+            .orElse(Collections.emptyList());
         bookCoverImageUpdateOrCreate(bookCoverImages, book, bookUpdateDTO.getIsbn());
 
-        List<MultipartFile> detailImages = Optional.ofNullable(bookUpdateDTO.getDetailImage()).orElse(Collections.emptyList());
+        List<MultipartFile> detailImages = Optional.ofNullable(bookUpdateDTO.getDetailImage())
+            .orElse(Collections.emptyList());
         bookDetailImageUpdateOrCreate(detailImages, book, bookUpdateDTO.getIsbn());
 
         List<CategoryDTO> categories = bookUpdateDTO.getCategories();
@@ -151,7 +153,7 @@ public class BookMultiTableService {
     @Transactional
     public void createBook(BookCreatDTO bookCreatDTO) throws IOException {
         boolean existed = bookService.existsBookByIsbn(bookCreatDTO.getIsbn());
-        if(existed){
+        if (existed) {
             throw new BookNotFoundException(bookCreatDTO.getIsbn());
         }
 
@@ -167,9 +169,6 @@ public class BookMultiTableService {
 
         bookService.createBook(book);
 
-
-
-
         publisherCreate(bookCreatDTO.getPublisherName(), book);
 
         List<BookCreatorDTO> authors = bookCreatDTO.getAuthors();
@@ -178,15 +177,13 @@ public class BookMultiTableService {
 
         List<BookTypeDTO> bookTypes = bookCreatDTO.getBookTypes();
         List<BookType> bookTypeList = new ArrayList<>();
-        bookTypeUpdateOrCreate(bookTypeList, bookTypes ,book);
-
+        bookTypeUpdateOrCreate(bookTypeList, bookTypes, book);
 
         List<CategoryDTO> categories = bookCreatDTO.getCategories();
 
         categoryCreateAndUpdate(categories, book);
 
         indexCreateOrUpdate(bookCreatDTO.getIndex(), book);
-
 
         BookPopularity bookPopularity = new BookPopularity(book, 0, 0, 0);
         bookPopularityRepository.save(bookPopularity);
@@ -203,6 +200,7 @@ public class BookMultiTableService {
 
 
     }
+
     @Transactional
     public void deleteBook(long bookId) {
         // Book Type 삭제
@@ -230,7 +228,8 @@ public class BookMultiTableService {
     }
 
     @Transactional(readOnly = true)
-    public List<BookOrderDetailResponse> getBookOrderDetails(List<BookOrderRequestDTO> bookOrderRequestDTOList) {
+    public List<BookOrderDetailResponse> getBookOrderDetails(
+        List<BookOrderRequestDTO> bookOrderRequestDTOList) {
         List<BookOrderDetailResponse> bookOrderDetailResponseList = new ArrayList<>();
         for (BookOrderRequestDTO bookOrderRequestDTO : bookOrderRequestDTOList) {
             BookOrderDetailResponse bookOrderDetail = getBookOrderDetail(
@@ -241,20 +240,19 @@ public class BookMultiTableService {
     }
 
 
-
     protected BookOrderDetailResponse getBookOrderDetail(long bookId, int quantity) {
         BookOrderDetailResponse bookOrderDetail = bookRepository.findBookOrderDetail(bookId);
         checkStock(bookOrderDetail.getStock(), quantity);
 
         List<CategoryDTO> categoryListByBookId = categoryService.getCategoryListByBookId(bookId);
-        if(categoryListByBookId != null){
+        if (categoryListByBookId != null) {
             bookOrderDetail.addCategoryList(categoryListByBookId);
         }
         return bookOrderDetail;
     }
 
-    private void checkStock(int stock,int quentity){
-        if(stock < quentity){
+    private void checkStock(int stock, int quentity) {
+        if (stock < quentity) {
             throw new StockUnavailableException("stock not enough");
         }
     }
@@ -265,7 +263,7 @@ public class BookMultiTableService {
         backoff = @Backoff(delay = 2000) // 재시도 간격 (밀리초)
     )
     @Transactional
-    public void updateSearchRank(long bookId, long popularity){
+    public void updateSearchRank(long bookId, long popularity) {
         bookPopularityService.updateSearchRank(bookId, popularity);
     }
 
@@ -279,7 +277,7 @@ public class BookMultiTableService {
 
             if (coverImage != null) {
                 coverImage.update(path);
-            }else {
+            } else {
                 Image newImage = new Image(path);
                 BookCoverImage bookCoverImage = new BookCoverImage(newImage, book);
                 imageService.bookCoverSave(newImage, bookCoverImage);
@@ -287,6 +285,7 @@ public class BookMultiTableService {
         }
 
     }
+
     protected void bookDetailImageUpdateOrCreate(List<MultipartFile> detailImages, Book book,
         String isbn)
         throws IOException {
@@ -296,7 +295,7 @@ public class BookMultiTableService {
             String path = naverObjectStorageService.uploadFile(isbn + "_detail.jpg", multipartFile);
             if (detailImage != null) {
                 detailImage.update(path);
-            }else {
+            } else {
                 Image newImage = new Image(path);
                 BookImage bookImage = new BookImage(book, newImage);
                 imageService.bookDetailSave(newImage, bookImage);
@@ -309,16 +308,17 @@ public class BookMultiTableService {
     protected void categoryCreateAndUpdate(List<CategoryDTO> categoryDTOList, Book book) {
         Category parentCategory = null;
         List<BookCategory> allByBook = bookCategoryRepository.findAllByBook(book);
-        if(!allByBook.isEmpty() && !categoryDTOList.isEmpty()){
+        if (!allByBook.isEmpty() && !categoryDTOList.isEmpty()) {
             bookCategoryRepository.deleteAll(allByBook);
         }
         int level = 1;
         for (CategoryDTO categoryDTO : categoryDTOList) {
 
             String categoryName = categoryDTO.getName();
-            Category categoryByName = categoryRepository.findCategoryByName(categoryName).orElse(null);
+            Category categoryByName = categoryRepository.findCategoryByName(categoryName)
+                .orElse(null);
             Category saveCategory;
-            if(categoryByName != null) {
+            if (categoryByName != null) {
                 saveCategory = categoryByName;
             } else {
                 Category newCategory = new Category();
@@ -339,14 +339,14 @@ public class BookMultiTableService {
     private void creatorUpdateOrCreate(List<BookCreatorDTO> creatorList, Book book) {
         for (BookCreatorDTO bookCreatorDTO : creatorList) {
             BookCreator bookCreatorByCreatorId = null;
-            if(bookCreatorDTO.getId() != null){
+            if (bookCreatorDTO.getId() != null) {
                 bookCreatorByCreatorId = bookCreatorService.getBookCreatorByCreatorId(
                     bookCreatorDTO.getId());
             }
-            if(bookCreatorByCreatorId != null) {
+            if (bookCreatorByCreatorId != null) {
                 bookCreatorByCreatorId.update(bookCreatorDTO.getName(),
                     Role.valueOf(bookCreatorDTO.getRole().toUpperCase(Locale.ROOT)));
-            }else {
+            } else {
                 BookCreator bookCreator = new BookCreator(bookCreatorDTO.getName(),
                     Role.valueOf(bookCreatorDTO.getRole()));
                 BookCreatorMap bookCreatorMap = new BookCreatorMap(book, bookCreator);
@@ -354,30 +354,33 @@ public class BookMultiTableService {
             }
         }
     }
-    private void indexCreateOrUpdate(String index ,Book book) {
 
-        if(index != null){
+    private void indexCreateOrUpdate(String index, Book book) {
+
+        if (index != null) {
             BookIndex indexBook = bookIndexService.getBookIndex(book.getId());
-            if(indexBook != null){
+            if (indexBook != null) {
                 indexBook.updateIndexText(index);
-            }else {
+            } else {
                 BookIndex bookIndex = new BookIndex(index, book);
                 bookIndexService.createBookIndex(bookIndex);
             }
         }
     }
-    protected void bookTypeUpdateOrCreate(List<BookType> bookTypeList,List<BookTypeDTO> bookTypeDTOList, Book book) {
+
+    protected void bookTypeUpdateOrCreate(List<BookType> bookTypeList,
+        List<BookTypeDTO> bookTypeDTOList, Book book) {
 
         int index = 0;
-        if(!bookTypeDTOList.isEmpty()) {
-            if(!bookTypeList.isEmpty()) {
+        if (!bookTypeDTOList.isEmpty()) {
+            if (!bookTypeList.isEmpty()) {
                 for (BookType bookType : bookTypeList) {
                     BookTypeDTO bookTypeDTO = bookTypeDTOList.get(index);
                     bookType.update(Type.valueOf(bookTypeDTO.getType()), bookTypeDTO.getRanks(),
                         book);
                     index++;
                 }
-            }else {
+            } else {
                 for (BookTypeDTO bookTypeDTO : bookTypeDTOList) {
                     BookType bookType = new BookType(Type.valueOf(bookTypeDTO.getType()),
                         bookTypeDTO.getRanks(), book);
@@ -386,11 +389,12 @@ public class BookMultiTableService {
             }
         }
     }
+
     private void publisherCreate(String publisher, Book book) {
         Publisher byName = publisherRepository.findByName(publisher);
         if (byName != null) {
             book.createPublisher(byName);
-        }else {
+        } else {
             Publisher newPublisher = new Publisher(publisher);
             publisherRepository.save(newPublisher);
             book.createPublisher(newPublisher);

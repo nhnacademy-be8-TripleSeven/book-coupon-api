@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.elasticsearch.repository;
 
 
+import co.elastic.clients.elasticsearch._types.ElasticsearchException;
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.MatchAllQuery.Builder;
@@ -10,6 +11,8 @@ import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
 import com.nhnacademy.bookapi.elasticsearch.document.BookDocument;
 import com.nhnacademy.bookapi.elasticsearch.dto.BookPopularityDTO;
+import com.nhnacademy.bookapi.exception.ElasticPopularityException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,12 +41,18 @@ public class CustomBookSearchRepositoryImpl implements CustomBookSearchRepositor
             .withQuery(esQuery)
             .withFields("id", "_score")
             .build();
-        SearchHits<BookDocument> search = elasticsearchTemplate.search(nativeQuery, BookDocument.class);
-        return search.stream()
-            .map(hit -> {
-                BookDocument bookDocument = hit.getContent();
-                return new BookPopularityDTO(bookDocument.getId(), bookDocument.getPopularity());
-            }).toList();
+
+        try {
+            SearchHits<BookDocument> search = elasticsearchTemplate.search(nativeQuery, BookDocument.class);
+
+            return search.stream()
+                .map(hit -> {
+                    BookDocument bookDocument = hit.getContent();
+                    return new BookPopularityDTO(bookDocument.getId(), bookDocument.getPopularity());
+                }).toList();
+        }catch (Exception e){
+            throw new ElasticPopularityException("검색횟수 업데이트가 실패했습니다.");
+        }
     }
 
 
