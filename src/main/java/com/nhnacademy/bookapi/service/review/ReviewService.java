@@ -10,7 +10,6 @@ import com.nhnacademy.bookapi.exception.ReviewNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import com.nhnacademy.bookapi.service.object.NaverObjectStorageService;
-import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;

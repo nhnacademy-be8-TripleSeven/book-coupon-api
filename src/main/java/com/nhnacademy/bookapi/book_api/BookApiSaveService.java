@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.nhnacademy.bookapi.service.object.ObjectService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -57,25 +56,8 @@ import org.springframework.transaction.annotation.Transactional;
 public class BookApiSaveService {
 
       private final BookApiService bookApiService;
-//    private final BookIndexRepository bookIndexRepository;
-//    private final ImageService imageService;
     private final BookRepository bookRepository;
-//    private final BookCreatorRepository bookCreatorRepository;
-//    private final BookPopularityRepository bookPopularRepository;
-//    private final BookImageRepository bookImageRepository;
-//    private final ImageRepository imageRepository;
-//    private final BookTypeRepository bookTypeRepository;
-//    private final PublisherRepository publisherRepository;
-//    private final CategoryRepository categoryRepository;
-//    private final BookCategoryRepository bookCategoryRepository;
-//    private final BookCreatorMapRepository bookCreatorMapRepository;
-//    private final BookCoverImageRepository bookCoverImageRepository;
 
-//    private final ObjectService objectService;
-  //여기부터는 object storage에 이미지를 올리기 위한 필드 변수, 아래 변수들은 고정값이다.
-//    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
-//    private final String containerName = "triple-seven";
-//    private final WrapperRepository wrapperRepository;
 
 
     public BookApiDTO getAladinBookByIsbn(String isbn){

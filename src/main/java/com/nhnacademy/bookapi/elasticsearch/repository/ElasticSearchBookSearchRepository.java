@@ -29,4 +29,7 @@ public interface ElasticSearchBookSearchRepository extends ElasticsearchReposito
     Page<BookDocument> getBookDocumentByKeyword(String keyword, Pageable pageable);
 
 
+    void deleteById(String id);
+
+
 }

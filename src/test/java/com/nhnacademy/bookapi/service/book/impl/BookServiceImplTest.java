@@ -1,16 +1,21 @@
 package com.nhnacademy.bookapi.service.book.impl;
 
 import com.nhnacademy.bookapi.dto.book.*;
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
+import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorResponseDTO;
 import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
+import com.nhnacademy.bookapi.exception.StockUnavailableException;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +28,7 @@ import org.springframework.data.domain.Sort.Direction;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class BookServiceImplTest {
 
     @InjectMocks
@@ -55,10 +61,10 @@ class BookServiceImplTest {
     @Mock
     private BookCreatorService bookCreatorService;
 
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
+//    @BeforeEach
+//    void setUp() {
+//        MockitoAnnotations.openMocks(this);
+//    }
 
     @Test
     void testCreateBook() {
@@ -338,24 +344,123 @@ class BookServiceImplTest {
     }
 
     @Test
-    void testGetBookTypeBooks_ServiceLayer() {
+    void testGetBookTypeBooks_Success() {
         // Given
         Type bookType = Type.BESTSELLER;
-        Pageable pageable = PageRequest.of(0, 10, Sort.by(Direction.ASC, "ranks"));
+        Pageable pageable = PageRequest.of(0, 10);
+        BookDetailResponseDTO book1 = BookDetailResponseDTO.builder()
+            .id(1L)
+            .title("Book 1")
+            .build();
+        BookDetailResponseDTO book2 = BookDetailResponseDTO.builder()
+            .id(2L)
+            .title("Book 2")
+            .build();
+        List<BookDetailResponseDTO> bookList = List.of(book1, book2);
+        Page<BookDetailResponseDTO> page = new PageImpl<>(bookList, pageable, bookList.size());
 
-        List<BookDetailResponseDTO> bookDetailResponseDTOList = new ArrayList<>();
-        PageImpl<BookDetailResponseDTO> page = new PageImpl<>(bookDetailResponseDTOList);
+        BookCreator bookCreator = BookCreator.builder().id(1L).name("test").role(Role.AUTHOR).build();
 
-        when(bookRepository.findBookTypeItemByType(bookType, pageable)).thenReturn(page);
+        BookCreatorResponseDTO creator1 = BookCreatorResponseDTO.builder()
+            .creators(List.of(bookCreator))
+            .build();
+        BookCreatorResponseDTO creator2 = BookCreatorResponseDTO.builder()
+            .creators(List.of(bookCreator))
+            .build();
+        Pageable newPageable = PageRequest.of(0, 10, Sort.by(Direction.ASC,"ranks"));
 
-        // When
+        when(bookRepository.findBookTypeItemByType(bookType, newPageable)).thenReturn(page);
+        when(bookCreatorService.bookCreatorListByBookId(1L)).thenReturn(creator1);
+        when(bookCreatorService.bookCreatorListByBookId(2L)).thenReturn(creator2);
+
+        // Act
         PageDTO<BookDetailResponseDTO> result = bookService.getBookTypeBooks(bookType, pageable);
 
-        // Then
-        assertNotNull(result); // 결과가 null이 아닌지 확인
-        assertEquals(0, result.getContent().size()); // 리스트 크기 확인
-        verify(bookRepository, times(1)).findBookTypeItemByType(bookType, pageable);
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        assertEquals("Book 1", result.getContent().get(0).getTitle());
+        assertEquals(List.of("test (지은이)"), result.getContent().get(0).getCreator());
+        assertEquals("Book 2", result.getContent().get(1).getTitle());
+        assertEquals(List.of("test (지은이)"), result.getContent().get(1).getCreator());
+
+        // Verify interactions
+        verify(bookRepository, times(1)).findBookTypeItemByType(bookType, newPageable);
+        verify(bookCreatorService, times(1)).bookCreatorListByBookId(1L);
+        verify(bookCreatorService, times(1)).bookCreatorListByBookId(2L);
     }
+
+
+    @Test
+    void testBookReduceStock_success(){
+        BookStockRequestDTO bookStockRequestDTO =
+            BookStockRequestDTO.builder().bookId(1L).stockToReduce(1).build();
+        Book book = mock(Book.class);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        when(book.getStock()).thenReturn(10);
+
+        bookService.bookReduceStock(List.of(bookStockRequestDTO));
+
+        verify(bookRepository, times(1)).findById(1L);
+        verify(book, times(1)).stockReduce(bookStockRequestDTO.getStockToReduce());
+    }
+
+    @Test
+    void testBookReduceStock_bookNotFoundError() {
+        // Arrange
+        BookStockRequestDTO bookStockRequestDTO =
+            BookStockRequestDTO.builder().bookId(1L).stockToReduce(1).build();
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.empty());
+
+        // Act & Assert
+        BookNotFoundException exception = assertThrows(
+            BookNotFoundException.class,
+            () -> bookService.bookReduceStock(List.of(bookStockRequestDTO))
+        );
+
+        assertEquals("bookId: 1 is not found", exception.getMessage());
+        verify(bookRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testBookReduceStock_StockUnavailableError() {
+        // Arrange
+        BookStockRequestDTO bookStockRequestDTO =
+            BookStockRequestDTO.builder().bookId(1L).stockToReduce(100).build();
+        Book mock = mock(Book.class);
+
+        when(mock.getStock()).thenReturn(10);
+        when(mock.getTitle()).thenReturn("test title");
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(mock));
+
+
+        // Act & Assert
+        StockUnavailableException exception = assertThrows(
+            StockUnavailableException.class,
+            () -> bookService.bookReduceStock(List.of(bookStockRequestDTO))
+        );
+
+        assertEquals("test title의 재고가 부족합니다.", exception.getMessage());
+        verify(bookRepository, times(1)).findById(1L);
+    }
+
+    @Test
+    void testGetBook_NotFound() {
+
+        when(bookRepository.findById(anyLong())).thenReturn(Optional.empty());
+
+        BookNotFoundException bookNotFoundException = assertThrows(
+            BookNotFoundException.class,
+            () -> bookService.getBook(anyLong())
+        );
+
+        assertEquals("book not found", bookNotFoundException.getMessage());
+
+        verify(bookRepository, times(1)).findById(anyLong());
+    }
+
 
 
 }

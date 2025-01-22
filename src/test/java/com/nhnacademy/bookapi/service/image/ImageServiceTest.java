@@ -5,7 +5,6 @@ package com.nhnacademy.bookapi.service.image;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.repository.*;
-import com.nhnacademy.bookapi.service.object.ObjectService;
 import java.util.ArrayList;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,8 +13,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,8 +41,6 @@ class ImageServiceTest {
     @Mock
     private BookRepository bookRepository;
 
-    @Mock
-    private ObjectService objectService;
 
     private Book mockBook;
     private Image mockImage;
@@ -148,10 +143,7 @@ class ImageServiceTest {
         when(bookImageRepository.findImageByBookId(bookId)).thenReturn(List.of(mockDetailImage));
         when(bookCoverImageRepository.findImageByBookId(bookId)).thenReturn(List.of(mockCoverImage));
 
-        doNothing().when(objectService).generateAuthToken();
 
-
-        doNothing().when(objectService).deleteObject(eq("triple-seven"), anyString());
         doNothing().when(bookImageRepository).deleteByBookId(bookId);
         doNothing().when(bookCoverImageRepository).deleteByBookId(bookId);
         doNothing().when(imageRepository).deleteAll(anyList());
@@ -164,14 +156,11 @@ class ImageServiceTest {
         verify(bookImageRepository, times(1)).findImageByBookId(bookId);
         verify(bookImageRepository, times(1)).deleteByBookId(bookId);
         verify(imageRepository, times(1)).deleteAll(List.of(mockDetailImage));
-        verify(objectService, times(1)).deleteObject("triple-seven", "1234567890_detail.jpg");
 
         verify(bookCoverImageRepository, times(1)).findImageByBookId(bookId);
         verify(bookCoverImageRepository, times(1)).deleteByBookId(bookId);
         verify(imageRepository, times(1)).deleteAll(List.of(mockCoverImage));
-        verify(objectService, times(1)).deleteObject("triple-seven", "1234567890_cover.jpg");
 
-        verify(objectService, times(1)).generateAuthToken();
     }
 
     @Test

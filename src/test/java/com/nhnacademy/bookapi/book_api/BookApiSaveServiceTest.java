@@ -11,7 +11,6 @@ import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.image.ImageService;
-import com.nhnacademy.bookapi.service.object.ObjectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,8 +70,7 @@ class BookApiSaveServiceTest {
     @Mock
     private BookCoverImageRepository bookCoverImageRepository;
 
-    @Mock
-    private ObjectService objectService;
+
 
     private ObjectMapper objectMapper;
 

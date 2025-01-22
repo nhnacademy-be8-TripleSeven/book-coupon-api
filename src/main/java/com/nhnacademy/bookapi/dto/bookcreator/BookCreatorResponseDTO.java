@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
@@ -13,6 +14,7 @@ public class BookCreatorResponseDTO {
 
     private final List<String> creators;
 
+    @Builder
     public BookCreatorResponseDTO(List<BookCreator> creators) {
         this.creators = new ArrayList<>();
 

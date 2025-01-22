@@ -3,29 +3,35 @@ package com.nhnacademy.bookapi.service.book;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
+import com.nhnacademy.bookapi.dto.book.BookOrderRequestDTO;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book_type.BookTypeDTO;
 import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDTO;
 import com.nhnacademy.bookapi.dto.category.CategoryDTO;
 import com.nhnacademy.bookapi.entity.*;
+import com.nhnacademy.bookapi.exception.BookNotFoundException;
+import com.nhnacademy.bookapi.exception.StockUnavailableException;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book_index.BookIndexService;
+import com.nhnacademy.bookapi.service.book_popularity.BookPopularityService;
 import com.nhnacademy.bookapi.service.book_tag.BookTagService;
 import com.nhnacademy.bookapi.service.book_type.BookTypeService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import com.nhnacademy.bookapi.service.image.ImageService;
-import com.nhnacademy.bookapi.service.object.ObjectService;
+import com.nhnacademy.bookapi.service.object.NaverObjectStorageService;
 import com.nhnacademy.bookapi.service.review.ReviewService;
 import com.nhnacademy.bookapi.service.tag.TagService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.data.domain.*;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
@@ -43,9 +49,6 @@ class BookMultiTableServiceTest {
 
     @InjectMocks
     private BookMultiTableService bookMultiTableService;
-
-    @Mock
-    private ObjectService objectService;
 
     @Mock
     private BookService bookService;
@@ -108,12 +111,14 @@ class BookMultiTableServiceTest {
     @Mock
     private BookTagService bookTagService;
 
+    @Mock
+    private NaverObjectStorageService naverObjectStorageService;
+
+    @Mock
+    private BookPopularityService bookPopularityService;
 
 
 
-    // Constants
-    private final String storageUrl = "https://kr1-api-object-storage.nhncloudservice.com/v1/AUTH_c20e3b10d61749a2a52346ed0261d79e";
-    private final String containerName = "triple-seven";
 
     @BeforeEach
     void setUp() {
@@ -220,46 +225,7 @@ class BookMultiTableServiceTest {
         verify(bookIndexService).getBookIndexList(1L);
     }
 
-    // 3. createBook method tests
 
-    // 3.1. Test createBook when the book already exists
-//    @Test
-//    void testCreateBook_AlreadyExists() throws IOException {
-//        // Given
-//        BookCreatDTO bookCreatDTO = BookCreatDTO.builder()
-//            .title("Existing Book")
-//            .isbn("1234567890")
-//            .categories(Arrays.asList(CategoryDTO.builder().name("Non-Fiction").level(1).build()))
-//            .bookTypes(Arrays.asList(BookTypeDTO.builder().type("PAPERBACK").ranks(2).build()))
-//            .authors(Arrays.asList(BookCreatorDTO.builder().name("Existing Author").role("AUTHOR").build()))
-//            .publishedDate(LocalDate.of(2022, 5, 15))
-//            .description("An existing book.")
-//            .regularPrice(1500)
-//            .salePrice(1200)
-//            .page(400)
-//            .stock(60)
-//            .index("Existing Index")
-//            .coverImages(Collections.emptyList())
-//            .detailImages(Collections.emptyList())
-//            .publisherName("Existing Publisher")
-//            .build();
-//
-//        when(bookService.existsBookByIsbn("1234567890")).thenReturn(true);
-//
-//        // When
-//        bookMultiTableService.createBook(bookCreatDTO);
-//
-//        // Then
-//        verify(bookService).existsBookByIsbn("1234567890");
-//        verify(bookService, never()).createBook(any(Book.class));
-//        verify(publisherRepository, never()).findByName(anyString());
-//        verify(publisherRepository, never()).save(any(Publisher.class));
-//        verify(bookCreatorService, never()).saveBookCreator(any(BookCreator.class), any(BookCreatorMap.class));
-//        verify(bookCategoryRepository, never()).save(any(BookCategory.class));
-//        verify(bookPopularityRepository, never()).save(any(BookPopularity.class));
-//        verify(imageService, never()).bookCoverSave(any(Image.class), any(BookCoverImage.class));
-//        verify(imageService, never()).bookDetailSave(any(Image.class), any(BookImage.class));
-//    }
 
     // 3.2. Test createBook when the book does not exist (successful creation)
     @Test
@@ -307,8 +273,6 @@ class BookMultiTableServiceTest {
         ArgumentCaptor<Publisher> publisherCaptor = ArgumentCaptor.forClass(Publisher.class);
         when(publisherRepository.save(any(Publisher.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-
-
         // When
         bookMultiTableService.createBook(bookCreatDTO);
 
@@ -333,156 +297,92 @@ class BookMultiTableServiceTest {
         verify(imageService, never()).bookDetailSave(any(Image.class), any(BookImage.class));
     }
 
-
-
-    // 6.1. Test uploadCoverImageToStorage successfully uploads and returns URL
     @Test
-    void testUploadCoverImageToStorage_Success() throws IOException {
-        // Given
-        MultipartFile multipartFile = mock(MultipartFile.class);
-        String objectName = "isbn_cover.jpg";
-        String expectedUrl = storageUrl + "/" + containerName + "/" + objectName;
-        InputStream inputStream = new ByteArrayInputStream("image data".getBytes());
-        when(multipartFile.getInputStream()).thenReturn(inputStream);
+    void testCreateBook_Failure() throws IOException {
+        String isbn = "0987654321";
 
-        // When
-        String result = bookMultiTableService.uploadCoverImageToStorage(objectService, multipartFile, objectName);
+        BookCreatDTO creatDTO = BookCreatDTO.builder().isbn(isbn).regularPrice(1).salePrice(1).page(1)
+            .stock(1).build();
 
-        // Then
-        assertEquals(expectedUrl, result);
-        verify(objectService).uploadObject(containerName, objectName, inputStream);
-    }
+        when(bookService.existsBookByIsbn(creatDTO.getIsbn())).thenReturn(true);
 
-    // 6.2. Test uploadCoverImageToStorage when IOException occurs
-    @Test
-    void testUploadCoverImageToStorage_IOException() throws IOException {
-        // Given
-        MultipartFile multipartFile = mock(MultipartFile.class);
-        String objectName = "isbn_cover.jpg";
-        when(multipartFile.getInputStream()).thenThrow(new IOException("Failed to read input stream"));
+        assertThrows(BookNotFoundException.class, () -> bookMultiTableService.createBook(creatDTO));
 
-        // When & Then
-        assertThrows(IOException.class, () -> {
-            bookMultiTableService.uploadCoverImageToStorage(objectService, multipartFile, objectName);
-        });
-
-        verify(objectService, never()).uploadObject(anyString(), anyString(), any());
-    }
-
-    // 7. loadImageTOStorage method tests
-
-    // 7.1. Test loadImageTOStorage successfully retrieves the image
-    @Test
-    void testLoadImageTOStorage_Success() {
-        // Given
-        String objectName = "isbn_cover.jpg";
-        MultipartFile expectedFile = mock(MultipartFile.class);
-        when(objectService.loadImageFromStorage(containerName, objectName)).thenReturn(expectedFile);
-
-        // When
-        MultipartFile result = bookMultiTableService.loadImageTOStorage(objectService, objectName);
-
-        // Then
-        assertEquals(expectedFile, result);
-        verify(objectService).loadImageFromStorage(containerName, objectName);
-    }
-
-    // 7.2. Test loadImageTOStorage when the image does not exist (returns null)
-    @Test
-    void testLoadImageTOStorage_ImageNotFound() {
-        // Given
-        String objectName = "nonexistent_image.jpg";
-        when(objectService.loadImageFromStorage(containerName, objectName)).thenReturn(null);
-
-        // When
-        MultipartFile result = bookMultiTableService.loadImageTOStorage(objectService, objectName);
-
-        // Then
-        assertNull(result);
-        verify(objectService).loadImageFromStorage(containerName, objectName);
-    }
-
-
-
-//
-//    @Test
-//    void testGetBookOrderDetail_WithEmptyCategoryList() {
-//        // Given
-//        long bookId = 1L;
-//        BookOrderDetailResponse mockBookDetail = BookOrderDetailResponse.builder()
-//            .id(bookId)
-//            .title("Test Book")
-//            .regularPrice(1000)
-//            .salePrice(1000)
-//            .wrappable(true)
-//            .category(new ArrayList<>()) // 명시적으로 초기화
-//            .build();
-//
-//        when(bookRepository.findBookOrderDetail(bookId)).thenReturn(mockBookDetail);
-//        when(categoryService.getCategoryListByBookId(bookId)).thenReturn(Collections.emptyList());
-//
-//        // When
-//        BookOrderDetailResponse result = bookMultiTableService.getBookOrderDetail(bookId);
-//
-//        // Then
-//        assertNotNull(result);
-//        assertEquals(bookId, result.getId());
-//        assertEquals("Test Book", result.getTitle());
-//        assertNotNull(result.getCategory());
-//        assertEquals(0, result.getCategory().size());
-//        verify(bookRepository, times(1)).findBookOrderDetail(bookId);
-//        verify(categoryService, times(1)).getCategoryListByBookId(bookId);
-//    }
-
-    @Test
-    void testBookCoverImageUpdateOrCreate_UpdateExistingImage() throws IOException {
-        // Given
-        List<MultipartFile> coverImages = Collections.singletonList(mock(MultipartFile.class));
-        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
-            .salePrice(100).stock(100).page(100).build();
-        String isbn = "1234567890";
-
-        Image mockImage = mock(Image.class);
-        when(imageService.getCoverImage(mockBook.getId())).thenReturn(mockImage);
-
-        // Mock uploadCoverImageToStorage
-        BookMultiTableService spyService = spy(bookMultiTableService);
-        String uploadedPath = "uploaded/path.jpg";
-        doReturn(uploadedPath).when(spyService).uploadCoverImageToStorage(any(), any(), anyString());
-
-        // When
-        spyService.bookCoverImageUpdateOrCreate(coverImages, mockBook, isbn);
-
-        // Then
-        verify(imageService, times(1)).getCoverImage(mockBook.getId());
-        verify(mockImage, times(1)).update(uploadedPath);
-        verify(imageService, never()).bookCoverSave(any(), any());
+        verify(bookService, times(1)).existsBookByIsbn(isbn);
     }
 
     @Test
-    void testBookCoverImageUpdateOrCreate_CreateNewImage() throws IOException {
-        // Given
-        List<MultipartFile> coverImages = Collections.singletonList(mock(MultipartFile.class));
-        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
-            .salePrice(1000).stock(100).page(100).build();
-        String isbn = "1234567890";
+    void testUpdateBook_Success() throws IOException {
+        // Arrange
+        Book book = mock(Book.class);
 
-        // Mock coverImage가 없는 경우
-        when(imageService.getCoverImage(mockBook.getId())).thenReturn(null);
+        String path = "1245.jpg";
+        String fileName = "testFile.txt";
+        String contentType = "text/plain";
+        String content = "Hello, this is a test file.";
 
-        // Mock uploadCoverImageToStorage
-        BookMultiTableService spyService = spy(bookMultiTableService);
-        String uploadedPath = "uploaded/cover/path.jpg";
-        doReturn(uploadedPath).when(spyService).uploadCoverImageToStorage(any(), any(), anyString());
+        // MockMultipartFile 생성
+        MockMultipartFile multipartFile = new MockMultipartFile(
+            "file",
+            fileName,
+            contentType,
+            content.getBytes()
+        );
 
-        // When
-        spyService.bookCoverImageUpdateOrCreate(coverImages, mockBook, isbn);
+        BookTypeDTO bookTypeDTO = BookTypeDTO.builder()
+            .id(1L)
+            .type("BOOK")
+            .ranks(0)
+            .build();
 
-        // Then
-        verify(imageService, times(1)).getCoverImage(mockBook.getId());
+        BookUpdateDTO bookUpdateDTO = BookUpdateDTO.builder()
+            .id(1L)
+            .title("New Book")
+            .isbn("0987654321")
+            .publishedDate(LocalDate.of(2023, 1, 1))
+            .description("A new exciting book.")
+            .coverImage(List.of(multipartFile))
+            .detailImage(List.of(multipartFile))
+            .bookTypes(List.of(bookTypeDTO))
+            .authors(Collections.emptyList())
+            .categories(Collections.emptyList())
+            .regularPrice(1)
+            .salePrice(1)
+            .stock(1)
+            .page(1)
+            .build();
+
+        when(bookService.getBook(bookUpdateDTO.getId())).thenReturn(book);
+
+        // Mock 설정
+        doNothing().when(book).update(
+            anyString(),
+            anyString(),
+            any(LocalDate.class),
+            anyInt(),
+            anyInt(),
+            anyString()
+        );
+
+        // Act
+        bookMultiTableService.updateBook(bookUpdateDTO);
+
+        // Assert
         verify(imageService, times(1)).bookCoverSave(any(Image.class), any(BookCoverImage.class));
-        verifyNoMoreInteractions(imageService);
+        verify(imageService, times(1)).bookDetailSave(any(Image.class), any(BookImage.class));
+        verify(book, times(1)).update(
+            eq("New Book"),
+            eq("0987654321"),
+            eq(LocalDate.of(2023, 1, 1)),
+            eq(1),
+            eq(1),
+            eq("A new exciting book.")
+        );
     }
+
+
+
+
 
 
     @Test
@@ -495,124 +395,16 @@ class BookMultiTableServiceTest {
 
         // When
         bookMultiTableService.bookCoverImageUpdateOrCreate(coverImages, mockBook, isbn);
+        bookMultiTableService.bookDetailImageUpdateOrCreate(coverImages, mockBook, isbn);
 
         // Then
         verify(imageService, never()).getCoverImage(anyLong());
-        verify(objectService, never()).uploadObject(anyString(), anyString(), any());
         verify(imageService, never()).bookCoverSave(any(), any());
-    }
-
-    @Test
-    void testBookDetailImageUpdateOrCreate_UpdateExistingImage() throws IOException {
-        // Given
-        List<MultipartFile> detailImages = Collections.singletonList(mock(MultipartFile.class));
-        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
-            .salePrice(1000).stock(100).page(100).build();
-        String isbn = "1234567890";
-
-        // Mock detailImage가 이미 존재하는 경우
-        Image mockDetailImage = mock(Image.class);
-        when(imageService.getDetailImage(mockBook.getId())).thenReturn(mockDetailImage);
-
-        // Mock uploadCoverImageToStorage
-        BookMultiTableService spyService = spy(bookMultiTableService);
-        String uploadedPath = "uploaded/detail/path.jpg";
-        doReturn(uploadedPath).when(spyService).uploadCoverImageToStorage(any(), any(), anyString());
-
-        // When
-        spyService.bookDetailImageUpdateOrCreate(detailImages, mockBook, isbn);
-
-        // Then
-        verify(imageService, times(1)).getDetailImage(mockBook.getId());
-        verify(mockDetailImage, times(1)).update(uploadedPath);
-        verify(imageService, never()).bookDetailSave(any(Image.class), any(BookImage.class));
-    }
-
-    @Test
-    void testBookDetailImageUpdateOrCreate_CreateNewImage() throws IOException {
-        // Given
-        List<MultipartFile> detailImages = Collections.singletonList(mock(MultipartFile.class));
-        Book mockBook = Book.builder().id(1L).title("Test Book").isbn13("1234567890").regularPrice(1000)
-            .salePrice(1000).stock(100).page(100).build();
-        String isbn = "1234567890";
-
-        Image mockDetailImage = mock(Image.class);
-
-        // Mock detailImage가 없는 경우
-        when(imageService.getDetailImage(mockBook.getId())).thenReturn(null);
-
-
-        // Mock uploadCoverImageToStorage
-        BookMultiTableService spyService = spy(bookMultiTableService);
-        String uploadedPath = "uploaded/detail/path.jpg";
-        doReturn(uploadedPath).when(spyService).uploadCoverImageToStorage(any(), any(), anyString());
-
-        // When
-        spyService.bookDetailImageUpdateOrCreate(detailImages, mockBook, isbn);
-        verify(imageService, times(1)).getDetailImage(mockBook.getId());
-        verify(imageService, times(1)).bookDetailSave(any(Image.class), any(BookImage.class));
-        verifyNoMoreInteractions(imageService);
-    }
-
-    @Test
-    void testUpdateBook_service_layer() throws IOException {
-        // Given
-        Long bookId = 1L; // Ensure consistent ID
-        Book book = Book.builder() // Use spy to allow method calls
-            .id(bookId)
-            .title("Test Book")
-            .isbn13("1234567890")
-            .publishDate(LocalDate.now())
-            .description("Test Description")
-            .regularPrice(1)
-            .salePrice(1)
-            .stock(1)
-            .page(1)
-            .build();
-
-        BookTypeDTO bookTypeDTO = BookTypeDTO.builder().ranks(0).type("BOOK").build();
-        BookType bookType = BookType.builder().id(1L).ranks(0).types(Type.BESTSELLER).build();
-
-        BookCreatorDTO bookCreatorDTO = BookCreatorDTO.builder().name("test").role("AUTHOR").build();
-
-        List<MultipartFile> bookCoverImages = Collections.singletonList(mock(MultipartFile.class));
-        List<MultipartFile> detailImages = Collections.singletonList(mock(MultipartFile.class));
-        List<CategoryDTO> categoryDTOS = Collections.singletonList(mock(CategoryDTO.class));
-        List<BookCreatorDTO> bookCreatorDTOS = List.of(bookCreatorDTO);
-        String index = "testIndex";
-        List<BookType> bookTypes = List.of(bookType);
-        List<BookTypeDTO> bookTypeDTOS = List.of(bookTypeDTO);
-
-        BookUpdateDTO bookUpdateDTO = BookUpdateDTO.builder()
-            .id(bookId)
-            .title("Test")
-            .isbn("1234567890")
-            .index(index)
-            .publishedDate(LocalDate.now())
-            .regularPrice(1)
-            .salePrice(1)
-            .description("description")
-            .stock(1)
-            .page(1)
-            .coverImage(bookCoverImages)
-            .detailImage(detailImages)
-            .bookTypes(bookTypeDTOS)
-            .categories(categoryDTOS)
-            .authors(bookCreatorDTOS)
-            .build();
-        // Mock Repository and Service
-        when(bookService.getBook(bookId)).thenReturn(book);
-        when(bookTypeRepository.findById(anyLong())).thenReturn(Optional.of(mock(BookType.class)));
-        when(bookTypeService.getBookTypeByBookId(bookId)).thenReturn(bookTypes);
-
-        // When
-        bookMultiTableService.updateBook(bookUpdateDTO);
-
-        // Then
-        verify(bookService, times(1)).getBook(bookId);
-        verify(bookTypeService, times(1)).getBookTypeByBookId(bookId);
+        verify(imageService, never()).getDetailImage(anyLong());
+        verify(imageService, never()).bookDetailSave(any(), any());
 
     }
+
 
     @Test
     void testDeleteBook_service_layer() {
@@ -651,9 +443,233 @@ class BookMultiTableServiceTest {
     }
 
 
+    @Test
+    void testBookCoverAndDetailUpdateOrCreate_Update() throws IOException {
+        String path = "1245.jpg";
+        String fileName = "testFile.txt";
+        String contentType = "text/plain";
+        String content = "Hello, this is a test file.";
+
+        // MockMultipartFile 생성
+        MockMultipartFile multipartFile = new MockMultipartFile(
+            "file",         // 필드 이름
+            fileName,       // 파일 이름
+            contentType,    // MIME 타입
+            content.getBytes() // 파일 내용
+        );
+        Book book = Book.builder().id(1L).title("Test Book").isbn13("1234567890")
+            .regularPrice(1).salePrice(1)
+            .stock(1).page(1).build();
+        List<MultipartFile> detailImages = List.of(multipartFile);
+        Image image = mock(Image.class);
+
+        when(imageService.getCoverImage(book.getId())).thenReturn(image);
+        when(imageService.getDetailImage(book.getId())).thenReturn(image);
+        when(naverObjectStorageService.uploadFile(book.getIsbn13(), multipartFile)).thenReturn(path);
+
+        bookMultiTableService.bookCoverImageUpdateOrCreate(detailImages, book, book.getIsbn13());
+        bookMultiTableService.bookDetailImageUpdateOrCreate(detailImages, book, book.getIsbn13());
+
+        verify(image, times(2)).update(null);
+
+    }
+
+    @Test
+    void testBookCoverAndDetailUpdateOrCreate_Create() throws IOException {
+        String path = "1245.jpg";
+        String fileName = "testFile.txt";
+        String contentType = "text/plain";
+        String content = "Hello, this is a test file.";
+
+        // MockMultipartFile 생성
+        MockMultipartFile multipartFile = new MockMultipartFile(
+            "file",         // 필드 이름
+            fileName,       // 파일 이름
+            contentType,    // MIME 타입
+            content.getBytes() // 파일 내용
+        );
+        Book book = Book.builder().id(1L).title("Test Book").isbn13("1234567890")
+            .regularPrice(1).salePrice(1)
+            .stock(1).page(1).build();
+        List<MultipartFile> detailImages = List.of(multipartFile);
+
+
+        when(imageService.getCoverImage(book.getId())).thenReturn(null);
+        when(imageService.getDetailImage(book.getId())).thenReturn(null);
+        when(naverObjectStorageService.uploadFile(book.getIsbn13(), multipartFile)).thenReturn(path);
+
+        bookMultiTableService.bookCoverImageUpdateOrCreate(detailImages, book, path);
+        bookMultiTableService.bookDetailImageUpdateOrCreate(detailImages, book, path);
+
+        verify(imageService, times(1)).bookCoverSave(any(Image.class), any(BookCoverImage.class));
+        verify(imageService, times(1)).bookDetailSave(any(Image.class), any(BookImage.class));
+
+    }
+
+
+    @Test
+    void testGetBookOrderDetails_Success() {
+        // Arrange
+        List<BookOrderRequestDTO> requestDTOList = Arrays.asList(
+            new BookOrderRequestDTO(1L, 2),
+            new BookOrderRequestDTO(2L, 1)
+        );
 
 
 
+        List<CategoryDTO> book1Categories = Arrays.asList(new CategoryDTO("Category1"), new CategoryDTO("Category2"));
+        List<CategoryDTO> book2Categories = Arrays.asList(new CategoryDTO("Category3"));
+
+        BookOrderDetailResponse book1Detail = BookOrderDetailResponse.builder()
+            .id(1L)
+            .title("Book 1")
+            .stock(10)
+            .category(new ArrayList<>())
+            .regularPrice(1).salePrice(1).wrappable(true).build();
+
+        BookOrderDetailResponse book2Detail = BookOrderDetailResponse.builder()
+            .id(2L)
+            .category(new ArrayList<>())
+            .title("Book 2")
+            .stock(5)
+            .regularPrice(1).salePrice(1).wrappable(true).build();
+
+        when(bookRepository.findBookOrderDetail(1L)).thenReturn(book1Detail);
+        when(bookRepository.findBookOrderDetail(2L)).thenReturn(book2Detail);
+        when(categoryService.getCategoryListByBookId(1L)).thenReturn(book1Categories);
+        when(categoryService.getCategoryListByBookId(2L)).thenReturn(book2Categories);
+
+
+        // Act
+        List<BookOrderDetailResponse> result = bookMultiTableService.getBookOrderDetails(requestDTOList);
+
+        // Assert
+        assertEquals(2, result.size());
+
+        // Book 1 검증
+        BookOrderDetailResponse resultBook1 = result.get(0);
+        assertEquals("Book 1", resultBook1.getTitle());
+        assertEquals(10, resultBook1.getStock());
+        assertEquals(book1Categories, resultBook1.getCategory());
+
+        // Book 2 검증
+        BookOrderDetailResponse resultBook2 = result.get(1);
+        assertEquals("Book 2", resultBook2.getTitle());
+        assertEquals(5, resultBook2.getStock());
+        assertEquals(book2Categories, resultBook2.getCategory());
+
+        // Verify 호출 횟수 검증
+        verify(bookRepository, times(1)).findBookOrderDetail(1L);
+        verify(bookRepository, times(1)).findBookOrderDetail(2L);
+        verify(categoryService, times(1)).getCategoryListByBookId(1L);
+        verify(categoryService, times(1)).getCategoryListByBookId(2L);
+    }
+
+
+    @Test
+    void testGetBookOrderDetail() {
+        // Arrange
+        long bookId = 1L;
+        int quantity = 2;
+
+        BookOrderDetailResponse bookDetailResponse = mock(BookOrderDetailResponse.class);
+        when(bookRepository.findBookOrderDetail(bookId)).thenReturn(bookDetailResponse);
+        when(bookDetailResponse.getStock()).thenReturn(10);
+
+        List<CategoryDTO> categories = Arrays.asList(mock(CategoryDTO.class), mock(CategoryDTO.class));
+        when(categoryService.getCategoryListByBookId(bookId)).thenReturn(categories);
+
+        // Act
+        bookMultiTableService.getBookOrderDetail(bookId, quantity);
+
+        // Assert
+        verify(bookRepository, times(1)).findBookOrderDetail(bookId);
+        verify(bookDetailResponse, times(1)).addCategoryList(categories);
+        verify(categoryService, times(1)).getCategoryListByBookId(bookId);
+    }
+
+    @Test
+    void testGetBookOrderDetails_InsufficientStock() {
+        // Arrange
+        List<BookOrderRequestDTO> requestDTOList = Arrays.asList(
+            new BookOrderRequestDTO(1L, 15)
+        );
+
+        BookOrderDetailResponse book1Detail = BookOrderDetailResponse.builder().id(1L)
+            .title("Book 1").regularPrice(1000).salePrice(1000).wrappable(true).stock(0).build();
+
+        when(bookRepository.findBookOrderDetail(1L)).thenReturn(book1Detail);
+
+        // Act & Assert
+        StockUnavailableException exception = assertThrows(StockUnavailableException.class, () -> {
+            bookMultiTableService.getBookOrderDetails(requestDTOList);
+        });
+
+        assertEquals("stock not enough", exception.getMessage());
+        verify(bookRepository, times(1)).findBookOrderDetail(1L);
+        verify(categoryService, never()).getCategoryListByBookId(anyLong());
+    }
+
+    @Test
+    void testUpdateSearchRank_RetrySuccess() {
+        // Arrange
+        long bookId = 1L;
+        long popularity = 100L;
+        BookPopularity bookPopularity = mock(BookPopularity.class);
+
+            doNothing()
+            .when(bookPopularityService).updateSearchRank(bookId, popularity);
+            when(bookPopularityRepository.findByBookId(bookId)).thenReturn(Optional.of(bookPopularity));
+
+        // Act
+        bookMultiTableService.updateSearchRank(bookId, popularity);
+
+        // Assert
+        verify(bookPopularityService, times(1)).updateSearchRank(bookId, popularity);
+    }
+
+
+    @Test
+    void testBookCoverImageUpdateOrCreate_Success() {
+        // Arrange
+        String path = "1245.jpg";
+        String fileName = "testFile.txt";
+        String contentType = "text/plain";
+        String content = "Hello, this is a test file.";
+
+        // MockMultipartFile 생성
+        MockMultipartFile multipartFile = new MockMultipartFile(
+            "file",         // 필드 이름
+            fileName,       // 파일 이름
+            contentType,    // MIME 타입
+            content.getBytes() // 파일 내용
+        );
+        List<MultipartFile> multipartFiles = List.of(multipartFile);
+        String isbn = "1341232131";
+        Book book = Book.builder().id(1L).isbn13(isbn).regularPrice(1).salePrice(1).stock(1).page(1).build();
+        String objectPath = "test/path/to/file.jpg";
+
+        // Mock 서비스 동작 설정
+        when(naverObjectStorageService.uploadFile(anyString(), any(MultipartFile.class)))
+            .thenReturn(objectPath);
+
+        ArgumentCaptor<Image> imageCaptor = ArgumentCaptor.forClass(Image.class);
+        ArgumentCaptor<BookCoverImage> bookCoverImageCaptor = ArgumentCaptor.forClass(BookCoverImage.class);
+
+        // Act
+        bookMultiTableService.bookCoverImageUpdateOrCreate(multipartFiles, book, isbn);
+
+        // Assert
+        verify(imageService, times(1)).bookCoverSave(imageCaptor.capture(), bookCoverImageCaptor.capture());
+
+        Image capturedImage = imageCaptor.getValue();
+        BookCoverImage capturedBookCoverImage = bookCoverImageCaptor.getValue();
+
+        // 캡처된 객체 검증
+        assertEquals(objectPath, capturedImage.getUrl());
+        assertEquals(book, capturedBookCoverImage.getBook());
+        assertEquals(capturedImage, capturedBookCoverImage.getImage());
+    }
 
 
 }
