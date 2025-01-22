@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.repository.querydsl.coupon;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.repository.CouponPolicyRepository;
 import com.nhnacademy.bookapi.repository.CouponRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +17,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
 @SpringBootTest
 @Import(CouponRepositoryImpl.class)
 class CouponRepositoryImplTest {
@@ -27,13 +27,14 @@ class CouponRepositoryImplTest {
     @Autowired
     private CouponPolicyRepository couponPolicyRepository;
 
-
     private CouponPolicy couponPolicy;
     private CouponPolicy couponPolicy2;
 
+    private Coupon coupon1;
+    private Coupon coupon2;
+
     @BeforeAll
     static void setUpGlobalData(@Autowired CouponPolicyRepository couponPolicyRepository) {
-
         // 쿠폰 정책 생성 (이미 있으면 재사용)
         couponPolicyRepository.findByName("Test Policy for querydsl test1")
                 .orElseGet(() -> couponPolicyRepository.save(
@@ -56,21 +57,15 @@ class CouponRepositoryImplTest {
                                 .couponValidTime(30)
                                 .build()
                 ));
-
     }
 
     @BeforeEach
     void setUp() {
         couponPolicy = couponPolicyRepository.findByName("Test Policy for querydsl test1").orElseThrow();
         couponPolicy2 = couponPolicyRepository.findByName("Test Policy for querydsl test2").orElseThrow();
-    }
-
-    @Test
-    void testFindAvailableCouponsWithBookCoupon() {
-
 
         // BookCoupon 생성
-        couponRepository.findByName("Coupon for Test1")
+        coupon1 = couponRepository.findByName("Coupon for Test1")
                 .orElseGet(() -> couponRepository.save(
                         Coupon.builder()
                                 .name("Coupon for Test1")
@@ -82,7 +77,7 @@ class CouponRepositoryImplTest {
                                 .build()
                 ));
 
-        couponRepository.findByName("Coupon for Test2")
+        coupon2 = couponRepository.findByName("Coupon for Test2")
                 .orElseGet(() -> couponRepository.save(
                         Coupon.builder()
                                 .name("Coupon for Test2")
@@ -93,7 +88,21 @@ class CouponRepositoryImplTest {
                                 .couponStatus(CouponStatus.NOTUSED)
                                 .build()
                 ));
+    }
 
+    @AfterEach
+    void tearDown() {
+        // 생성한 쿠폰 삭제
+        if (coupon1 != null) {
+            couponRepository.deleteById(coupon1.getId());
+        }
+        if (coupon2 != null) {
+            couponRepository.deleteById(coupon2.getId());
+        }
+    }
+
+    @Test
+    void testFindAvailableCouponsWithBookCoupon() {
         // 테스트 실행
         List<Coupon> availableCoupons = couponRepository.findAvailableCoupons(1L, 150000L, 1L);
 
@@ -104,6 +113,4 @@ class CouponRepositoryImplTest {
 
         assertThat(matchingCouponsCount).isEqualTo(1);
     }
-
 }
-
