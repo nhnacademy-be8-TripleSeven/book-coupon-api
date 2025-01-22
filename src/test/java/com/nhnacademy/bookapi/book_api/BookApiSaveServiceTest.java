@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nhnacademy.bookapi.dto.book.BookApiDTO;
 import com.nhnacademy.bookapi.entity.*;
+import com.nhnacademy.bookapi.exception.AladinApiException;
+import com.nhnacademy.bookapi.exception.BookAlreadyExistsException;
+import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.mapper.RoleMapper;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.image.ImageService;
@@ -125,5 +128,19 @@ class BookApiSaveServiceTest {
         verify(bookRepository, times(1)).existsByIsbn13(isbn);
         verify(bookApiService, times(1)).getBook(isbn);
     }
+
+    @Test
+    void testGetAladinBookByIsbn_BookNotExists() throws Exception {
+        String isbn = "12345";
+
+        when(bookApiService.getBook(isbn)).thenThrow(new AladinApiException("찾을 수 없습니다."));
+
+        AladinApiException exception = assertThrows(AladinApiException.class,
+            () -> bookApiSaveService.getAladinBookByIsbn(isbn));
+
+        assertEquals("찾을 수 없습니다.", exception.getMessage());
+    }
+
+
 
 }
