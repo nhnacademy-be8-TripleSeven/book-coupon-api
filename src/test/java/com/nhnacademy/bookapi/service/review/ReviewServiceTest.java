@@ -10,7 +10,6 @@ import com.nhnacademy.bookapi.exception.ReviewNotFoundException;
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.ReviewRepository;
 import com.nhnacademy.bookapi.service.object.NaverObjectStorageService;
-import com.nhnacademy.bookapi.service.object.ObjectService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,8 +39,6 @@ class ReviewServiceTest {
     @Mock
     private BookRepository bookRepository;
 
-    @Mock
-    private ObjectService objectService;
 
     @Mock
     private NaverObjectStorageService naverObjectStorageService;
