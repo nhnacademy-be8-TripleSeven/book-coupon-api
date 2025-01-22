@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -160,6 +162,10 @@ public class CouponServiceImpl implements CouponService {
     // 쿠폰 만료 (스케쥴러)
     @Override
     @Transactional
+    @Retryable(
+            maxAttempts = 3, // 최대 재시도 횟수
+            backoff = @Backoff(delay = 2000) // 재시도 간격 (밀리초)
+    )
     public void expireCoupons() {
         List<Coupon> coupons = couponRepository.findByCouponStatusAndCouponExpiryDateBefore(CouponStatus.NOTUSED, LocalDate.now());
 
@@ -513,7 +519,11 @@ public class CouponServiceImpl implements CouponService {
                 rabbitTemplate.convertAndSend(
                         RabbitConfig.EXCHANGE_NAME,
                         RabbitConfig.ROUTING_KEY,
-                        request
+                        request,
+                        message -> {
+                            message.getMessageProperties().setMessageId(UUID.randomUUID().toString());
+                            return message;
+                        }
                 );
                 log.info("Welcome coupon assign request sent to MQ for coupon ID: {}, member ID: {}", coupon.getId(), memberId);
                 responses.add(new CouponAssignResponseDTO(coupon.getId(), "Welcome coupon assigned successfully."));

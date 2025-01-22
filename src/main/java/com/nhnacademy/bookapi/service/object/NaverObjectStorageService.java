@@ -2,7 +2,6 @@ package com.nhnacademy.bookapi.service.object;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -28,7 +27,7 @@ public class NaverObjectStorageService {
     @Value("${naver.storage.containerName}")
     private String containerName;
 
-    private S3Client createS3Client() {
+    public S3Client createS3Client() {
         return S3Client.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create(accessKey, secretKey)
@@ -65,7 +64,5 @@ public class NaverObjectStorageService {
                 .bucket(containerName)
                 .key(objectKey)
                 .build());
-
-        System.out.println("🗑 파일 삭제 완료: " + objectKey);
     }
 }

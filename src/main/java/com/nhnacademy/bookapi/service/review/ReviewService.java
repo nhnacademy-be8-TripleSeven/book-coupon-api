@@ -33,8 +33,6 @@ public class ReviewService {
 
     private final ReviewRepository reviewRepository;
     private final BookRepository bookRepository;
-
-
     private final NaverObjectStorageService naverObjectStorageService;
 
     @Transactional
@@ -94,13 +92,6 @@ public class ReviewService {
         return true;
     }
 
-//    @Transactional
-//    public boolean deleteReview(Long userId, Long bookId) {
-//        Book book = getBook(bookId);
-//        Review review = getReview(book, userId);
-//        reviewRepository.delete(review);
-//        return true;
-//    }
     // 도서 삭제 시 도서에 달려있는 리뷰들 삭제
     @Transactional
     public void deleteAllReviewsWithBook(Long bookId) {
