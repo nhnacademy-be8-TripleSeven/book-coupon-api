@@ -46,6 +46,7 @@ public class BookServiceImpl implements BookService {
     private final BookTypeRepository bookTypeRepository;
     private final BookImageRepository bookImageRepository;
     private final BookCreatorService bookCreatorService;
+    private final String BOOK_NOT_FOUND = "Book not found";
 
     @Override
     public Book createBook(Book book) {
@@ -56,7 +57,7 @@ public class BookServiceImpl implements BookService {
     public void deleteBook(Long id) {
         boolean exist = bookRepository.existsById(id);
         if (!exist) {
-            throw new BookNotFoundException("book not found");
+            throw new BookNotFoundException(BOOK_NOT_FOUND);
         }
         bookRepository.deleteById(id);
     }
@@ -73,7 +74,7 @@ public class BookServiceImpl implements BookService {
     @Cacheable(cacheNames = "bookDetails", key = "'book:detail:' + #id")
     @Override
     public SearchBookDetail searchBookDetailByBookId(Long id) {
-        Book book = bookRepository.findBookWithPublisherById(id).orElseThrow(() -> new BookNotFoundException("book not found"));
+        Book book = bookRepository.findBookWithPublisherById(id).orElseThrow(() -> new BookNotFoundException(BOOK_NOT_FOUND));
         BookCoverImage bookCoverImage = bookCoverImageRepository.findByBook(book);
         String imageUrl = bookCoverImage != null ? bookCoverImage.getImage().getUrl() : null;
         List<BookCreatorMap> bookCreatorMaps = bookCreatorMapRepository.findByBook(book);
@@ -222,7 +223,7 @@ public class BookServiceImpl implements BookService {
 
     public Book getBook(Long id) {
         return bookRepository.findById(id).orElseThrow(() -> {
-            return new BookNotFoundException("book not found");
+            return new BookNotFoundException(BOOK_NOT_FOUND);
         });
     }
 
