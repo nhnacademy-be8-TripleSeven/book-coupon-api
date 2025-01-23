@@ -456,7 +456,7 @@ class BookServiceImplTest {
             () -> bookService.getBook(anyLong())
         );
 
-        assertEquals("book not found", bookNotFoundException.getMessage());
+        assertEquals("Book not found", bookNotFoundException.getMessage());
 
         verify(bookRepository, times(1)).findById(anyLong());
     }
