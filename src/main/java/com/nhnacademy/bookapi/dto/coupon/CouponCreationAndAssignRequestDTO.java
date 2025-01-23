@@ -27,4 +27,10 @@ public class CouponCreationAndAssignRequestDTO {
         this.recipientType = recipientType;
     }
 
+    public CouponCreationAndAssignRequestDTO(String name, Long id, Long categoryId, Long bookId) {
+        this.name = name;
+        this.couponPolicyId = id;
+        this.categoryId = categoryId;
+        this.bookId = bookId;
+    }
 }

@@ -10,6 +10,7 @@ import com.nhnacademy.bookapi.dto.bookcreator.BookCreatorDetail;
 import com.nhnacademy.bookapi.dto.page.PageDTO;
 import com.nhnacademy.bookapi.entity.*;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
+import com.nhnacademy.bookapi.exception.StockUnavailableException;
 import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.book.BookService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
@@ -21,6 +22,7 @@ import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -44,6 +46,7 @@ public class BookServiceImpl implements BookService {
     private final BookTypeRepository bookTypeRepository;
     private final BookImageRepository bookImageRepository;
     private final BookCreatorService bookCreatorService;
+    private final String BOOK_NOT_FOUND = "Book not found";
 
     @Override
     public Book createBook(Book book) {
@@ -54,7 +57,7 @@ public class BookServiceImpl implements BookService {
     public void deleteBook(Long id) {
         boolean exist = bookRepository.existsById(id);
         if (!exist) {
-            throw new BookNotFoundException("book not found");
+            throw new BookNotFoundException(BOOK_NOT_FOUND);
         }
         bookRepository.deleteById(id);
     }
@@ -71,7 +74,7 @@ public class BookServiceImpl implements BookService {
     @Cacheable(cacheNames = "bookDetails", key = "'book:detail:' + #id")
     @Override
     public SearchBookDetail searchBookDetailByBookId(Long id) {
-        Book book = bookRepository.findBookWithPublisherById(id).orElseThrow(() -> new BookNotFoundException("book not found"));
+        Book book = bookRepository.findBookWithPublisherById(id).orElseThrow(() -> new BookNotFoundException(BOOK_NOT_FOUND));
         BookCoverImage bookCoverImage = bookCoverImageRepository.findByBook(book);
         String imageUrl = bookCoverImage != null ? bookCoverImage.getImage().getUrl() : null;
         List<BookCreatorMap> bookCreatorMaps = bookCreatorMapRepository.findByBook(book);
@@ -188,7 +191,9 @@ public class BookServiceImpl implements BookService {
 
         Page<BookDetailResponseDTO> bookTypeItemByType = bookRepository.findBookTypeItemByType(
                 bookType, pageable);
-        addCreatorsByBookDetailResponse(bookTypeItemByType.getContent());
+        if(!bookTypeItemByType.isEmpty()){
+            addCreatorsByBookDetailResponse(bookTypeItemByType.getContent());
+        }
         return new PageDTO<>(bookTypeItemByType.getContent(), pageable.getPageNumber(), pageable.getPageSize(), bookTypeItemByType.getTotalElements());
     }
 
@@ -217,7 +222,9 @@ public class BookServiceImpl implements BookService {
     }
 
     public Book getBook(Long id) {
-        return bookRepository.findById(id).orElse(null);
+        return bookRepository.findById(id).orElseThrow(() -> {
+            return new BookNotFoundException(BOOK_NOT_FOUND);
+        });
     }
 
 
@@ -235,7 +242,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public List<OrderItemDTO> getCartItemsByIds(List<Long> bookIds) {
+    public List<OrderItemDTO> getOrderItemsByIds(List<Long> bookIds) {
         List<Book> books = bookRepository.findAllById(bookIds);
         List<OrderItemDTO> cartItems = new ArrayList<>();
         for (Book book : books) {
@@ -259,6 +266,23 @@ public class BookServiceImpl implements BookService {
         Book book = bookOptional.get();
 
         return book.getTitle();
+    }
+
+
+
+    @Transactional
+    public void bookReduceStock(List<BookStockRequestDTO> bookStockRequestDTOList) {
+        for (BookStockRequestDTO bookStockRequestDTO : bookStockRequestDTOList) {
+            Long bookId = bookStockRequestDTO.getBookId();
+            Book book = bookRepository.findById(bookId).orElseThrow(
+                () -> new BookNotFoundException(String.format("bookId: %d is not found", bookId)));
+            //재고 차감
+            if(bookStockRequestDTO.getStockToReduce() < book.getStock()) {
+                book.stockReduce(bookStockRequestDTO.getStockToReduce());
+            }else {
+                throw new StockUnavailableException(String.format("%s의 재고가 부족합니다.", book.getTitle()));
+            }
+        }
     }
 
 }

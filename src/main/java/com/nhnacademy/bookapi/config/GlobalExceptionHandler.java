@@ -1,6 +1,7 @@
 package com.nhnacademy.bookapi.config;
 
 import com.nhnacademy.bookapi.dto.error.ErrorResponse;
+import com.nhnacademy.bookapi.dto.member.MemberNotFoundException;
 import com.nhnacademy.bookapi.exception.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.support.converter.MessageConversionException;
@@ -87,40 +88,6 @@ public class GlobalExceptionHandler {
                 request.getDescription(false).replace("uri=", "")
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    // RabbitMQ 메시지 변환 실패 예외 처리
-    @ExceptionHandler(MessageConversionException.class)
-    public ResponseEntity<ErrorResponse> handleMessageConversionException(MessageConversionException ex, WebRequest request) {
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.BAD_GATEWAY.value(),
-                LocalDateTime.now(),
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_GATEWAY);
-    }
-
-
-    // RabbitMQ 통신 오류 예외 처리
-    @ExceptionHandler(CouponAssingAmqErrorException.class)
-    public ResponseEntity<ErrorResponse> handleRabbitMqException(CouponAssingAmqErrorException ex, WebRequest request) {
-        HttpStatus status;
-        if (ex.getMessage().contains("service unavailable")) {
-            status = HttpStatus.SERVICE_UNAVAILABLE; // RabbitMQ 서비스 불가
-        } else if (ex.getMessage().contains("communication timeout")) {
-            status = HttpStatus.GATEWAY_TIMEOUT; // RabbitMQ 응답 시간 초과
-        } else {
-            status = HttpStatus.BAD_GATEWAY; // 일반적인 RabbitMQ 통신 오류
-        }
-
-        ErrorResponse errorResponse = new ErrorResponse(
-                status.value(),
-                LocalDateTime.now(),
-                ex.getMessage(),
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(errorResponse, status);
     }
 
     @ExceptionHandler(TagAlreadyExistException.class)
@@ -281,6 +248,84 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(CouponCreationException.class)
+    public ResponseEntity<ErrorResponse> handleCouponCreationException(CouponCreationException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(CouponMinBiggerThanMaxException.class)
+    public ResponseEntity<ErrorResponse> handleCouponMinBiggerThanMaxException(CouponMinBiggerThanMaxException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(DiscountRateAndAmountException.class)
+    public ResponseEntity<ErrorResponse> handleDiscountRateAndAmountException(DiscountRateAndAmountException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleMemberNotFoundException(MemberNotFoundException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(InvalidRecipientTypeException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidRecipientTypeException(InvalidRecipientTypeException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ProcessWelcomeException.class)
+    public ResponseEntity<ErrorResponse> handleProcessWelcomeException(ProcessWelcomeException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(ProcessFirstcomeException.class)
+    public ResponseEntity<ErrorResponse> handleProcessFirstcomeException(ProcessFirstcomeException ex, WebRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 
     @ExceptionHandler(LikeAlreadyExistException.class)
     public ResponseEntity<ErrorResponse> handleLikeAlreadyExistException(LikeAlreadyExistException ex, WebRequest request) {

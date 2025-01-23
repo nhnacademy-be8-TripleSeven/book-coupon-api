@@ -111,8 +111,6 @@ public class Book {
         this.page = page;
     }
 
-
-
     public void update(String title, String isbn, LocalDate publishDate, int regularPrice, int salePrice, String description) {
         this.title = title;
         this.isbn13 = isbn;
@@ -120,6 +118,9 @@ public class Book {
         this.regularPrice = regularPrice;
         this.salePrice = salePrice;
         this.description = description;
+    }
+    public void stockReduce(int stock) {
+        this.stock = this.stock - stock;
     }
     public void addId(long id){
         this.id = id;

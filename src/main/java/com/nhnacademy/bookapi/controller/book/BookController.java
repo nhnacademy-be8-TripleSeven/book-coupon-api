@@ -5,6 +5,8 @@ import com.nhnacademy.bookapi.dto.book.BookApiDTO;
 import com.nhnacademy.bookapi.dto.book.BookCreatDTO;
 import com.nhnacademy.bookapi.dto.book.BookDTO;
 import com.nhnacademy.bookapi.dto.book.BookOrderDetailResponse;
+import com.nhnacademy.bookapi.dto.book.BookOrderRequestDTO;
+import com.nhnacademy.bookapi.dto.book.BookStockRequestDTO;
 import com.nhnacademy.bookapi.dto.book.BookUpdateDTO;
 import com.nhnacademy.bookapi.dto.book.OrderItemDTO;
 import com.nhnacademy.bookapi.dto.book.SearchBookDetail;
@@ -37,7 +39,7 @@ public class BookController {
             @ApiResponse(responseCode = "201", description = "책 생성 성공"),
             @ApiResponse(responseCode = "400", description = "잘못된 요청")
     })
-    @PostMapping("/admin/books/createBook")
+    @PostMapping("/admin/books")
     public ResponseEntity<Void> createBook(@RequestPart BookCreatDTO bookCreatDTO, @RequestPart(value = "coverImages", required = false) List<MultipartFile> coverImages, @RequestPart(value = "detailImages", required = false) List<MultipartFile> detailImages)
         throws IOException {
         bookCreatDTO.setCoverImages(coverImages);
@@ -46,7 +48,7 @@ public class BookController {
         return ResponseEntity.status(201).build();
     }
 
-    @GetMapping("/admin/books/keyword/{keyword}")
+    @GetMapping("/admin/books/search/{keyword}")
     public ResponseEntity<Page<BookDTO>> adminBookList(@PathVariable(name = "keyword") String keyword, Pageable pageable) {
         Page<BookDTO> bookList = bookMultiTableService.getAdminBookSearch(keyword, pageable);
         return ResponseEntity.ok(bookList);
@@ -58,7 +60,7 @@ public class BookController {
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
     //ToDo bookUpdate
-    @PostMapping("/admin/books/updateBook")
+    @PutMapping("/admin/books")
     public ResponseEntity<Void> updateBook(
         @RequestPart("bookUpdateDTO") BookUpdateDTO bookUpdateDTO,
         @RequestPart(value = "coverImage", required = false) List<MultipartFile> coverImages,
@@ -76,8 +78,8 @@ public class BookController {
             @ApiResponse(responseCode = "204", description = "책 삭제 성공"),
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
-    @DeleteMapping("/admin/books/delete")
-    public ResponseEntity<Void> deleteBook(@RequestParam("bookId") Long bookId) {
+    @DeleteMapping("/admin/books/{book-id}")
+    public ResponseEntity<Void> deleteBook(@PathVariable("book-id") Long bookId) {
         bookMultiTableService.deleteBook(bookId);
         return ResponseEntity.noContent().build();
     }
@@ -87,15 +89,15 @@ public class BookController {
             @ApiResponse(responseCode = "200", description = "책 조회 성공"),
             @ApiResponse(responseCode = "404", description = "책을 찾을 수 없음")
     })
-    @GetMapping("/books/{bookId}")
-    public ResponseEntity<SearchBookDetail> getBookDetail(@PathVariable Long bookId) {
+    @GetMapping("/books/{book-id}")
+    public ResponseEntity<SearchBookDetail> getBookDetail(@PathVariable(name = "book-id") Long bookId) {
         SearchBookDetail searchBookDetail = bookService.searchBookDetailByBookId(bookId);
         return ResponseEntity.ok(searchBookDetail);
     }
 
 
-    @GetMapping("/admin/books/{id}")
-    public ResponseEntity<BookDTO> getBook(@PathVariable Long id) {
+    @GetMapping("/admin/books/{book-id}")
+    public ResponseEntity<BookDTO> getBook(@PathVariable(name = "book-id") Long id) {
         BookDTO adminBookById = bookMultiTableService.getAdminBookById(id);
         return ResponseEntity.ok(adminBookById);
     }
@@ -135,27 +137,35 @@ public class BookController {
             @ApiResponse(responseCode = "200", description = "도서 조회 성공"),
             @ApiResponse(responseCode = "404", description = "해당 분류를 가진 도서를 찾을 수 없음")
     })
-    @GetMapping("/books/booktype/{bookType}")
-    public ResponseEntity<Void> getBooksByCategory(@PathVariable String bookType) {
+    @GetMapping("/books/book-type/{book-type}")
+    public ResponseEntity<Void> getBooksByCategory(@PathVariable(name = "book-type") String bookType) {
         return ResponseEntity.ok().build();
     }
 
 
-    @PostMapping("/books/cartItems")
-    public ResponseEntity<List<OrderItemDTO>> getCartItems(@RequestBody List<Long> bookIds) {
-        List<OrderItemDTO> orderItemDTOS = bookService.getCartItemsByIds(bookIds);
+    @PostMapping("/books/cart")
+    public ResponseEntity<List<OrderItemDTO>> getOrderItems(@RequestBody List<Long> bookIds) {
+        List<OrderItemDTO> orderItemDTOS = bookService.getOrderItemsByIds(bookIds);
         return ResponseEntity.ok(orderItemDTOS);
     }
 
-    @GetMapping("/books/{bookId}/name")
-    public ResponseEntity<String> getBookName(@PathVariable Long bookId) {
+    @GetMapping("/books/{book-id}/name")
+    public ResponseEntity<String> getBookName(@PathVariable(name = "book-id") Long bookId) {
         String name = bookService.getBookName(bookId);
         return ResponseEntity.ok(name);
     }
 
-    @GetMapping("/books/orderDetail/{bookId}")
-    public ResponseEntity<BookOrderDetailResponse> getBookOrderDetail(@PathVariable Long bookId) {
-        BookOrderDetailResponse bookOrderDetail = bookMultiTableService.getBookOrderDetail(bookId);
-        return ResponseEntity.ok(bookOrderDetail);
+    @PostMapping("/books/order-details")
+    public ResponseEntity<List<BookOrderDetailResponse>> getBookOrderDetail(@RequestBody List<BookOrderRequestDTO> bookOrderRequestDTOList) {
+        List<BookOrderDetailResponse> bookOrderDetails = bookMultiTableService.getBookOrderDetails(bookOrderRequestDTOList);
+        return ResponseEntity.ok(bookOrderDetails);
     }
+
+    @PutMapping("/books/stock-reduce")
+    public ResponseEntity<Void> orderStockReduce(@RequestBody List<BookStockRequestDTO> bookStockRequestDTOList) {
+        bookService.bookReduceStock(bookStockRequestDTOList);
+        return ResponseEntity.ok().build();
+    }
+
+
 }

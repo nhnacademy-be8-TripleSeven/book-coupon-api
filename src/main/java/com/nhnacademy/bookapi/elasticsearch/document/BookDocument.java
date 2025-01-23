@@ -1,5 +1,7 @@
 package com.nhnacademy.bookapi.elasticsearch.document;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.Builder;
@@ -13,7 +15,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Builder
 @Setter
 @Getter
-@Document(indexName = "nhn24_real")
+@Document(indexName = "nhn24_real_real")
 public class BookDocument {
 
     @Id
@@ -26,7 +28,7 @@ public class BookDocument {
     private String isbn13;
 
     @Field(type = FieldType.Date, name = "publishdate")
-    private LocalDateTime publishDate;
+    private LocalDate publishDate;
 
     @Field(name = "regularprice")
     private Integer regularPrice;

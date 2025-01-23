@@ -46,17 +46,16 @@ class CouponPolicyServiceImplTest {
                 30
         );
 
-        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> {
-            CouponPolicy policy = invocation.getArgument(0);
-            return new CouponPolicy(
-                    "Test Policy",
-                    1000L,
-                    5000L,
-                    new BigDecimal("0.15"),
-                    null,
-                    30
-            );
-        });
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation ->
+                new CouponPolicy(
+                        "Test Policy",
+                        1000L,
+                        5000L,
+                        new BigDecimal("0.15"),
+                        null,
+                        30
+                )
+        );
 
         // When
         CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);
@@ -66,7 +65,6 @@ class CouponPolicyServiceImplTest {
         assertEquals("Test Policy", response.getName());
         assertEquals(new BigDecimal("0.15"), response.getCouponDiscountRate());
     }
-
     @Test
     void testCreateCouponPolicy_ValidWithDiscountRate() {
         // Given
@@ -79,11 +77,9 @@ class CouponPolicyServiceImplTest {
                 30
         );
 
-        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> {
-            CouponPolicy policy = invocation.getArgument(0);
-            return policy;
-        });
-
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation ->
+                invocation.getArgument(0) // policy 변수 없이 바로 반환
+        );
         // When
         CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);
 
@@ -105,10 +101,9 @@ class CouponPolicyServiceImplTest {
                 30
         );
 
-        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation -> {
-            CouponPolicy policy = invocation.getArgument(0);
-            return policy;
-        });
+        when(couponPolicyRepository.save(any(CouponPolicy.class))).thenAnswer(invocation ->
+                invocation.getArgument(0) // policy 변수 없이 바로 반환
+        );
 
         // When
         CouponPolicyResponseDTO response = couponPolicyService.createCouponPolicy(request);

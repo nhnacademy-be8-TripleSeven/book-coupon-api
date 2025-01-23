@@ -1,80 +1,20 @@
-//package com.nhnacademy.bookapi.service.wrappable;
-//
-//import com.nhnacademy.bookapi.entity.Book;
-//import com.nhnacademy.bookapi.entity.Wrappable;
-//import com.nhnacademy.bookapi.exception.WrappableAlreadyExistException;
-//import com.nhnacademy.bookapi.exception.WrappableNotFoundException;
-//import com.nhnacademy.bookapi.repository.WrappableRepository;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.Optional;
-//
-//@Service
-//public class WrappableService {
-//
-//    private WrappableRepository wrappableRepository;
-//
-//    public WrappableService(WrappableRepository wrappableRepository) {
-//        this.wrappableRepository = wrappableRepository;
-//    }
-//
-//    public boolean addWrappable(Book book, boolean wrappable) {
-//        if (wrappableRepository.existsByBook(book)) {
-//            throw new WrappableAlreadyExistException("Book is already saved");
-//        }
-//        wrappableRepository.save(new Wrappable(book, wrappable));
-//        return true;
-//    }
-//
-//    public boolean updateWrappable(Book book, boolean newWrappable) {
-//        if (!wrappableRepository.existsByBook(book)) {
-//            throw new WrappableNotFoundException("Book is not found");
-//        }
-//        Wrappable wrappable = wrappableRepository.findByBook(book).get();
-//        wrappable.setWrappable(newWrappable);
-//        wrappableRepository.save(wrappable);
-//        return true;
-//    }
-//
-//    public boolean deleteWrappable(Book book) {
-//        Optional<Wrappable> wrappable = wrappableRepository.findByBook(book);
-//        if (wrappable.isEmpty()) {
-//            throw new WrappableNotFoundException("Book is not found");
-//        }
-//        wrappableRepository.delete(wrappable.get());
-//        return true;
-//    }
-//
-//    public Wrappable getWrappable(Book book) {
-//        Optional<Wrappable> wrappable = wrappableRepository.findByBook(book);
-//        if (wrappable.isEmpty()) {
-//            throw new WrappableNotFoundException("Book is not found");
-//        }
-//        return wrappable.get();
-//    }
-//}
+
 package com.nhnacademy.bookapi.service.wrappable;
 
-import com.nhnacademy.bookapi.entity.Book;
-import com.nhnacademy.bookapi.entity.Wrapper;
-import com.nhnacademy.bookapi.exception.BookNotFoundException;
-import com.nhnacademy.bookapi.exception.WrapperAlreadyExistException;
-import com.nhnacademy.bookapi.exception.WrapperNotFoundException;
+
 import com.nhnacademy.bookapi.repository.BookRepository;
 import com.nhnacademy.bookapi.repository.WrapperRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
+@RequiredArgsConstructor
 public class WrapperService {
 
     private final WrapperRepository wrapperRepository;
     private final BookRepository bookRepository;
 
-    public WrapperService(WrapperRepository wrapperRepository, BookRepository bookRepository) {
-        this.wrapperRepository = wrapperRepository;
-        this.bookRepository = bookRepository;
-    }
 
 }

@@ -1,7 +1,6 @@
 package com.nhnacademy.bookapi.dto.coupon;
 
 import com.nhnacademy.bookapi.entity.CouponPolicy;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,6 +41,7 @@ public class BookDetailResponseDTO {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate publishDate;
 
+    @Builder
     public BookDetailResponseDTO(Long id, String title, String publisher, int regularPrice, int salePrice,
         String coverUrl, LocalDate publishDate) {
         this.id = id;
