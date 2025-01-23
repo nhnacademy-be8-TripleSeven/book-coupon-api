@@ -288,4 +288,20 @@ class CouponControllerTest {
         // Then
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
     }
+
+    @Test
+    void testAssignBirthdayCoupons() {
+        // Given
+        BulkAssignResponseDTO responseDTO = new BulkAssignResponseDTO(true, 10);
+
+        when(couponService.assignMonthlyBirthdayCoupons()).thenReturn(responseDTO);
+
+        // When
+        ResponseEntity<BulkAssignResponseDTO> response = couponController.assignBirthdayCoupons();
+
+        // Then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(responseDTO, response.getBody());
+    }
+
 }

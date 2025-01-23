@@ -89,7 +89,16 @@ public class CouponController {
         return ResponseEntity.ok(results);
     }
 
-
+    @Operation(summary = "생일 쿠폰 발급", description = "생일인 회원들에게 쿠폰을 발급합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "쿠폰 발급 성공"),
+            @ApiResponse(responseCode = "404", description = "쿠폰 정책을 찾을 수 없음")
+    })
+    @GetMapping("/admin/coupons/assign-birthday-coupons")
+    public ResponseEntity<BulkAssignResponseDTO> assignBirthdayCoupons() {
+        BulkAssignResponseDTO response = couponService.assignMonthlyBirthdayCoupons();
+        return ResponseEntity.ok(response);
+    }
 
 
 

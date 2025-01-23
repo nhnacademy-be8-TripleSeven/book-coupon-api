@@ -22,6 +22,7 @@ import com.nhnacademy.bookapi.entity.Image;
 import com.nhnacademy.bookapi.entity.Publisher;
 import com.nhnacademy.bookapi.entity.Role;
 import com.nhnacademy.bookapi.entity.Type;
+import com.nhnacademy.bookapi.entity.Wrapper;
 import com.nhnacademy.bookapi.exception.BookNotFoundException;
 import com.nhnacademy.bookapi.exception.BookPopularityNotFoundException;
 import com.nhnacademy.bookapi.exception.StockUnavailableException;
@@ -168,6 +169,10 @@ public class BookMultiTableService {
             bookCreatDTO.getPage());
 
         bookService.createBook(book);
+
+        boolean wrap = bookCreatDTO.getBookTypes().stream()
+            .anyMatch(value -> value.getType().equals(Type.EBOOK.name()));
+        wrapperRepository.save(new Wrapper(book, wrap));
 
         publisherCreate(bookCreatDTO.getPublisherName(), book);
 
