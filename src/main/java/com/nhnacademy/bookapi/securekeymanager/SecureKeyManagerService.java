@@ -2,9 +2,11 @@ package com.nhnacademy.bookapi.securekeymanager;
 
 
 import com.nhnacademy.bookapi.dto.key.KeyResponseDto;
+import com.nhnacademy.bookapi.dto.key.KeyResponseDto.Body;
 import com.nhnacademy.bookapi.exception.KeyManagerException;
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
+import java.util.Optional;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClients;
 import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManagerBuilder;
@@ -112,12 +114,11 @@ public class SecureKeyManagerService {
                 KeyResponseDto.class
             );
 
-
-            if (response.getBody() != null && response.getBody() != null) {
-                return response.getBody().getBody().getSecret();
-            } else {
-                throw new KeyManagerException("Invalid response from Key Manager");
-            }
+            return Optional.of(response)
+                .map(ResponseEntity::getBody)
+                .map(KeyResponseDto::getBody)
+                .map(Body::getSecret)
+                .orElseThrow(() -> new KeyManagerException("Secret not found in the response body or response body is null"));
 
         } catch (KeyStoreException | IOException | CertificateException
                  | NoSuchAlgorithmException | UnrecoverableKeyException
