@@ -20,12 +20,7 @@ spring:
     username: project_be8_triple_seven
     password: eo1cItEUe@J2Tym
     driver-class-name: com.mysql.cj.jdbc.Driver
-    type: org.apache.commons.dbcp2.BasicDataSource
-    dbcp2:
-      initial-size: 5           # 초기 커넥션 개수
-      max-total: 10             # 최대 커넥션 개수
-      min-idle: 2               # 최소 유휴 커넥션 개수
-      max-idle: 5               # 최대 유휴 커넥션 개수
+
 
 eureka:
   client:
