@@ -12,7 +12,7 @@ import javax.sql.DataSource;
 
 @RequiredArgsConstructor
 @Configuration
-@Profile("instance1, instance2")
+@Profile("{instance1, instance2}")
 public class DataSourceConfig {
 
 
