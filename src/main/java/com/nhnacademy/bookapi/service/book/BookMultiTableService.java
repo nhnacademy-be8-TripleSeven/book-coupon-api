@@ -42,6 +42,7 @@ import com.nhnacademy.bookapi.service.book_type.BookTypeService;
 import com.nhnacademy.bookapi.service.bookcreator.BookCreatorService;
 import com.nhnacademy.bookapi.service.category.CategoryService;
 import com.nhnacademy.bookapi.service.image.ImageService;
+import com.nhnacademy.bookapi.service.object.MinioObjectStorage;
 import com.nhnacademy.bookapi.service.object.NaverObjectStorageService;
 import com.nhnacademy.bookapi.service.review.ReviewService;
 import com.nhnacademy.bookapi.service.tag.TagService;
@@ -84,8 +85,9 @@ public class BookMultiTableService {
     private final BookRepository bookRepository;
     private final BookTagService bookTagService;
     private final BookPopularityService bookPopularityService;
-    private final NaverObjectStorageService naverObjectStorageService;
     private final BookCouponRepository bookCouponRepository;
+
+    private final MinioObjectStorage minioObjectStorage;
 
     @Transactional(readOnly = true)
     public BookDTO getAdminBookById(Long id) {
@@ -278,7 +280,7 @@ public class BookMultiTableService {
 
         for (MultipartFile multipartFile : coverImages) {
             Image coverImage = imageService.getCoverImage(book.getId());
-            String path = naverObjectStorageService.uploadFile(isbn + "_cover.jpg", multipartFile);
+            String path = minioObjectStorage.uploadImage(isbn + "_cover.jpg", multipartFile);
 
             if (coverImage != null) {
                 coverImage.update(path);
@@ -297,7 +299,7 @@ public class BookMultiTableService {
 
         for (MultipartFile multipartFile : detailImages) {
             Image detailImage = imageService.getDetailImage(book.getId());
-            String path = naverObjectStorageService.uploadFile(isbn + "_detail.jpg", multipartFile);
+            String path = minioObjectStorage.uploadImage(isbn + "_detail.jpg", multipartFile);
             if (detailImage != null) {
                 detailImage.update(path);
             } else {

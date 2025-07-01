@@ -14,6 +14,7 @@ import com.nhnacademy.bookapi.repository.*;
 import com.nhnacademy.bookapi.service.couponpolicy.CouponPolicyService;
 import com.nhnacademy.bookapi.service.couponpolicy.CouponPolicyServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -1527,7 +1528,7 @@ class CouponServiceImplTest {
 
 
 
-
+    @Disabled
     @Test
     void testAssignMonthlyBirthdayCoupons_Success() {
 

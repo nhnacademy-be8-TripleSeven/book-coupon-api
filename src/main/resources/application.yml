@@ -5,7 +5,7 @@ spring:
   rabbitmq:
     username: admin
     password: nhnacademy123!
-    host: 133.186.241.167
+    host: s4.java21.net
     port: 5672
     listener:
       simple:
@@ -29,7 +29,7 @@ spring:
       max-request-size: 100MB
 
   elasticsearch:
-    uris: http://115.94.72.197:9200
+    uris: http://s4.java21.net:9200
     username: elastic
     password: nhnacademy123!
   data:
@@ -37,7 +37,7 @@ spring:
       repositories:
         enabled: true
     redis:
-      host: 133.186.241.167
+      host: s4.java21.net
       port: 6379
       password: '*N2vya7H@muDTwdNMR!'
       database: 227

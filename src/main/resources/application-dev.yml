@@ -4,9 +4,9 @@ spring:
     name: book-coupon-api
 
   datasource:
-    url: jdbc:mysql://133.186.241.167:3306/nhn_academy_37?serverTimezone=UTC&characterEncoding=UTF-8
-    username: nhn_academy_37
-    password: xo-5vMk2*gQpu*f1
+    url: jdbc:mysql://s4.java21.net:13306/project_be8_triple_seven_book_coupon?serverTimezone=UTC&characterEncoding=UTF-8
+    username: project_be8_triple_seven
+    password: eo1cItEUe@J2Tym
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 
@@ -34,16 +34,23 @@ eureka:
     fetch-registry: true
     register-with-eureka: true
     service-url:
-      defaultZone: http://admin:1234@localhost:8761/eureka
+      defaultZone: http://admin:1234@localhost:10138/eureka
   instance:
     instance-id: book-coupon-api
     hostname: localhost
     prefer-ip-address: true
 
+
 P12_PASSWORD: nhn24
 
 server:
   port: 8086
+
+minio:
+  url: http://storage.java21.net:8000
+  access-key: b9CBQngdRLNtYlQjUjRm
+  secret-key: MXHU0nyxHlxNITKjOuNo0gUAtCFmkrENX1PCfMKX
+  bucket: nhn24-bucket
 
 
 #??

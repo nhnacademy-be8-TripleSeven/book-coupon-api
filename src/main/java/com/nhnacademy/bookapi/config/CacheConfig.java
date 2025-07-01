@@ -62,9 +62,9 @@ public class CacheConfig {
             .entryTtl(Duration.ofMinutes(30));
 
         Map<String, RedisCacheConfiguration> cacheConfigurations = new HashMap<>();
-        cacheConfigurations.put("books", redisCacheConfiguration.entryTtl(Duration.ofMinutes(60)));
-        cacheConfigurations.put("categories", redisCacheConfiguration.entryTtl(Duration.ofMinutes(120)));
-        cacheConfigurations.put("bookDetail", redisCacheConfiguration.entryTtl(Duration.ofMinutes(30)));
+        cacheConfigurations.put("books", redisCacheConfiguration.entryTtl(Duration.ofMinutes(3)));
+        cacheConfigurations.put("categories", redisCacheConfiguration.entryTtl(Duration.ofMinutes(30)));
+        cacheConfigurations.put("bookDetail", redisCacheConfiguration.entryTtl(Duration.ofMinutes(3)));
 
         return RedisCacheManager.RedisCacheManagerBuilder
             .fromConnectionFactory(redisConnectionFactory)
