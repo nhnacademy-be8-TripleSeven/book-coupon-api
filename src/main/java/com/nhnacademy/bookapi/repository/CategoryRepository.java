@@ -4,6 +4,7 @@ package com.nhnacademy.bookapi.repository;
 import com.nhnacademy.bookapi.entity.Category;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,10 +26,12 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findByNameContaining(String name);
 
+    @EntityGraph("parent")
     @Query("select c from Category c where c.level = :level")
     List<Category> findByLevel(int level);
 
-    @Query("SELECT c FROM Category c LEFT JOIN FETCH c.children WHERE c.parent IS NULL")
+    @EntityGraph("parent")
+    @Query("SELECT c FROM Category c WHERE c.parent IS NULL")
     List<Category> findAllRootCategories();
 
     List<Category> findByParentIdAndLevel(Long parentId, int level);

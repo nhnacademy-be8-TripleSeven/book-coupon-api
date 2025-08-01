@@ -222,9 +222,7 @@ public class BookServiceImpl implements BookService {
     }
 
     public Book getBook(Long id) {
-        return bookRepository.findById(id).orElseThrow(() -> {
-            return new BookNotFoundException(BOOK_NOT_FOUND);
-        });
+        return bookRepository.findById(id).orElseThrow(() -> new BookNotFoundException(BOOK_NOT_FOUND));
     }
 
 

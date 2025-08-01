@@ -11,6 +11,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@NamedEntityGraph(
+        name = "parent",
+        attributeNodes = @NamedAttributeNode("parent")
+)
 public class Category {
 
     @Id

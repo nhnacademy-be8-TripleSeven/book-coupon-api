@@ -51,6 +51,7 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findById(categoryId).orElse(null);
     }
 
+    @Transactional
     @Override
     public void categorySave(Category category, BookCategory bookCategory) {
         categoryRepository.save(category);
@@ -71,6 +72,7 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.save(saveCategory);
     }
 
+    @Transactional
     public void categorySaveList(List<CategoryDTO> categoryDTOList) {
         categoryDTOList.forEach(categoryDTO -> categoryRepository.save(new Category(categoryDTO.getName(), categoryDTO.getLevel())));
     }
