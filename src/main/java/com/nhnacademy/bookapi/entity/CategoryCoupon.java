@@ -9,6 +9,7 @@ import lombok.*;
 @AllArgsConstructor
 @Entity
 @Builder
+@NamedEntityGraph(name = "category", attributeNodes = @NamedAttributeNode("category"))
 public class CategoryCoupon {
 
     @Id

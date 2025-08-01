@@ -3,6 +3,7 @@ package com.nhnacademy.bookapi.repository;
 import com.nhnacademy.bookapi.entity.Book;
 import com.nhnacademy.bookapi.entity.BookCoupon;
 import com.nhnacademy.bookapi.entity.Coupon;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,6 +12,8 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
 public interface BookCouponRepository extends JpaRepository<BookCoupon, Long> {
+
+    @EntityGraph("book")
     Optional<BookCoupon> findByCoupon(Coupon coupon);
 
 

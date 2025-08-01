@@ -2,11 +2,14 @@ package com.nhnacademy.bookapi.repository;
 
 import com.nhnacademy.bookapi.entity.CategoryCoupon;
 import com.nhnacademy.bookapi.entity.Coupon;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
 public interface CategoryCouponRepository extends JpaRepository<CategoryCoupon, Long> {
+
+    @EntityGraph("category")
     Optional<CategoryCoupon> findByCoupon(Coupon coupon);
 
 //    @Query("SELECT cc FROM CategoryCoupon cc JOIN FETCH cc.category WHERE cc.coupon = :coupon")

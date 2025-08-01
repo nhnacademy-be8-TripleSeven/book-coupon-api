@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 @Entity
+@NamedEntityGraph(name = "book", attributeNodes = @NamedAttributeNode("book"))
 public class BookCoupon {
 
     @Id

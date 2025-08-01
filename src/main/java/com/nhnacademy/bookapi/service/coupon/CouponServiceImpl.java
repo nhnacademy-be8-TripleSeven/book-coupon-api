@@ -52,6 +52,7 @@ public class CouponServiceImpl implements CouponService {
 
 
     // 쿠폰 생성 (이름, 정책)
+    @Transactional
     @Override
     public BaseCouponResponseDTO createCoupon(CouponCreationRequestDTO request) {
         CouponPolicy policy = couponPolicyRepository.findById(request.getCouponPolicyId())
@@ -65,6 +66,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     // 도서 쿠폰 생성 (이름, 정책 아이디, 도서 아이디)
+    @Transactional
     @Override
     public BookCouponResponseDTO createBookCoupon(BookCouponCreationRequestDTO request) {
         Book book = bookRepository.findById(request.getBookId())
@@ -85,6 +87,7 @@ public class CouponServiceImpl implements CouponService {
     }
 
     // 카테고리 쿠폰 생성 (이름, 정책 아이디, 카테고리 아이디)
+    @Transactional
     @Override
     public CategoryCouponResponseDTO createCategoryCoupon(CategoryCouponCreationRequestDTO request) {
         Category category = categoryRepository.findById(request.getCategoryId())
